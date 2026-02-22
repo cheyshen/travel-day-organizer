@@ -1,0 +1,78 @@
+// =============================================================================
+// SAMPLE CHECKLIST — Default prep items for Hawaii trip
+// =============================================================================
+
+export const sampleChecklist = [
+  {
+    id: 'chk-001',
+    title: 'Book airport parking or schedule Uber',
+    category: 'transport',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:00:00-06:00',
+    sortOrder: 0,
+  },
+  {
+    id: 'chk-002',
+    title: 'Print boarding passes',
+    category: 'documents',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:01:00-06:00',
+    sortOrder: 1,
+  },
+  {
+    id: 'chk-003',
+    title: 'Pack sunscreen and reef-safe sunblock',
+    category: 'packing',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:02:00-06:00',
+    sortOrder: 2,
+  },
+  {
+    id: 'chk-004',
+    title: 'Confirm hotel reservations',
+    category: 'booking',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:03:00-06:00',
+    sortOrder: 3,
+  },
+  {
+    id: 'chk-005',
+    title: 'Download offline maps for Kauai & Maui',
+    category: 'transport',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:04:00-06:00',
+    sortOrder: 4,
+  },
+  {
+    id: 'chk-006',
+    title: 'Check passport expiration date',
+    category: 'documents',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:05:00-06:00',
+    sortOrder: 5,
+  },
+  {
+    id: 'chk-007',
+    title: 'Pack medications and first-aid kit',
+    category: 'health',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:06:00-06:00',
+    sortOrder: 6,
+  },
+  {
+    id: 'chk-008',
+    title: 'Set up out-of-office email reply',
+    category: 'other',
+    completed: false,
+    completedAt: null,
+    createdAt: '2026-02-01T10:07:00-06:00',
+    sortOrder: 7,
+  },
+]
