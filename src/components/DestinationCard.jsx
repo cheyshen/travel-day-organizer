@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { MapPin, CalendarDays, Building2 } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows } from '../styles'
+import { typography, spacing, radius, shadows, glass } from '../styles'
 import { formatShortDate } from '../utils/dateUtils'
 
 // =============================================================================
@@ -17,13 +17,11 @@ export default function DestinationCard({ destination, dayCount, eventCount, onT
       whileTap={{ scale: 0.98 }}
       onClick={onTap}
       style={{
-        backgroundColor: colors.surface,
+        ...glass.card,
         borderRadius: radius.xl,
-        border: `1px solid ${colors.border}`,
         borderLeft: `4px solid ${destination.color}`,
         padding: spacing.xl,
         cursor: 'pointer',
-        boxShadow: shadows.card,
         flex: 1,
         minWidth: 0,
       }}

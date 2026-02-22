@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Plus, MapPin } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette, glass } from '../styles'
+import { typography, spacing, radius, shadows, tokens, warmPalette, glass, glossyBg } from '../styles'
 import { formatTripDate, getDayIndex, getAdjacentDates, isTodayDate } from '../utils/dateUtils'
 import { getNowPosition, formatTime } from '../utils/timeUtils'
 import TimeBlock from '../components/TimeBlock'
@@ -109,7 +109,7 @@ export default function DayTimelineView({ onNavigate }) {
   const allDone = events.length > 0 && events.every(e => e.status === 'done')
 
   return (
-    <div style={{ backgroundColor: warmPalette.warmGray, minHeight: '100vh' }}>
+    <div style={{ background: glossyBg, minHeight: '100vh' }}>
       {/* Sticky header — glassmorphic */}
       <div style={{
         position: 'sticky',
@@ -131,9 +131,11 @@ export default function DayTimelineView({ onNavigate }) {
             style={{
               width: 44, height: 44,
               borderRadius: radius.sm,
-              border: `1.5px solid ${adjacent.prev ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.06)'}`,
-              backgroundColor: '#FFFFFF',
-              boxShadow: adjacent.prev ? shadows.sm : 'none',
+              border: adjacent.prev ? '1px solid rgba(255,255,255,0.45)' : '1px solid rgba(0,0,0,0.06)',
+              background: adjacent.prev ? 'rgba(255,255,255,0.65)' : 'transparent',
+              backdropFilter: adjacent.prev ? 'blur(12px)' : 'none',
+              WebkitBackdropFilter: adjacent.prev ? 'blur(12px)' : 'none',
+              boxShadow: adjacent.prev ? shadows.glass : 'none',
               cursor: adjacent.prev ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               opacity: adjacent.prev ? 1 : 0.3,
@@ -182,9 +184,11 @@ export default function DayTimelineView({ onNavigate }) {
               style={{
                 width: 44, height: 44,
                 borderRadius: radius.sm,
-                border: `1.5px solid ${adjacent.next ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.06)'}`,
-                backgroundColor: '#FFFFFF',
-                boxShadow: adjacent.next ? shadows.sm : 'none',
+                border: adjacent.next ? '1px solid rgba(255,255,255,0.45)' : '1px solid rgba(0,0,0,0.06)',
+                background: adjacent.next ? 'rgba(255,255,255,0.65)' : 'transparent',
+                backdropFilter: adjacent.next ? 'blur(12px)' : 'none',
+                WebkitBackdropFilter: adjacent.next ? 'blur(12px)' : 'none',
+                boxShadow: adjacent.next ? shadows.glass : 'none',
                 cursor: adjacent.next ? 'pointer' : 'default',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 opacity: adjacent.next ? 1 : 0.3,
@@ -203,6 +207,8 @@ export default function DayTimelineView({ onNavigate }) {
             gap: spacing.sm,
             padding: `${spacing.sm}px ${spacing.lg}px`,
             backgroundColor: dest.accentLight,
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             borderTop: `1px solid ${dest.color}30`,
           }}>
             <MapPin size={14} color={dest.color} strokeWidth={2.5} />
@@ -261,10 +267,8 @@ export default function DayTimelineView({ onNavigate }) {
                     }}>
                       {showHourLabel && (
                         <span style={{
-                          ...typography.helper,
-                          fontWeight: 600,
+                          ...typography.caption,
                           color: warmPalette.textLight,
-                          fontSize: 12,
                         }}>
                           {startHour}
                         </span>
@@ -300,8 +304,8 @@ export default function DayTimelineView({ onNavigate }) {
                   alignItems: 'center',
                   gap: spacing.sm,
                   padding: `${spacing.md}px ${spacing.lg}px`,
-                  backgroundColor: warmPalette.warmGray,
-                  border: `1.5px dashed #D6D3CE`,
+                  ...glass.subtle,
+                  border: `1.5px dashed ${colors.border}`,
                   borderRadius: radius.md,
                   cursor: 'pointer',
                   color: warmPalette.textMedium,

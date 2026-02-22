@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { X, Trash2, CheckCircle2, Clock, MapPin, FileText, Hash, Tag } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, tokens, warmPalette, glass } from '../styles'
 import { formatTime } from '../utils/timeUtils'
 import { generateId } from '../utils/timeUtils'
 import { EVENT_TYPES } from '../data/eventTypes'
@@ -103,10 +103,9 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
           width: '100%',
           maxWidth: 480,
           maxHeight: '90vh',
-          backgroundColor: '#FFFFFF',
+          ...glass.sheet,
           borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
           overflow: 'auto',
-          boxShadow: shadows.xl,
         }}
       >
         {/* Drag handle */}
@@ -123,7 +122,9 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
           borderBottom: tokens.cardBorder,
           position: 'sticky',
           top: 0,
-          backgroundColor: '#FFFFFF',
+          background: glass.sheet.background,
+          backdropFilter: glass.sheet.backdropFilter,
+          WebkitBackdropFilter: glass.sheet.WebkitBackdropFilter,
           zIndex: 10,
         }}>
           <h3 style={{ ...typography.sectionHeader, color: warmPalette.textDark }}>
@@ -140,12 +141,12 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                   color: event.status === 'done' ? colors.success : colors.textSecondary,
                   border: 'none',
                   borderRadius: radius.sm,
-                  fontSize: 12,
-                  fontWeight: 500,
+                  fontSize: 13,
+                  fontWeight: 600,
                   cursor: 'pointer',
                 }}
               >
-                <CheckCircle2 size={14} />
+                <CheckCircle2 size={16} strokeWidth={2} />
                 {event.status === 'done' ? 'Done' : 'Mark Done'}
               </button>
             )}
@@ -153,29 +154,26 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
               onClick={onClose}
               style={{
                 width: 36, height: 36, borderRadius: 18,
-                backgroundColor: warmPalette.warmGray,
+                backgroundColor: '#EDEAE5',
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <X size={16} color={warmPalette.textMedium} />
+              <X size={18} color={warmPalette.textMedium} strokeWidth={2} />
             </button>
           </div>
         </div>
 
         <div style={{ padding: spacing.lg }}>
           {/* Type picker */}
-          <label style={{ ...typography.caption, color: colors.textSecondary, display: 'block', marginBottom: spacing.sm }}>
+          <label style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: warmPalette.textMedium, display: 'block', marginBottom: spacing.sm }}>
             Type
           </label>
           <div style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
             gap: spacing.sm,
-            overflowX: 'auto',
-            paddingBottom: spacing.md,
             marginBottom: spacing.lg,
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
           }}>
             {typeOptions.map(opt => {
               const Icon = opt.icon
@@ -188,21 +186,21 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: 3,
-                    padding: `${spacing.sm}px ${spacing.md}px`,
-                    backgroundColor: isSelected ? opt.bgColor : warmPalette.warmGray,
+                    padding: `${spacing.md}px ${spacing.sm}px`,
+                    backgroundColor: isSelected ? opt.bgColor : '#EDEAE5',
                     border: isSelected ? `2px solid ${opt.color}` : '2px solid transparent',
                     borderRadius: radius.md,
                     cursor: 'pointer',
-                    minWidth: 56,
-                    flexShrink: 0,
+                    minHeight: 64,
                   }}
                 >
-                  <Icon size={18} color={isSelected ? opt.color : warmPalette.textLight} strokeWidth={1.5} />
+                  <Icon size={22} color={isSelected ? opt.color : warmPalette.textMedium} strokeWidth={2} />
                   <span style={{
-                    fontSize: 9,
-                    fontWeight: isSelected ? 600 : 400,
-                    color: isSelected ? opt.color : warmPalette.textLight,
+                    fontSize: 11,
+                    fontWeight: isSelected ? 600 : 500,
+                    color: isSelected ? opt.color : warmPalette.textMedium,
                   }}>
                     {opt.label}
                   </span>
@@ -286,7 +284,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
               onChange={e => update('notes', e.target.value)}
               placeholder="Any extra details..."
               rows={3}
-              style={{ ...inputStyle, resize: 'vertical', minHeight: 60 }}
+              style={{ ...inputStyle, resize: 'vertical', minHeight: 80 }}
             />
           </FieldGroup>
 
@@ -335,7 +333,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                   justifyContent: 'center',
                 }}
               >
-                <Trash2 size={18} />
+                <Trash2 size={20} strokeWidth={2} />
               </button>
             )}
             <button
@@ -348,7 +346,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                 color: formData.title.trim() ? colors.textOnAccent : colors.textMuted,
                 border: 'none',
                 borderRadius: radius.md,
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: 600,
                 cursor: formData.title.trim() ? 'pointer' : 'default',
               }}
@@ -423,14 +421,17 @@ function FieldGroup({ label, icon: Icon, children }) {
   return (
     <div style={{ marginBottom: spacing.lg }}>
       <label style={{
-        ...typography.caption,
+        fontSize: 13,
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
         color: warmPalette.textMedium,
         display: 'flex',
         alignItems: 'center',
         gap: spacing.xs,
         marginBottom: spacing.sm,
       }}>
-        {Icon && <Icon size={12} strokeWidth={1.5} />}
+        {Icon && <Icon size={14} strokeWidth={2} />}
         {label}
       </label>
       {children}
@@ -440,11 +441,10 @@ function FieldGroup({ label, icon: Icon, children }) {
 
 const inputStyle = {
   width: '100%',
-  padding: `${spacing.md}px`,
-  backgroundColor: warmPalette.warmGray,
-  border: `1px solid rgba(0,0,0,0.08)`,
-  borderRadius: radius.sm,
-  fontSize: 14,
+  padding: `${spacing.lg}px`,
+  ...glass.input,
+  borderRadius: radius.md,
+  fontSize: 16,
   color: warmPalette.textDark,
   outline: 'none',
   fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",

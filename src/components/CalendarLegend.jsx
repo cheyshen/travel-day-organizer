@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { typography, spacing, radius, shadows, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
 
 // =============================================================================
 // CALENDAR LEGEND — Interactive destination filter pills
@@ -40,8 +40,8 @@ export default function CalendarLegend({ destinations, days, activeFilter, onFil
               border: isActive
                 ? `2px solid ${dest.color}`
                 : '2px solid transparent',
-              backgroundColor: isActive ? dest.accentLight : '#FFFFFF',
-              boxShadow: isActive ? shadows.md : shadows.sm,
+              ...(isActive ? { backgroundColor: dest.accentLight } : glass.badge),
+              boxShadow: isActive ? shadows.md : glass.badge.boxShadow,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}

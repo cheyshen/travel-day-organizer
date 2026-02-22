@@ -4,7 +4,7 @@
 
 **Live URL:** `http://192.168.1.198`
 **Deployment:** Standalone K8s namespace `travel`
-**Current Version:** v0.0.37
+**Current Version:** v0.0.49
 
 ---
 
@@ -515,33 +515,60 @@ border: 1px solid rgba(0,0,0,0.06)
 ```
 Used on: calendar grid, progress bar track, empty states (checklist, documents, day timeline).
 
-## Glassmorphism System
+## Glassmorphism System (Liquid Glass)
 
-Frosted glass effects using `backdrop-filter: blur()`. Four variants defined in `styles.js`:
+All elevated surfaces use frosted glass tokens from `styles.js`. The system creates a 3-tier depth hierarchy against the flat warm page background (`glossyBg: #F0EDE8`).
 
-| Variant | Background | Blur | Border | Use Case |
-|---------|-----------|------|--------|----------|
-| `glass.frosted` | `rgba(255,255,255,0.2)` | 24px | `1px solid rgba(255,255,255,0.3)` | Hero badges, photo overlays, time badges |
-| `glass.frostedDark` | `rgba(0,0,0,0.12)` | 20px | `1px solid rgba(255,255,255,0.12)` | Island badge on destination card photos |
-| `glass.frostedMedium` | `rgba(255,255,255,0.55)` | 30px | `1px solid rgba(255,255,255,0.5)` | Available for medium-opacity overlays |
-| `glass.frostedLight` | `rgba(240,237,232,0.85)` | 20px | `1px solid rgba(255,255,255,0.5)` | Sticky headers (DayTimeline, Status) |
+### Glass Token Reference
+
+| Token | Background | Blur | Border | Shadow | Use Case |
+|-------|-----------|------|--------|--------|----------|
+| `glass.frosted` | `rgba(255,255,255,0.2)` | 24px | white 0.3 | — | Hero badges, photo overlays |
+| `glass.frostedDark` | `rgba(0,0,0,0.12)` | 20px | white 0.12 | — | Dark overlays on photos |
+| `glass.frostedMedium` | `rgba(255,255,255,0.55)` | 30px | white 0.5 | — | Medium-opacity overlays |
+| `glass.frostedLight` | `rgba(240,237,232,0.85)` | 20px | black 0.08 | — | Sticky headers |
+| `glass.card` | `rgba(255,255,255,0.82)` | 20px | black 0.06 | `0 2px 8px rgba(0,0,0,0.08)` | Event cards, info rows, destination cards |
+| `glass.panel` | `rgba(255,255,255,0.72)` | 24px | black 0.05 | `0 1px 4px rgba(0,0,0,0.06)` | Content panels (HeroView, CalendarView) |
+| `glass.sheet` | `rgba(255,255,255,0.92)` | 24px | black 0.08 | `0 2px 8px rgba(0,0,0,0.06)` | Bottom sheets (EventEditor, ChecklistEditor) |
+| `glass.nav` | `rgba(20,28,40,0.88)` | 20px | white 0.08 | `0 8px 32px rgba(0,0,0,0.25)` | Bottom navigation bar |
+| `glass.input` | `rgba(237,234,229,0.5)` | 8px | black 0.1 | — | Form fields inside sheets |
+| `glass.subtle` | `rgba(237,234,229,0.65)` | 12px | black 0.05 | `0 1px 4px rgba(0,0,0,0.04)` | Buffer blocks, empty states, day chips |
+| `glass.tooltip` | `rgba(255,255,255,0.90)` | 20px | black 0.08 | `0 12px 40px rgba(0,0,0,0.16)` | Calendar tooltip popover |
+| `glass.badge` | `rgba(255,255,255,0.60)` | 8px | black 0.06 | — | Legend pills, small glass badges |
+
+### Visual Hierarchy (3-tier depth)
+
+```
+Page background (#F0EDE8)
+  └─ glass.panel (72% white) — content panels, calendar wrapper
+       └─ glass.card (82% white) — event cards, info rows, destinations
+            └─ glass.sheet (92% white) — bottom sheets, modals (highest readability)
+```
 
 ### Glass Usage by Component
 
-| Component | Glass Variant | Purpose |
-|-----------|-------------|---------|
-| HeroView — "X DAYS" pill | `glass.frosted` | Top-left status badge over hero photo |
-| HeroView — "Upcoming" pill | `glass.frosted` | Top-right status badge over hero photo |
-| HeroView — "Day X" badge | `glass.frosted` | Time badge on featured highlight card |
-| HeroView — Island badge (DestCard) | `glass.frostedDark` | MapPin + island name over card photo |
-| DayTimelineView — Sticky header | `glass.frostedLight` | Day navigation bar with blur |
-| StatusView — Sticky header | `glass.frostedLight` | Checklist title + progress bar |
+| Component | Token | Parent Surface |
+|-----------|-------|---------------|
+| EventCard, TimeBlock, ChecklistItemRow, DocumentCard | `glass.card` | Page bg or panel |
+| DestinationCard, InfoRow (EventDetail) | `glass.card` | Page bg |
+| HeroView content panel, CalendarView content area | `glass.panel` | Page bg |
+| EventEditor, ChecklistEditor, DocumentUploader | `glass.sheet` | Overlay |
+| DayTimelineView sticky header, StatusView header | `glass.frostedLight` | Page bg |
+| EventDetailView header | `glass.frostedLight` | Page bg |
+| Bottom navigation bar | `glass.nav` | Page bg |
+| CalendarTooltip | `glass.tooltip` | Calendar grid |
+| CalendarLegend inactive pills | `glass.badge` | Panel |
+| BufferBlock (normal), EmptyState, day chips | `glass.subtle` | Page bg |
+| Form inputs inside sheets | `glass.input` | Sheet |
+| Hero photo badges | `glass.frosted` | Photo |
+| DestCard island badge | `glass.frostedDark` | Photo |
 
-### Glass Implementation Notes
-- Always include `WebkitBackdropFilter` alongside `backdropFilter` for Safari compatibility
-- Glass tokens are spread as full style objects: `...glass.frosted`
-- Glass effects are used exclusively on overlays and sticky headers, never on content cards
-- All glass borders use semi-transparent white for the frosted edge highlight
+### Glass Implementation Rules
+- Always spread as full style objects: `...glass.card`
+- Always include `WebkitBackdropFilter` alongside `backdropFilter` (Safari)
+- Borders use dark alpha (`rgba(0,0,0,...)`) for visible separation against warm bg
+- No blur on DayCard grid cells (42 simultaneous blur layers hurts scroll performance)
+- StatusBadge and AlertCard stay solid — semantic status colors must be instantly recognizable
 
 ## Warm Palette Tokens
 
@@ -559,8 +586,8 @@ Extended color tokens for the warm, luxury aesthetic (exported from `styles.js`)
 | `gold` | `#B8963E` | Maui destination accent |
 | `goldSoft` | `rgba(184,150,62,0.12)` | Gold background tint |
 
-### Card Background Convention
-All card and shape backgrounds use pure `#FFFFFF` (white) as of v0.0.27. This applies to: event cards, checklist rows, document cards, destination cards, calendar grid, editor sheets, nav buttons, info rows, and all interactive surfaces. Buffer event cards use `#F3F1EE` (warm off-white) to visually distinguish them from full image cards. Page-level containers (minHeight: 100vh) use `warmGray` (#EDEAE5). Empty states and the progress bar track use `accentSoft` (teal tint) for visual prominence.
+### Card Background Convention (v0.0.47+)
+All elevated surfaces use glass tokens (translucent with backdrop blur). Page backgrounds use flat `glossyBg` (#F0EDE8). Cards use `glass.card` (82% white), panels use `glass.panel` (72% white), sheets use `glass.sheet` (92% white). Buffer blocks use `glass.subtle` with `warmPalette.goldSoft` tint. Empty states use `glass.subtle`. No solid white (#FFFFFF) backgrounds on cards — all use glass tokens for the liquid glass aesthetic.
 
 ## Layout Tokens
 
@@ -576,7 +603,7 @@ All card and shape backgrounds use pure `#FFFFFF` (white) as of v0.0.27. This ap
 
 The palette draws from natural island landscapes — ocean teals, coral warmth, sandy beiges, and sunset golds. Light variants create breathable, airy interfaces typical of premium travel publications. Large hero text (42px) paired with warm cream backgrounds creates an editorial, magazine-like experience. Generous spacing avoids density, mirroring high-end travel design where white space equals luxury.
 
-**Styling approach:** Clean drop shadows + glassmorphism. Shadows are soft, single-direction, and minimal — creating gentle depth without the embossed plastic look of neumorphism. Glass effects (backdrop blur) are reserved for overlays and sticky headers where content scrolls beneath, reinforcing the layered spatial hierarchy. Recessed containers use subtle 1px borders instead of inset shadows.
+**Styling approach:** Liquid glass (glassmorphism). All elevated surfaces use translucent backgrounds with backdrop blur, creating a layered depth hierarchy. The flat warm page background (#F0EDE8) bleeds subtly through panels and cards. Borders use dark alpha values for visible separation. Shadows are soft and diffuse. The 3-tier system (page → panel → card → sheet) ensures clear visual hierarchy. No solid white cards — everything is glass.
 
 ---
 
@@ -1704,6 +1731,59 @@ deploy.sh travel "commit message"  # Deploy to cluster
 *Updated February 2026 (v0.0.31). Standalone deployment. This document covers the complete Travel app architecture, design system (glassmorphism + clean shadows, no neumorphism), component library, interaction patterns, accessibility compliance, and technical implementation — including the Status tab with checklist management and document uploads, the redesigned Calendar view with month navigation, tooltip, and interactive legend, the image card timeline with cover photos, the event detail view, design system font compliance, and the warm-white/pure-white card convention.*
 
 ## Changelog
+
+### v0.0.49 — Buffer Block Polish + Trip Tab Layout
+- **Next Up card contrast:** Restored `glass.card` border and shadow (were overridden to `none`), card now visually separates from panel.
+- **Trip tab shifted up 60px:** Hero section height 170px → 110px.
+- **Buffer block lighter bg:** `warmPalette.goldSoft` → `rgba(245,237,216,0.45)` (lighter, airier).
+- **Buffer block text:** Title 15px/500 → 16px/600, time 11px caption → 13px helper, subtitle 13px/textLight → 15px/textMedium. Icon 16→18px. More padding.
+
+### v0.0.48 — Type Picker Grid Layout
+- **EventEditor type picker:** Replaced broken horizontal scroll with responsive CSS grid (`auto-fill, minmax(64px, 1fr)`). All types visible and tappable without scroll conflicts.
+
+### v0.0.47 — Card Contrast + Visual Hierarchy + Design System Docs
+- **Glass token contrast overhaul:** `glass.card` 65%→82%, `glass.panel` 55%→72%, `glass.subtle` 50%→65%, `glass.tooltip` 78%→90%, `glass.badge` 45%→60%. All borders switched from white alpha to dark alpha for visible separation on warm bg.
+- **HeroView token cleanup:** Flight status colors use `colors.warningLight`/`colors.success` (were hardcoded). Daily Overview header uses `typography.caption`. Milestone row uses `colors.success`/`colors.border`.
+- **CalendarView:** Weekday headers use `typography.caption` (was 10px, now 11px minimum).
+- **DayTimelineView:** Hour labels use `typography.caption`, dashed border uses `colors.border`.
+- **EventDetailView:** Success icon uses `colors.success` token, added `colors` import.
+- **BufferBlock:** Border color uses `colors.border` token.
+- **Design system docs:** Updated glassmorphism section with full 12-token reference table, 3-tier hierarchy diagram, component-to-token mapping.
+
+### v0.0.46 — Buffer Block Cleanup
+- Removed left border accent line from buffer blocks (kept gold tint bg only).
+
+### v0.0.45 — Nav + Calendar + Background + Buffer Highlight
+- **Darker nav bar:** `rgba(31,41,55,0.78)` → `rgba(20,28,40,0.88)`.
+- **Taller calendar:** DayCard aspect ratio `1:1` → `5:6` (+70px total grid height).
+- **Removed background gradient:** Navigation wrapper gradient → transparent, flat bg throughout.
+- **Buffer block highlight:** Added `warmPalette.goldSoft` tint to buffer blocks.
+
+### v0.0.44 — Design System Consistency Pass
+- **Glass tokens:** `glass.input` border → `rgba(0,0,0,0.1)`, `glass.sheet` opacity 0.82→0.92, `glass.panel` shadow restored, `glass.frostedLight` border → dark alpha.
+- **EventEditor:** Type picker unselected buttons → solid `#EDEAE5` bg, text `textMedium`. Close button → solid bg.
+- **ChecklistEditor:** Input padding 12→16px, font 14→16px, radius 8→12px. Category picker larger, save button 16px.
+- **DocumentUploader:** Same sizing fixes as ChecklistEditor.
+- **EventDetailView:** Back button → solid `#EDEAE5`.
+- **TimeBlock:** Chevron button → `#EDEAE5`.
+
+### v0.0.43 — Flat Background + Panel Shadow Removal
+- Removed `glass.panel` boxShadow. Flattened `glossyBg` from gradient to flat `#F0EDE8`.
+
+### v0.0.42 — Trip Tab Shift + Inner Shadow Removal
+- Hero section 210→170px. Removed all `inset` shadows from every glass token.
+
+### v0.0.41 — Next Up Card Cleanup
+- Removed blue teal left border, shadow, and edge line from Next Up card.
+
+### v0.0.40 — Liquid Glass UI Transformation
+- **Full glassmorphism overhaul:** Converted all 20+ files from solid white backgrounds to glass tokens.
+- **8 new glass presets:** card, panel, sheet, nav, input, subtle, tooltip, badge — each with translucent bg, backdrop blur, border, and shadow.
+- **Navigation:** Solid `#1F2937` → `glass.nav` frosted dark.
+- **All views:** HeroView, CalendarView, DayTimelineView, StatusView, EventDetailView panels/headers → glass tokens.
+- **All components:** EventCard, TimeBlock, ChecklistItemRow, DocumentCard, BufferBlock, DestinationCard, CalendarTooltip, CalendarLegend, EmptyState → glass tokens.
+- **Bottom sheets:** EventEditor, ChecklistEditor, DocumentUploader → `glass.sheet` + `glass.input`.
+- **Shadows:** Added `shadows.glass` and `shadows.glassHover`.
 
 ### v0.0.31 — Day View Polish + Status View Enhancements
 - **Scroll-to-top:** DayTimelineView now scrolls to top on mount and whenever `selectedDate` changes via `useEffect`.

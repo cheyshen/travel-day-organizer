@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { CalendarDays, Sun, CloudSun, Cloud, CloudRain, Clock, ArrowRight, MapPin, ChevronRight, Plane } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
-import { fontStack, typography, glass as sharedGlass, shadows, warmPalette, radius } from '../styles'
+import { fontStack, typography, glass as sharedGlass, shadows, warmPalette, radius, glossyBg } from '../styles'
+import { colors } from '../colors'
 import { formatShortDate, getTripDays, formatDayOfWeek, formatDayNumber, getDayIndex, isTodayDate, formatTripDate } from '../utils/dateUtils'
 import { formatTime, getEventIcon, getEventColor, getEventBgColor } from '../utils/timeUtils'
 
@@ -287,14 +288,14 @@ export default function HeroView({ onNavigate }) {
   }
 
   return (
-    <div style={{ backgroundColor: palette.warmGray, minHeight: '100vh' }}>
+    <div style={{ background: glossyBg, minHeight: '100vh' }}>
 
       {/* ================================================================ */}
       {/* HERO SECTION — Full-bleed photo with glass overlays              */}
       {/* ================================================================ */}
       <div style={{
         position: 'relative',
-        height: 210,
+        height: 110,
         overflow: 'hidden',
       }}>
         {/* Background photo */}
@@ -392,7 +393,7 @@ export default function HeroView({ onNavigate }) {
       {/* CONTENT PANEL — Surface overlapping hero                        */}
       {/* ================================================================ */}
       <div style={{
-        backgroundColor: palette.warmGray,
+        ...glass.panel,
         borderRadius: '24px 24px 0 0',
         marginTop: -28,
         position: 'relative',
@@ -490,10 +491,8 @@ export default function HeroView({ onNavigate }) {
                   }
                 }}
                 style={{
-                  background: '#FFFFFF',
-                  boxShadow: shadows.md,
+                  ...glass.card,
                   borderRadius: radius.lg,
-                  borderLeft: `4px solid ${destColor}`,
                   padding: 16,
                   cursor: 'pointer',
                   display: 'flex',
@@ -562,13 +561,12 @@ export default function HeroView({ onNavigate }) {
                   )}
                 </div>
 
-                {/* Right: Time + day + destination */}
+                {/* Right: Time */}
                 <div style={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'flex-end',
                   flexShrink: 0,
-                  gap: 2,
                   paddingRight: 16,
                 }}>
                   <span style={{
@@ -578,20 +576,6 @@ export default function HeroView({ onNavigate }) {
                     fontFamily: fontStack,
                   }}>
                     {formatTime(nextUp.event.startTime)}
-                  </span>
-                  <span style={{
-                    ...typography.helper,
-                    color: palette.textLight,
-                  }}>
-                    Day {nextDayNum}
-                  </span>
-                  <span style={{
-                    ...typography.caption,
-                    fontSize: 10,
-                    color: destColor,
-                    fontWeight: 600,
-                  }}>
-                    {nextDest?.name?.toUpperCase() || ''}
                   </span>
                 </div>
 
@@ -624,8 +608,8 @@ export default function HeroView({ onNavigate }) {
           const timeLabel = formatTime(fl.startTime)
           const isDelayed = fl.status === 'delayed'
           const statusLabel = isDelayed ? 'Delayed' : 'On Time'
-          const statusBg = isDelayed ? '#FFF3E0' : '#E8F5E9'
-          const statusColor = isDelayed ? '#D97B2B' : '#27815B'
+          const statusBg = isDelayed ? colors.warningLight : colors.successLight
+          const statusColor = isDelayed ? colors.warning : colors.success
 
           return (
             <motion.div
@@ -647,8 +631,7 @@ export default function HeroView({ onNavigate }) {
                 }
               }}
               style={{
-                background: '#FFFFFF',
-                boxShadow: shadows.md,
+                ...glass.card,
                 borderRadius: radius.lg,
                 padding: '16px',
                 marginBottom: 20,
@@ -775,8 +758,7 @@ export default function HeroView({ onNavigate }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.75, duration: 0.5 }}
               style={{
-                background: '#FFFFFF',
-                boxShadow: shadows.md,
+                ...glass.card,
                 borderRadius: radius.lg,
                 padding: '16px',
                 marginBottom: 20,
@@ -896,19 +878,16 @@ export default function HeroView({ onNavigate }) {
             marginBottom: 14,
           }}>
             <span style={{
-              fontSize: 13,
-              fontWeight: 600,
+              ...typography.caption,
               color: palette.textMedium,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
             }}>
               Daily Overview
             </span>
             <span style={{
-              fontSize: 12,
+              ...typography.helper,
               color: palette.textLight,
             }}>
-              {tripDates.length} days
+              Swipe to browse
             </span>
           </div>
 
@@ -939,8 +918,7 @@ export default function HeroView({ onNavigate }) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     padding: '10px 12px 8px',
-                    background: '#FFFFFF',
-                    boxShadow: shadows.sm,
+                    ...glass.subtle,
                     borderRadius: 14,
                     border: 'none',
                     cursor: 'pointer',
@@ -992,8 +970,7 @@ export default function HeroView({ onNavigate }) {
           transition={{ delay: 1.2 }}
           style={{
             marginTop: 24,
-            background: '#FFFFFF',
-            boxShadow: shadows.md,
+            ...glass.card,
             borderRadius: 20,
             overflow: 'hidden',
           }}
@@ -1093,9 +1070,9 @@ function FlightMilestoneRow({ milestone, isLast }) {
   const isCurrent = milestone.status === 'current'
 
   const dotSize = isCurrent ? 10 : 8
-  const dotColor = isDone ? '#27815B' : isCurrent ? '#0E7490' : 'transparent'
-  const dotBorder = !isDone && !isCurrent ? '2px solid #D6D3CE' : 'none'
-  const lineColor = isDone ? '#27815B' : '#E2E0DB'
+  const dotColor = isDone ? colors.success : isCurrent ? palette.accent : 'transparent'
+  const dotBorder = !isDone && !isCurrent ? `2px solid ${colors.border}` : 'none'
+  const lineColor = isDone ? colors.success : colors.border
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
@@ -1214,8 +1191,7 @@ function DestCard({ destination, photo, dayCount, delay, onTap }) {
         borderRadius: 20,
         overflow: 'hidden',
         cursor: 'pointer',
-        background: '#FFFFFF',
-        boxShadow: shadows.md,
+        ...glass.card,
         position: 'relative',
       }}
     >

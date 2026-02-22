@@ -42,6 +42,8 @@ export const shadows = {
   xl: '0 12px 40px rgba(0,0,0,0.16)',
   card: `0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)`,
   cardHover: `0 4px 16px rgba(0,0,0,0.1)`,
+  glass: '0 2px 8px rgba(0,0,0,0.06)',
+  glassHover: '0 4px 16px rgba(0,0,0,0.1)',
 }
 
 export const tokens = {
@@ -69,6 +71,9 @@ export const warmPalette = {
   goldSoft: 'rgba(184, 150, 62, 0.12)',
 }
 
+// Glossy page background — subtle warm gradient with depth
+export const glossyBg = '#F0EDE8'
+
 export const glass = {
   frosted: {
     background: 'rgba(255, 255, 255, 0.2)',
@@ -92,7 +97,61 @@ export const glass = {
     background: 'rgba(240, 237, 232, 0.85)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.5)',
+    border: '1px solid rgba(0, 0, 0, 0.08)',
+  },
+  card: {
+    background: 'rgba(255,255,255,0.82)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(0,0,0,0.06)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+  },
+  panel: {
+    background: 'rgba(255,255,255,0.72)',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    border: '1px solid rgba(0,0,0,0.05)',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+  },
+  sheet: {
+    background: 'rgba(255,255,255,0.92)',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    border: '1px solid rgba(0,0,0,0.08)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+  },
+  nav: {
+    background: 'rgba(20,28,40,0.88)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+  },
+  input: {
+    background: 'rgba(237,234,229,0.5)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid rgba(0,0,0,0.1)',
+  },
+  subtle: {
+    background: 'rgba(237,234,229,0.65)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(0,0,0,0.05)',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+  },
+  tooltip: {
+    background: 'rgba(255,255,255,0.90)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(0,0,0,0.08)',
+    boxShadow: '0 12px 40px rgba(0,0,0,0.16)',
+  },
+  badge: {
+    background: 'rgba(255,255,255,0.60)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid rgba(0,0,0,0.06)',
   },
 }
 

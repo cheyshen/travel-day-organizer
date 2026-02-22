@@ -1,5 +1,5 @@
 import { Plus, Palmtree, CalendarDays, Clock, CheckCircle2 } from 'lucide-react'
-import { spacing, radius } from '../styles'
+import { spacing, radius, glass } from '../styles'
 
 // =============================================================================
 // BOTTOM TAB NAVIGATION
@@ -109,7 +109,7 @@ export default function Navigation({ activeView, onNavigate, onAdd }) {
       zIndex: 90,
       padding: `0 ${spacing.lg}px calc(${spacing.lg}px + env(safe-area-inset-bottom, 0px))`,
       pointerEvents: 'none',
-      background: 'linear-gradient(to top, rgba(250,248,245,1) 60%, rgba(250,248,245,0) 100%)',
+      background: 'transparent',
     }}>
       <nav
         role="tablist"
@@ -117,10 +117,9 @@ export default function Navigation({ activeView, onNavigate, onAdd }) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: nav.bg,
+          ...glass.nav,
           borderRadius: radius.xl,
           padding: `${spacing.sm}px ${spacing.sm}px`,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15)',
           pointerEvents: 'auto',
           position: 'relative',
         }}

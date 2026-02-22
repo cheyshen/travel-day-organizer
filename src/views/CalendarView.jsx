@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg } from '../styles'
 import { getCalendarGrid, getAdjacentMonth, formatMonthYearFromParts } from '../utils/dateUtils'
 import TripHeader from '../components/TripHeader'
 import DayCard from '../components/DayCard'
@@ -135,12 +135,12 @@ export default function CalendarView({ onNavigate }) {
     : null
 
   return (
-    <div style={{ backgroundColor: warmPalette.warmGray, minHeight: '100vh' }}>
+    <div style={{ background: glossyBg, minHeight: '100vh' }}>
       <TripHeader compact />
 
       {/* Rounded content card */}
       <div style={{
-        backgroundColor: warmPalette.warmGray,
+        ...glass.panel,
         borderRadius: '24px 24px 0 0',
         marginTop: -28,
         position: 'relative',
@@ -229,12 +229,11 @@ export default function CalendarView({ onNavigate }) {
           ref={gridContainerRef}
           style={{
             position: 'relative',
-            backgroundColor: '#FFFFFF',
+            ...glass.card,
             borderRadius: radius.xl,
             padding: spacing.md,
             marginTop: spacing.md,
             marginBottom: spacing.lg,
-            border: '1px solid rgba(0,0,0,0.06)',
           }}
         >
           {/* Weekday headers */}
@@ -247,7 +246,6 @@ export default function CalendarView({ onNavigate }) {
             {WEEKDAYS.map(day => (
               <div key={day} style={{
                 ...typography.caption,
-                fontSize: 10,
                 color: warmPalette.textLight,
                 textAlign: 'center',
                 padding: `${spacing.xs}px 0`,

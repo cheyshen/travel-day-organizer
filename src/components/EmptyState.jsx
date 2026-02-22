@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Plus, CheckCircle2, Palmtree } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
 
 // =============================================================================
 // EMPTY STATE — Empty day + day-complete states
@@ -54,9 +54,8 @@ export default function EmptyState({ type = 'empty', onAddEvent }) {
       style={{
         textAlign: 'center',
         padding: `${spacing.xxxl}px ${spacing.lg}px`,
-        backgroundColor: warmPalette.warmGray,
+        ...glass.subtle,
         borderRadius: radius.xl,
-        border: '1px solid rgba(0,0,0,0.06)',
       }}
     >
       <div style={{

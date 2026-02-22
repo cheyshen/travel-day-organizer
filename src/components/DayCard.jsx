@@ -32,7 +32,7 @@ export default function DayCard({ dateInfo, trip, days, destinations, selectedDa
   }, [isTrip, date, onTap])
 
   // Background color logic
-  let bgColor = warmPalette.warmGray
+  let bgColor = 'rgba(237,234,229,0.4)'
   if (isTrip && dest) {
     bgColor = isSelected ? `${dest.accentLight}` : dest.accentLight
   } else if (isTrip) {
@@ -68,7 +68,7 @@ export default function DayCard({ dateInfo, trip, days, destinations, selectedDa
       whileTap={isTrip ? { scale: 0.93 } : {}}
       onClick={handleClick}
       style={{
-        aspectRatio: '1',
+        aspectRatio: '5 / 6',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

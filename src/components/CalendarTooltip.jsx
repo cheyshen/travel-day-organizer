@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, X } from 'lucide-react'
-import { typography, spacing, radius, shadows, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
 import { formatTripDate } from '../utils/dateUtils'
 import { getEventType } from '../data/eventTypes'
 
@@ -92,12 +92,10 @@ export default function CalendarTooltip({
           top: layout.top,
           left: layout.left,
           width: layout.width,
-          backgroundColor: '#FFFFFF',
+          ...glass.tooltip,
           borderRadius: radius.lg,
-          boxShadow: shadows.xl,
           zIndex: 100,
           overflow: 'hidden',
-          border: '1px solid rgba(0,0,0,0.08)',
         }}
       >
         {/* Header */}

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Plus, Upload, ClipboardList, FolderOpen } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg } from '../styles'
 import { CHECKLIST_CATEGORIES } from '../data/statusCategories'
 import ChecklistItemRow from '../components/ChecklistItemRow'
 import ChecklistEditor from '../components/ChecklistEditor'
@@ -119,7 +119,7 @@ export default function StatusView() {
 
   return (
     <div style={{
-      backgroundColor: warmPalette.warmGray,
+      background: glossyBg,
       minHeight: '100vh',
     }}>
       {/* Sticky header — glassmorphic */}
@@ -241,9 +241,8 @@ export default function StatusView() {
           <div style={{
             textAlign: 'center',
             padding: spacing.xxl,
-            backgroundColor: warmPalette.warmGray,
+            ...glass.subtle,
             borderRadius: radius.xl,
-            border: `1px solid rgba(0,0,0,0.06)`,
           }}>
             <ClipboardList size={32} strokeWidth={1} color={warmPalette.textLight} style={{ marginBottom: spacing.sm }} />
             <p style={{ ...typography.body, margin: 0, color: warmPalette.textMedium }}>No checklist items yet</p>
@@ -303,7 +302,7 @@ export default function StatusView() {
           <div style={{
             textAlign: 'center',
             padding: spacing.xxl,
-            backgroundColor: warmPalette.accentSoft,
+            ...glass.subtle,
             borderRadius: radius.xl,
             display: 'flex',
             flexDirection: 'column',

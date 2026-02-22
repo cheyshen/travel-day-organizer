@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ChevronRight, AlertTriangle } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, tokens, warmPalette, glass } from '../styles'
 import { formatTime, getStatusColor, getStatusBg, getEventIcon, getEventColor, getEventBgColor } from '../utils/timeUtils'
 import StatusBadge from './StatusBadge'
 
@@ -23,15 +23,14 @@ export default function EventCard({ event, isNext, onTap }) {
       whileTap={{ scale: 0.99 }}
       onClick={() => onTap(event)}
       style={{
-        backgroundColor: '#FFFFFF',
+        ...glass.card,
         borderRadius: tokens.cardRadius,
-        border: 'none',
         borderLeft: `4px solid ${statusColor}`,
         padding: spacing.lg,
         cursor: 'pointer',
         boxShadow: isNext
           ? `${shadows.md}, 0 0 0 1px rgba(180, 83, 9, 0.2)`
-          : shadows.card,
+          : shadows.glass,
         position: 'relative',
       }}
       role="button"

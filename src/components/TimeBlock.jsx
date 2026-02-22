@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
-import { typography, spacing, radius, shadows, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
 import { formatTime, getEventColor, getEventIcon } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
 import { getCoverImage, getCoverGradient } from '../data/coverImages'
@@ -35,34 +35,33 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
         whileTap={{ scale: 0.98 }}
         onClick={() => onTap(event)}
         style={{
-          backgroundColor: '#F3F1EE',
+          ...glass.subtle,
           borderRadius: radius.md,
-          border: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: shadows.sm,
-          padding: `${spacing.md}px ${spacing.lg}px`,
+          backgroundColor: 'rgba(245, 237, 216, 0.45)',
+          padding: `${spacing.lg}px`,
           cursor: 'pointer',
           display: 'flex',
           flexDirection: 'column',
-          gap: 4,
+          gap: 6,
         }}
         role="button"
         tabIndex={0}
       >
         <span style={{
-          ...typography.caption,
-          color: warmPalette.textLight,
+          ...typography.helper,
+          color: warmPalette.textMedium,
           fontWeight: 600,
         }}>
           {timeRange}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-          <Icon size={16} color={accentColor} strokeWidth={2.5} />
-          <p style={{ ...typography.bodyMedium, color: warmPalette.textDark, margin: 0 }}>
+          <Icon size={18} color={accentColor} strokeWidth={2.5} />
+          <p style={{ ...typography.sectionHeader, fontSize: 16, color: warmPalette.textDark, margin: 0 }}>
             {event.title}
           </p>
         </div>
         {event.bufferLabel && !event.subtitle && (
-          <p style={{ ...typography.helper, color: warmPalette.textLight, margin: 0 }}>
+          <p style={{ ...typography.body, color: warmPalette.textMedium, margin: 0 }}>
             {event.bufferLabel}
           </p>
         )}
@@ -79,10 +78,8 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
       style={{
         borderRadius: radius.lg,
         overflow: 'hidden',
-        backgroundColor: '#FFFFFF',
-        boxShadow: shadows.sm,
+        ...glass.card,
         cursor: 'pointer',
-        border: '1px solid rgba(0,0,0,0.06)',
       }}
       role="button"
       tabIndex={0}
@@ -216,7 +213,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
               height: 34,
               borderRadius: radius.sm,
               border: 'none',
-              backgroundColor: warmPalette.warmGray,
+              backgroundColor: '#EDEAE5',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',

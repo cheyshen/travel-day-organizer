@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { X, Upload, FileText } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, tokens, warmPalette, glass } from '../styles'
 import { DOCUMENT_CATEGORIES } from '../data/statusCategories'
 import { generateId } from '../utils/timeUtils'
 
@@ -16,11 +16,10 @@ const categoryOptions = Object.values(DOCUMENT_CATEGORIES)
 
 const inputStyle = {
   width: '100%',
-  padding: `${spacing.md}px`,
-  backgroundColor: warmPalette.warmGray,
-  border: `1px solid rgba(0,0,0,0.08)`,
-  borderRadius: radius.sm,
-  fontSize: 14,
+  padding: `${spacing.lg}px`,
+  ...glass.input,
+  borderRadius: radius.md,
+  fontSize: 16,
   color: warmPalette.textDark,
   outline: 'none',
   fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -102,10 +101,9 @@ export default function DocumentUploader({ onSave, onClose }) {
           width: '100%',
           maxWidth: 480,
           maxHeight: '90vh',
-          backgroundColor: '#FFFFFF',
+          ...glass.sheet,
           borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
           overflow: 'auto',
-          boxShadow: shadows.xl,
         }}
       >
         {/* Drag handle */}
@@ -122,7 +120,9 @@ export default function DocumentUploader({ onSave, onClose }) {
           borderBottom: tokens.cardBorder,
           position: 'sticky',
           top: 0,
-          backgroundColor: '#FFFFFF',
+          background: glass.sheet.background,
+          backdropFilter: glass.sheet.backdropFilter,
+          WebkitBackdropFilter: glass.sheet.WebkitBackdropFilter,
           zIndex: 10,
         }}>
           <h3 style={{ ...typography.sectionHeader, color: warmPalette.textDark }}>
@@ -132,12 +132,12 @@ export default function DocumentUploader({ onSave, onClose }) {
             onClick={onClose}
             style={{
               width: 36, height: 36, borderRadius: 18,
-              backgroundColor: warmPalette.warmGray,
+              backgroundColor: '#EDEAE5',
               border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <X size={16} color={warmPalette.textMedium} />
+            <X size={18} color={warmPalette.textMedium} strokeWidth={2} />
           </button>
         </div>
 
@@ -149,7 +149,7 @@ export default function DocumentUploader({ onSave, onClose }) {
               padding: spacing.xl,
               borderRadius: radius.md,
               border: `2px dashed ${fileData ? colors.success : colors.border}`,
-              backgroundColor: fileData ? colors.successLight : warmPalette.warmGray,
+              backgroundColor: fileData ? colors.successLight : glass.input.background,
               textAlign: 'center',
               cursor: 'pointer',
               marginBottom: spacing.lg,
@@ -245,17 +245,17 @@ export default function DocumentUploader({ onSave, onClose }) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: spacing.xs,
-                      padding: `${spacing.sm}px ${spacing.md}px`,
-                      backgroundColor: isSelected ? opt.bgColor : warmPalette.warmGray,
+                      padding: `${spacing.md}px ${spacing.lg}px`,
+                      backgroundColor: isSelected ? opt.bgColor : '#EDEAE5',
                       border: isSelected ? `2px solid ${opt.color}` : '2px solid transparent',
-                      borderRadius: radius.sm,
+                      borderRadius: radius.md,
                       cursor: 'pointer',
-                      fontSize: 12,
-                      fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? opt.color : warmPalette.textLight,
+                      fontSize: 13,
+                      fontWeight: isSelected ? 600 : 500,
+                      color: isSelected ? opt.color : warmPalette.textMedium,
                     }}
                   >
-                    <Icon size={14} strokeWidth={1.5} />
+                    <Icon size={16} strokeWidth={2} />
                     {opt.label}
                   </button>
                 )
@@ -293,7 +293,7 @@ export default function DocumentUploader({ onSave, onClose }) {
               color: (fileData && name.trim()) ? colors.textOnAccent : colors.textMuted,
               border: 'none',
               borderRadius: radius.md,
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: 600,
               cursor: (fileData && name.trim()) ? 'pointer' : 'default',
             }}

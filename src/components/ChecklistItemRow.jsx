@@ -1,7 +1,7 @@
 import { Check, Pencil, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
 import { getChecklistCategory } from '../data/statusCategories'
 
 // =============================================================================
@@ -23,11 +23,9 @@ export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
         alignItems: 'center',
         gap: spacing.md,
         padding: `${spacing.md}px`,
-        backgroundColor: '#FFFFFF',
+        ...glass.card,
         borderRadius: radius.md,
-        border: 'none',
         borderLeft: `4px solid ${category.color}`,
-        boxShadow: shadows.sm,
       }}
     >
       <button

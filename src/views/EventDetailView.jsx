@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Clock, MapPin, Hash, FileText, Edit3, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
-import { typography, spacing, radius, shadows, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg } from '../styles'
+import { colors } from '../colors'
 import { formatTime, formatTimeRange, getDurationMinutes, formatDuration, getEventIcon, getEventColor, getEventBgColor, getStatusLabel, getStatusColor, getStatusBg } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
 import EventEditor from '../components/EventEditor'
@@ -40,7 +41,7 @@ export default function EventDetailView({ onNavigate }) {
   // If event not found, go back
   if (!event) {
     return (
-      <div style={{ backgroundColor: warmPalette.warmGray, minHeight: '100vh', padding: spacing.xl }}>
+      <div style={{ background: glossyBg, minHeight: '100vh', padding: spacing.xl }}>
         <button
           onClick={() => onNavigate('day')}
           style={{
@@ -102,15 +103,15 @@ export default function EventDetailView({ onNavigate }) {
   }
 
   return (
-    <div style={{ backgroundColor: warmPalette.warmGray, minHeight: '100vh' }}>
+    <div style={{ background: glossyBg, minHeight: '100vh' }}>
       {/* Header */}
       <div style={{
         padding: `${spacing.lg}px ${spacing.lg}px ${spacing.md}px`,
         display: 'flex',
         alignItems: 'center',
         gap: spacing.md,
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
-        backgroundColor: '#FFFFFF',
+        ...glass.frostedLight,
+        borderBottom: '1px solid rgba(255,255,255,0.4)',
         position: 'sticky',
         top: 0,
         zIndex: 10,
@@ -120,9 +121,8 @@ export default function EventDetailView({ onNavigate }) {
           style={{
             width: 44, height: 44,
             borderRadius: radius.sm,
-            border: `1.5px solid rgba(0,0,0,0.12)`,
-            backgroundColor: '#FFFFFF',
-            boxShadow: shadows.sm,
+            backgroundColor: '#EDEAE5',
+            border: 'none',
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 0,
@@ -186,9 +186,8 @@ export default function EventDetailView({ onNavigate }) {
       {/* Hero card — type icon + title */}
       <div style={{
         margin: `0 ${spacing.lg}px ${spacing.lg}px`,
-        backgroundColor: '#FFFFFF',
+        ...glass.card,
         borderRadius: `0 0 ${radius.lg}px ${radius.lg}px`,
-        border: `1px solid rgba(0,0,0,0.06)`,
         borderTop: 'none',
         borderLeftWidth: 5,
         borderLeftColor: accentColor,
@@ -298,10 +297,9 @@ export default function EventDetailView({ onNavigate }) {
         {/* Notes */}
         {event.notes && (
           <div style={{
-            backgroundColor: '#FFFFFF',
+            ...glass.card,
             borderRadius: radius.md,
             padding: spacing.lg,
-            border: '1px solid rgba(0,0,0,0.06)',
           }}>
             <div style={{
               display: 'flex',
@@ -327,17 +325,16 @@ export default function EventDetailView({ onNavigate }) {
 
         {/* Status */}
         <div style={{
-          backgroundColor: '#FFFFFF',
+          ...glass.card,
           borderRadius: radius.md,
           padding: spacing.lg,
-          border: '1px solid rgba(0,0,0,0.06)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
             {event.status === 'done'
-              ? <CheckCircle size={18} color="#27815B" strokeWidth={2.5} />
+              ? <CheckCircle size={18} color={colors.success} strokeWidth={2.5} />
               : <AlertTriangle size={18} color={warmPalette.textLight} strokeWidth={2} />
             }
             <span style={{ ...typography.bodyMedium, color: warmPalette.textDark }}>
@@ -393,10 +390,9 @@ function InfoRow({ icon: RowIcon, label, value, secondary, accentColor, mono }) 
 
   return (
     <div style={{
-      backgroundColor: '#FFFFFF',
+      ...glass.card,
       borderRadius: radius.md,
       padding: spacing.lg,
-      border: '1px solid rgba(0,0,0,0.06)',
       display: 'flex',
       alignItems: 'flex-start',
       gap: spacing.md,

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { X, Tag, FileText } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette } from '../styles'
+import { typography, spacing, radius, shadows, tokens, warmPalette, glass } from '../styles'
 import { CHECKLIST_CATEGORIES } from '../data/statusCategories'
 import { generateId } from '../utils/timeUtils'
 
@@ -14,11 +14,10 @@ const categoryOptions = Object.values(CHECKLIST_CATEGORIES)
 
 const inputStyle = {
   width: '100%',
-  padding: `${spacing.md}px`,
-  backgroundColor: warmPalette.warmGray,
-  border: `1px solid rgba(0,0,0,0.08)`,
-  borderRadius: radius.sm,
-  fontSize: 14,
+  padding: `${spacing.lg}px`,
+  ...glass.input,
+  borderRadius: radius.md,
+  fontSize: 16,
   color: warmPalette.textDark,
   outline: 'none',
   fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -84,10 +83,9 @@ export default function ChecklistEditor({ item, onSave, onClose }) {
           position: 'relative',
           width: '100%',
           maxWidth: 480,
-          backgroundColor: '#FFFFFF',
+          ...glass.sheet,
           borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
           overflow: 'auto',
-          boxShadow: shadows.xl,
         }}
       >
         {/* Drag handle */}
@@ -110,12 +108,12 @@ export default function ChecklistEditor({ item, onSave, onClose }) {
             onClick={onClose}
             style={{
               width: 36, height: 36, borderRadius: 18,
-              backgroundColor: warmPalette.warmGray,
+              backgroundColor: '#EDEAE5',
               border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <X size={16} color={warmPalette.textMedium} />
+            <X size={18} color={warmPalette.textMedium} strokeWidth={2} />
           </button>
         </div>
 
@@ -130,7 +128,7 @@ export default function ChecklistEditor({ item, onSave, onClose }) {
               gap: spacing.xs,
               marginBottom: spacing.sm,
             }}>
-              <Tag size={12} strokeWidth={1.5} />
+              <Tag size={14} strokeWidth={2} />
               Title
             </label>
             <input
@@ -153,7 +151,7 @@ export default function ChecklistEditor({ item, onSave, onClose }) {
               gap: spacing.xs,
               marginBottom: spacing.sm,
             }}>
-              <FileText size={12} strokeWidth={1.5} />
+              <FileText size={14} strokeWidth={2} />
               Category
             </label>
             <div style={{
@@ -172,17 +170,17 @@ export default function ChecklistEditor({ item, onSave, onClose }) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: spacing.xs,
-                      padding: `${spacing.sm}px ${spacing.md}px`,
-                      backgroundColor: isSelected ? opt.bgColor : warmPalette.warmGray,
+                      padding: `${spacing.md}px ${spacing.lg}px`,
+                      backgroundColor: isSelected ? opt.bgColor : '#EDEAE5',
                       border: isSelected ? `2px solid ${opt.color}` : '2px solid transparent',
-                      borderRadius: radius.sm,
+                      borderRadius: radius.md,
                       cursor: 'pointer',
-                      fontSize: 12,
-                      fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? opt.color : warmPalette.textLight,
+                      fontSize: 13,
+                      fontWeight: isSelected ? 600 : 500,
+                      color: isSelected ? opt.color : warmPalette.textMedium,
                     }}
                   >
-                    <Icon size={14} strokeWidth={1.5} />
+                    <Icon size={16} strokeWidth={2} />
                     {opt.label}
                   </button>
                 )
@@ -201,7 +199,7 @@ export default function ChecklistEditor({ item, onSave, onClose }) {
               color: title.trim() ? colors.textOnAccent : colors.textMuted,
               border: 'none',
               borderRadius: radius.md,
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: 600,
               cursor: title.trim() ? 'pointer' : 'default',
             }}
