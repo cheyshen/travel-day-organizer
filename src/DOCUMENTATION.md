@@ -4,7 +4,7 @@
 
 **Live URL:** `http://192.168.1.198`
 **Deployment:** Standalone K8s namespace `travel`
-**Current Version:** v0.0.127
+**Current Version:** v0.0.128
 
 ---
 
