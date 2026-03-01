@@ -88,7 +88,7 @@ The Travel App embraces a **tropical, premium, vacation magazine aesthetic** tha
 - **Event Types:** 14 (flight, hotel, dining, beach, sightseeing, shopping, hiking, boat, ground_transport, activity, buffer, entertainment, sunrise, custom)
 - **Checklist Categories:** 6 (packing, booking, documents, health, transport, other)
 - **Document Categories:** 6 (passport, boarding_pass, hotel_confirmation, insurance, rental_car, other)
-- **Total Mock Events:** 57 events distributed across 9 days
+- **Total Mock Events:** 63 events distributed across 9 days
 - **Route:** `/travel` in the UI Test app router
 
 **Data Architecture:**
@@ -237,7 +237,7 @@ Hero View ──────┬─→ Calendar View
 
 1. **Sticky Header** — Glassmorphic blur; prev/next day buttons (44x44px glass pills), day counter (12px, `textMedium`), date title (`sectionHeader`). Day info centered between equal-width arrow buttons via `flex: 1`.
 2. **Destination Strip** — Centered layout with current island emphasized and other islands as subtle navigation links. Current destination: MapPin icon (14px, strokeWidth 2.5, destination color), bold name (15px, weight 700, `textDark`), optional day label (`body` 15px, `textMedium`). Other destinations: link button (15px, weight 500, `textMedium`) with MapPin (13px) and ChevronRight arrow (12px), gap 5px — tapping jumps to first day at that destination. Background: `#BAE5E0` (Kauai) or `#EDDBAF` (Maui), centered with `justifyContent: 'center'`. Separated by dot dividers.
-3. **Timeline** — 20px top padding before first card. Image card schedule with TimeBlocks (cover photo cards), buffer blocks (compact solid `#F5EDD8` cards with `1px solid rgba(0,0,0,0.04)` border), NowIndicator, inline Add button. Left hour labels (12px, `textMedium`) group events by time. View scrolls to top on load and date change.
+3. **Timeline** — 20px top padding before first card. Image card schedule with TimeBlocks (cover photo cards), buffer blocks (compact solid `#FFFFFF` cards with `1px solid rgba(0,0,0,0.04)` border), NowIndicator, inline Add button. Left hour labels (12px, `textMedium`) group events by time. View scrolls to top on load and date change.
 4. **Empty State** — "No events planned" with CTA (if no events)
 5. **Complete State** — "All done for today!" (if all events done)
 6. **Bottom Padding** — 80px to prevent content hidden behind nav
@@ -518,7 +518,7 @@ All elevated surfaces use frosted glass tokens from `styles.js`. The system crea
 |-------|-----------|------|--------|--------|----------|
 | `glass.frosted` | `rgba(255,255,255,0.2)` | 24px | white 0.3 | — | Hero badges, photo overlays |
 | `glass.frostedLight` | `rgba(240,237,232,0.85)` | 20px | black 0.08 | — | Sticky headers |
-| `glass.card` | `rgba(255,255,255,0.82)` | 20px | black 0.06 | `0 2px 8px rgba(0,0,0,0.08)` | Event cards, info rows, destination cards |
+| `glass.card` | `rgba(255,255,255,0.82)` | 20px | black 0.06 | `0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)` | Event cards, info rows, destination cards |
 | `glass.sheet` | `rgba(255,255,255,0.92)` | 24px | black 0.08 | `0 2px 8px rgba(0,0,0,0.06)` | Bottom sheets (EventEditor, ChecklistEditor) |
 | `glass.nav` | `rgba(20,28,40,0.88)` | 20px | white 0.08 | `0 8px 32px rgba(0,0,0,0.25)` | Bottom navigation bar |
 | `glass.input` | `rgba(237,234,229,0.5)` | 8px | black 0.1 | — | Form fields inside sheets |
@@ -583,7 +583,7 @@ Extended color tokens for the warm, luxury aesthetic (exported from `styles.js`)
 | `goldSoft` | `rgba(184,150,62,0.12)` | Gold background tint |
 
 ### Card Background Convention (v0.0.47+)
-All elevated surfaces use glass tokens (translucent with backdrop blur). Page backgrounds use flat `glossyBg` (#F0EDE8). Content panels (HeroView, CalendarView) use flat `glossyBg` directly. Cards use `glass.card` (82% white), sheets use `glass.sheet` (92% white). Buffer blocks use solid `#F5EDD8` (sandLight). Empty states use `glass.subtle`. No solid white (#FFFFFF) backgrounds on cards — all use glass tokens for the liquid glass aesthetic.
+All elevated surfaces use glass tokens (translucent with backdrop blur). Page backgrounds use flat `glossyBg` (#F0EDE8). Content panels (HeroView, CalendarView) use flat `glossyBg` directly. Cards use `glass.card` (82% white), sheets use `glass.sheet` (92% white). Buffer blocks use solid `colors.surface` (#FFFFFF); tight buffers (≤20 min) use `colors.warningLight` (#FFF3E0). Empty states use `glass.subtle`.
 
 ## Layout Tokens
 
@@ -660,8 +660,7 @@ Full-width hero with sunset beach background image (`/hero-bg.png` default, or c
 **Key Design Decisions:**
 - Square 1:1 aspect ratio for uniform calendar appearance
 - Destination color coding via light background
-- **Event density bars** (16px wide, 3px tall) replace dots — second bar at half opacity when >3 events
-- **Shape encoding** in bottom-right: circle for Kauai, square for Maui (color isn't sole differentiator)
+- **Shape encoding** in bottom-right: 5x5px circle for Kauai, square for Maui at 50% opacity (color isn't sole differentiator)
 - **Selected date:** Strong accent ring (2.5px solid #0E7490) + elevated shadow — distinct from "has events"
 - **Today:** Subtle textLight border (no longer confused with selection)
 - **Day number font:** 18px, line height 20px
@@ -892,12 +891,12 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 - **Time + type badge**: Frosted dark pill (`rgba(0,0,0,0.6)` + backdrop blur) at bottom-left with event icon (strokeWidth 2.5) + time + type label
 - **Edit icon overlay**: Frosted circle (28px, `rgba(0,0,0,0.35)` + backdrop blur) at top-right with Pencil icon (13px white)
 - **Content area**: glass.card bg with title (`sectionHeader` 18px), subtitle/location (`body` 15px), and "Details" button (`warmGray` bg)
-- **Buffer events**: Compact card (solid `#FFFFFF` bg, `1px solid rgba(0,0,0,0.04)` border) with time range (`helper` 13px), type icon (18px), and title (`sectionHeader` 16px). No image, no left accent border.
+- **Buffer events**: Compact card (solid `#FFFFFF` bg, `1px solid rgba(0,0,0,0.04)` border) with time range (`helper` 13px), type icon (18px), and title (`sectionHeader` 15px). No image, no left accent border.
 - **Done state**: Event cards get `opacity: 0.45`, `filter: 'grayscale(0.6)'`. Inline green "Done" badge (CheckCircle2 icon + "Done" text on `rgba(39,129,91,0.12)` background) appears in the content area.
 - **Cover image sources**: Events with explicit `coverImage` field use that URL directly. Otherwise, `coverImages.js` maps event types to Unsplash URLs with consistent hash-based selection per event ID. Gradient fallback on image load error. Events with explicit cover images: 3 flights (e-0104, e-0505, e-0905) and all 5 Trip Highlight events (e-0205 Poipu Beach, e-0303 Waimea Canyon, e-0403 Na Pali Coast, e-0602 Road to Hana, e-0802 Haleakala Sunrise) — ensuring the same photo appears on the highlight card, timeline card, and event detail page.
 - **Card shadow**: glass.card shadow with `border: 1px solid rgba(0,0,0,0.06)`
 - **Tap interaction**: Body tap → `onTap` (editor), Details button tap → `onDetail` (detail page) with `stopPropagation`
-- **Font compliance**: All text sizes use design system tokens — no overrides below minimum (11px). Title uses `sectionHeader`, subtitle uses `body`, buffer title uses `sectionHeader` at 16px.
+- **Font compliance**: All text sizes use design system tokens — no overrides below minimum (11px). Title uses `sectionHeader`, subtitle uses `body`, buffer title uses `sectionHeader` at 15px.
 
 ---
 
@@ -1092,7 +1091,7 @@ Instead of a floating button, two redundant entry points:
 ### Principle 3: Bottom Navigation Best Practices
 
 - **Icon + Label always visible** (never icon-only)
-- **Limited to 4 items** (under max 5 per NN/g)
+- **5 items** (Trip, Plan, Add, Day, Status — at NN/g maximum)
 - **Persistent and always visible** (fixed bottom, no scroll-to-hide)
 - **Visual stability** (flex: 1, constant fontWeight, CSS transitions not layoutId)
 - **Primary action differentiated** (teal background on Add button)
@@ -1128,7 +1127,7 @@ Status uses color + text + position (not color alone). TimeBlock type color + St
   startDate: string (ISO 8601),  // '2026-03-14'
   endDate: string (ISO 8601),    // '2026-03-22'
   homeTimezone: string,          // 'America/Chicago'
-  status: string,                // 'upcoming', 'active', 'completed'
+  status: string,                // 'upcoming', 'done'
   destinations: Destination[]
 }
 ```
@@ -1195,7 +1194,7 @@ Each event type has a unique icon color + background color pairing for maximum v
 | `beach` | Waves | `aqua` (#0891B2) | `aquaLight` (#CFFAFE) | Swimming, sunbathing |
 | `hiking` | Mountain | `emerald` (#059669) | `emeraldLight` (#D1FAE5) | Trails, trekking |
 | `shopping` | ShoppingBag | `rose` (#DB2777) | `roseLight` (#FCE7F3) | Markets, retail |
-| `fun` | PartyPopper | `purple` (#9333EA) | `purpleLight` (#F3E8FF) | Shows, luaus |
+| `entertainment` | PartyPopper | `purple` (#9333EA) | `purpleLight` (#F3E8FF) | Shows, luaus |
 | `custom` | Circle | `textSecondary` (#6B6B6B) | `borderLight` (#F0EFEA) | User-defined |
 
 ## State Management Pattern
@@ -1221,12 +1220,13 @@ TripProvider (root wrapper)
   checklistItems: ChecklistItem[],
   documents: Document[],
   heroImage: string | null,  // Custom hero photo data URL (JPEG, canvas-compressed)
+  destImages: {},            // { 'dest-kauai': dataURL, ... } per-destination cover photos
   weatherZipCode: string,    // User-entered zip code for weather lookup
   weatherData: {},           // { '2026-03-14': { high, low, code, condition }, ... }
 }
 ```
 
-### Reducer Actions (19 types)
+### Reducer Actions (22 types)
 
 | Action | Payload | Purpose |
 |--------|---------|---------|
@@ -1238,6 +1238,7 @@ TripProvider (root wrapper)
 | `DELETE_EVENT` | `{ date, eventId }` | Remove event |
 | `SET_EVENT_STATUS` | `{ date, eventId, status }` | Change status |
 | `REORDER_EVENTS` | `{ date, events[] }` | Drag-reorder |
+| `UPDATE_DAY` | `{ date, updates }` | Modify day metadata |
 | `ADD_CHECKLIST_ITEM` | ChecklistItem | Add preparation item |
 | `UPDATE_CHECKLIST_ITEM` | `{ id, updates }` | Edit checklist item |
 | `DELETE_CHECKLIST_ITEM` | item id string | Remove checklist item |
@@ -1245,7 +1246,9 @@ TripProvider (root wrapper)
 | `ADD_DOCUMENT` | Document | Upload document |
 | `UPDATE_DOCUMENT` | `{ id, updates }` | Edit document metadata |
 | `DELETE_DOCUMENT` | doc id string | Remove document |
+| `UPDATE_TRIP` | `{ updates }` | Modify trip metadata (name, tagline) |
 | `SET_HERO_IMAGE` | data URL string | Set custom hero photo |
+| `SET_DEST_IMAGE` | `{ destId, dataUrl }` | Set per-destination cover photo |
 | `SET_WEATHER_ZIP` | zip code string | Save weather zip code |
 | `SET_WEATHER_DATA` | `{ date: { high, low, code, condition } }` | Store fetched weather forecast |
 | `RESET` | none | Revert to sample data |
@@ -1270,7 +1273,7 @@ TripProvider (root wrapper)
 
 | Day | Date | Destination | Label | Events |
 |-----|------|-------------|-------|--------|
-| 1 | Mar 14 | Kauai | Chicago to Kauai | 8 |
+| 1 | Mar 14 | Kauai | Chicago to Kauai | 9 |
 | 2 | Mar 15 | Kauai | Beach & Explore | 6 |
 | 3 | Mar 16 | Kauai | Waimea Canyon | 7 |
 | 4 | Mar 17 | Kauai | Na Pali Coast | 6 |
@@ -1365,7 +1368,7 @@ Each destination cascades its color throughout the entire app:
 
 ## Card Design Language
 
-- **Background:** `#FFFFFF` (pure white) for all cards — event, document, checklist, destination, info rows, editor sheets. Buffer events use solid `#F5EDD8` (sandLight).
+- **Background:** `glass.card` (82% white with backdrop blur) for event, document, checklist, destination cards. Sheets use `glass.sheet` (92% white). Buffer events use solid `colors.surface` (#FFFFFF); tight buffers use `colors.warningLight` (#FFF3E0).
 - **Border radius:** 8px (badges) → 12px (buttons) → 16px (cards) → 20px (modals/sheets)
 - **Shadows:** Clean drop shadows from `shadows` object — `sm` for resting, `md` for elevated/highlighted
 - **Borders:** 1px solid rgba(0,0,0,0.06) for recessed containers; 4px colored left accent for categorization
@@ -1464,46 +1467,46 @@ travel/
 │   ├── main.jsx                     React entry point
 │   ├── App.jsx                      Root component (TripProvider + view router)
 │   ├── index.css                    Tailwind imports
-│   ├── colors.js               (63 lines)    Color palette (no gradients)
-│   ├── styles.js               (147 lines)   Typography, spacing, shadows, glass tokens, scrimGradient
+│   ├── colors.js               (59 lines)    Color palette (no gradients)
+│   ├── styles.js               (129 lines)   Typography, spacing, shadows, glass tokens, scrimGradient
 │   │
 │   ├── context/
-│   │   └── TripContext.jsx     (~235 lines)   Reducer (17 actions) + localStorage
+│   │   └── TripContext.jsx     (~254 lines)   Reducer (22 actions) + localStorage
 │   │
 │   ├── views/                  (5 files)
 │   │   ├── HeroView.jsx        (~1678 lines)  Trip landing page + DestCard component
-│   │   ├── CalendarView.jsx    (~370 lines)   Monthly calendar with nav, tooltip, legend
-│   │   ├── DayTimelineView.jsx (~350 lines)   Image card schedule timeline
-│   │   ├── EventDetailView.jsx (~280 lines)   Full event information page
-│   │   └── StatusView.jsx      (~345 lines)   Checklist + document management
+│   │   ├── CalendarView.jsx    (~352 lines)   Monthly calendar with nav, tooltip, legend
+│   │   ├── DayTimelineView.jsx (~390 lines)   Image card schedule timeline
+│   │   ├── EventDetailView.jsx (~439 lines)   Full event information page
+│   │   └── StatusView.jsx      (~349 lines)   Checklist + document management
 │   │
 │   ├── components/             (15 files)
-│   │   ├── Navigation.jsx      (~169 lines)   Bottom tab navigation (5 items)
-│   │   ├── TripHeader.jsx      (~79 lines)    Hero header with photo
-│   │   ├── DayCard.jsx         (~115 lines)   Calendar grid day cell (redesigned)
-│   │   ├── CalendarTooltip.jsx (~180 lines)   Day summary popover on cell tap
-│   │   ├── CalendarLegend.jsx  (~75 lines)    Interactive destination filter pills
-│   │   ├── TimeBlock.jsx       (~160 lines)   Image card schedule block (cover photo + badges + inline buffer)
-│   │   ├── EventEditor.jsx     (~463 lines)   Bottom sheet for event CRUD
-│   │   ├── EmptyState.jsx      (~113 lines)   Empty + complete states
-│   │   ├── StatusBadge.jsx     (~30 lines)    Status indicator badge
+│   │   ├── Navigation.jsx      (~168 lines)   Bottom tab navigation (5 items)
+│   │   ├── TripHeader.jsx      (~82 lines)    Hero header with photo
+│   │   ├── DayCard.jsx         (~114 lines)   Calendar grid day cell (redesigned)
+│   │   ├── CalendarTooltip.jsx (~228 lines)   Day summary popover on cell tap
+│   │   ├── CalendarLegend.jsx  (~76 lines)    Interactive destination filter pills
+│   │   ├── TimeBlock.jsx       (~280 lines)   Image card schedule block (cover photo + badges + inline buffer)
+│   │   ├── EventEditor.jsx     (~606 lines)   Bottom sheet for event CRUD
+│   │   ├── EmptyState.jsx      (~112 lines)   Empty + complete states
+│   │   ├── StatusBadge.jsx     (~29 lines)    Status indicator badge
 │   │   ├── NowIndicator.jsx    (~40 lines)    "Now" timeline marker
-│   │   ├── ChecklistItemRow.jsx(~111 lines)   Checkbox row with edit/delete
-│   │   ├── ChecklistEditor.jsx (~212 lines)   Bottom sheet for checklist CRUD
-│   │   ├── DocumentCard.jsx    (~114 lines)   Document thumbnail card
-│   │   ├── DocumentUploader.jsx(~304 lines)   Bottom sheet with file upload
-│   │   └── DocumentViewer.jsx  (~136 lines)   Full-screen document preview
+│   │   ├── ChecklistItemRow.jsx(~113 lines)   Checkbox row with edit/delete
+│   │   ├── ChecklistEditor.jsx (~234 lines)   Bottom sheet for checklist CRUD
+│   │   ├── DocumentCard.jsx    (~112 lines)   Document thumbnail card
+│   │   ├── DocumentUploader.jsx(~327 lines)   Bottom sheet with file upload
+│   │   └── DocumentViewer.jsx  (~155 lines)   Full-screen document preview
 │   │
 │   ├── data/
-│   │   ├── sampleTrip.js       (1,021 lines)  Hawaii vacation mock data
+│   │   ├── sampleTrip.js       (1,024 lines)  Hawaii vacation mock data
 │   │   ├── eventTypes.js       (120 lines)    Event type definitions
-│   │   ├── coverImages.js      (~80 lines)    Type-based cover photo URLs + gradient fallbacks
-│   │   ├── statusCategories.js (~95 lines)    Checklist + document categories
-│   │   └── sampleChecklist.js  (~80 lines)    8 sample preparation items
+│   │   ├── coverImages.js      (~93 lines)    Type-based cover photo URLs + gradient fallbacks
+│   │   ├── statusCategories.js (~107 lines)   Checklist + document categories
+│   │   └── sampleChecklist.js  (~78 lines)    8 sample preparation items
 │   │
 │   └── utils/
 │       ├── dateUtils.js        (~105 lines)   Date formatting, calendar grid, month nav
-│       └── timeUtils.js        (78 lines)     Time formatting, event colors
+│       └── timeUtils.js        (77 lines)     Time formatting, event colors
 │
 ├── public/
 │   └── hero-bg.png                 Default hero background image
