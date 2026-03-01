@@ -4,7 +4,7 @@
 
 **Live URL:** `http://192.168.1.198`
 **Deployment:** Standalone K8s namespace `travel`
-**Current Version:** v0.0.49
+**Current Version:** v0.0.127
 
 ---
 
@@ -28,6 +28,10 @@
 ## Product Vision and Purpose
 
 The Travel App is a **portfolio-quality Hawaii trip planner** designed to showcase modern UX patterns and premium design execution. It's a fully-functional vacation organizer that demonstrates how cutting-edge UI libraries (React 19, Framer Motion, date-fns) can create compelling experiences for travel planning. The app elevates the mundane task of itinerary management into an elegant, vacation-magazine aesthetic that makes planning enjoyable and memorable.
+
+## Design Philosophy
+
+The app was built as a **viewer/organizer** for a pre-planned trip, not a trip builder. Going to full editing is a significant architectural shift — the day structure, calendar, timeline all derive from the fixed start/end dates and destination assignments. Users plan trips externally (Google Docs, TripIt, spreadsheets), then this app presents the itinerary beautifully for on-the-go use. Light editing (renaming events, updating notes, swapping photos) is supported, but the core trip structure remains fixed.
 
 ## Target Audience and Use Case
 
@@ -79,7 +83,7 @@ The Travel App embraces a **tropical, premium, vacation magazine aesthetic** tha
 ## App Summary Statistics
 
 **Project Scale:**
-- **Total Components:** 38 (1 main entry point, 5 views, 20 components + 3 calendar sub-components, 1 context provider, 9 supporting files)
+- **Total Components:** 33 (1 main entry point, 5 views, 15 components + 3 calendar sub-components, 1 context provider, 9 supporting files)
 - **Number of Views:** 5 (Hero, Calendar, Day Timeline, Event Detail, Status)
 - **Event Types:** 14 (flight, hotel, dining, beach, sightseeing, shopping, hiking, boat, ground_transport, activity, buffer, entertainment, sunrise, custom)
 - **Checklist Categories:** 6 (packing, booking, documents, health, transport, other)
@@ -127,10 +131,11 @@ Travel App (Entry Point)
 - Views are rendered exclusively (one at a time via `AnimatePresence`)
 - Each view receives `onNavigate(view, optionalDate)` callback (except StatusView which is self-contained)
 - View transitions use Framer Motion with staggered opacity/scale animations (250ms enter, 150ms exit)
-- Switching tabs calls `window.scrollTo(0, 0)` to reset scroll position
+- Switching tabs calls `window.scrollTo(0, 0)` to reset scroll position (except returning to Hero, which restores saved scroll position)
+- Hero scroll position is saved to a ref when leaving and restored via a `useEffect` that watches `activeView`. When the view returns to `'hero'`, a 450ms `setTimeout` (exit 150ms + enter 250ms + buffer) fires `window.scrollTo` to the saved Y position. This ensures returning from highlight cards (EventDetailView → Hero) restores to the exact scroll position. Note: Framer Motion 11 with inline animation objects passes definition objects (not strings) to `onAnimationComplete`, making `def === 'animate'` checks unreliable — hence the `useEffect` approach
 - All views inherit theme colors from a centralized `colors` object and spacing tokens
 - The app enforces a max-width of 480px for mobile-first design
-- EventDetailView is a sub-view accessed from DayTimelineView via TimeBlock chevron arrows
+- EventDetailView is a sub-view accessed from DayTimelineView via TimeBlock chevron arrows or from HeroView highlight cards
 
 ### Central State Management
 
@@ -142,6 +147,7 @@ The `TripContext` stores:
 - `selectedEventId` — the event ID for EventDetailView (set when navigating to event detail)
 - `checklistItems` — array of preparation checklist items with category, completion state, timestamps
 - `documents` — array of uploaded documents stored as base64 data URLs with metadata
+- `heroImage` — custom hero photo data URL (compressed JPEG via canvas upload, or null for default)
 
 ## Navigation Model
 
@@ -150,7 +156,7 @@ The `TripContext` stores:
 | Item | ID | Icon | Purpose | Behavior |
 |------|-----|------|---------|----------|
 | Trip | `hero` | Palmtree | Trip overview, stats, quick-access chips | Navigates to Hero View |
-| Calendar | `calendar` | CalendarDays | Full month grid view of all days | Navigates to Calendar View |
+| Plan | `calendar` | CalendarDays | Full month grid view of all days | Navigates to Calendar View |
 | Add | `add` | Plus (in teal circle) | Create new event | Opens EventEditor modal overlay |
 | Day | `day` | Clock | Timeline for selected date | Navigates to Day View with current/selected date |
 | Status | `status` | CheckCircle2 | Preparation checklist + documents | Navigates to Status View |
@@ -173,7 +179,7 @@ Hero View ──────┬─→ Calendar View
 4. **Navigation Accessibility**:
    - WCAG 2.5.5 AAA compliant touch targets (54px tall, 48px minimum recommended)
    - `role="tablist"` + `role="tab"` + `aria-selected` for screen readers
-   - Inactive tab text: #9CA3AF on #1F2937 (4.6:1 contrast, WCAG AA)
+   - Inactive tab text: #9B9B9B on #1F2937 (uses `colors.textMuted`)
    - Active tab text: #FFFFFF on #1F2937 (13.5:1 contrast, WCAG AAA)
    - Flex layout prevents width shift when active state changes
 
@@ -185,19 +191,19 @@ Hero View ──────┬─→ Calendar View
 
 **Content Zones (top to bottom):**
 
-1. **Hero Image** — Full-bleed Unsplash photo (210px) with gradient overlay, glass pill badges ("X DAYS", "Upcoming")
+1. **Hero Image** — Full-bleed photo (210px) with gradient overlay, single frosted glass pill badge ("X days · Xd away" with dot separator, unified 12px font). Default image is `/hero-bg.png` (sunset beach). Users can upload a custom photo via the camera button (frosted glass circle, top-right of hero). Uploaded images are compressed via canvas (1200px max width, JPEG 0.7 quality) and stored as data URL in state (`heroImage`). Custom photo persists across sessions via localStorage and is shared with TripHeader on the calendar page.
 2. **Content Panel** — Warm gray surface overlapping hero by -28px with 24px top radius
-3. **Next Up Card** — Shows next upcoming event with icon, title, time, location, destination color accent border, countdown badge. Taps navigate to event detail.
-4. **Flight Status Card** — Shows next upcoming flight with route visualization (ORD ——✈—— LIH), status badge (On Time / Delayed), and **simulated milestone log** — a mini vertical timeline of 6 milestones (check-in, gate, boarding, doors, departed/in-flight, landed) with sliding window showing 3 at a time. Milestones: green filled dot (done), teal pulsing dot with glow (current), hollow circle (upcoming). Vertical connector lines between dots. Relative timestamps update every 60s. Skipped if flight is same as Next Up event.
-5. **Trip Countdown Card** — Pre-trip card showing days until departure with location route (Kauai → Maui). Uses same milestone log visual pattern with 6 countdown milestones (trip booked, 30 days out, 3 weeks out, 2 weeks out, 1 week out, trip begins). Sliding window of 3 centered on current. Hidden once trip has started.
+3. **Next Up Card** — Shows next upcoming event with icon + title on the same horizontal row (matching Flight/Countdown card layout), time (`body` 15px), location (`body` 15px, MapPin 13px). No header label or day counter. Taps navigate to event detail.
+4. **Flight Status Card** — Shows next upcoming flight with route visualization (ORD ——✈—— LIH), status badge (On Time / Delayed, 12px), and **simulated milestone log** — a mini vertical timeline of 6 milestones (check-in, gate, boarding, doors, departed/in-flight, landed) with sliding window showing 3 at a time. Milestones: green filled dot (done), teal pulsing dot with glow (current), hollow circle (upcoming). Vertical connector lines between dots. Relative timestamps update every 60s. Skipped if flight is same as Next Up event. Title uses full `sectionHeader` (18px), date/time use `body` (15px).
+5. **Trip Countdown Card** — Pre-trip card showing days until departure with location route (Kauai → Maui). Uses same milestone log visual pattern with 6 countdown milestones (trip booked, 30 days out, 3 weeks out, 2 weeks out, 1 week out, trip begins). Sliding window of 3 centered on current. Hidden once trip has started. Title uses full `sectionHeader` (18px), date range uses `body` (15px), badge 12px, location uses `body` (15px).
 6. **Destination Cards** — Compact photo cards (50px photo height) per destination with name, date range, day count, and arrow CTA. Tap jumps to first day at that destination.
-7. **Daily Overview** — Horizontal scroll of day chips showing: day-of-week abbreviation, date number, **weather icon** (sun/cloud-sun/cloud/rain — deterministic simulation for Hawaii), and **temperature** (75–85°F). Tapping navigates to that day's timeline.
-8. **Featured Highlight** — Editorial card with cover photo, title, description, and "View Day X" CTA.
+7. **Daily Overview** — Horizontal scroll of day chips using `glass.card` (white cards) with `touchAction: 'pan-x'` for reliable horizontal scrolling. Shows: day-of-week abbreviation, date number, **weather icon** (sun/cloud-sun/cloud/rain), and **temperature**. Weather data comes from **Open-Meteo API** when a zip code is entered (real forecast for dates within 16-day window), falling back to **deterministic simulation** (75–85°F, Hawaii-realistic) for dates beyond forecast range. Includes a zip code input field with info message indicating forecast availability. Tapping a chip navigates to that day's timeline.
+8. **Featured Highlights** — 5 editorial cards (Na Pali Coast Boat Tour, Haleakala Sunrise, Waimea Canyon Drive, Poipu Beach Snorkeling, Road to Hana) with cover photo, title (`sectionHeader` 18px), meta info (13px), description (`body` 15px), destination badge, and "View Day X" CTA (15px). Card content area padded at 14px 16px. Card gap 16px. Tapping navigates to EventDetailView for that event. Defined in the `HIGHLIGHTS` array at the top of HeroView with `eventId`, `date`, `day`, and `time` fields that must match the actual sampleTrip data. Each highlight's curated photo URL is also set as `coverImage` on the corresponding event in `sampleTrip.js`, ensuring visual continuity across highlight card → timeline card → event detail page.
 
 **Sub-Components:**
 - `DestCard` — Photo + info card with image preloading, destination color accent
 - `FlightMilestoneRow` — Reusable timeline row with dot indicator (done/current/upcoming), label, detail text, and relative timestamp. Used by both flight status and trip countdown cards.
-- `WeatherIcon` — Maps simulated weather conditions to Lucide icons (Sun, CloudSun, Cloud, CloudRain)
+- `WeatherIcon` — Maps weather conditions to Lucide icons (Sun, CloudSun, Cloud, CloudRain)
 
 **Helper Functions (module-level):**
 - `seededGate(eventId)` — Deterministic airport gate from event ID hash (e.g. "B12")
@@ -207,7 +213,9 @@ Hero View ──────┬─→ Calendar View
 - `getFlightMilestones(flight, nowMs)` — Builds 6 flight milestones with status assignment
 - `getTripCountdownMilestones(startDate, nowMs)` — Builds 6 trip countdown milestones
 - `getVisibleMilestones(milestones)` — Sliding window of 3 centered on current milestone
-- `getSimulatedWeather(dateStr, destId)` — Deterministic weather from date+destination hash (Hawaii-realistic)
+- `getSimulatedWeather(dateStr, destId)` — Deterministic weather from date+destination hash (Hawaii-realistic, fallback when real data unavailable)
+- `mapWeatherCode(code)` — Maps WMO weather codes to condition strings (0-1→sunny, 2-3→partly-cloudy, 45-67→cloudy, 71+→rain)
+- `fetchWeatherForZip(zipCode, tripStart, tripEnd)` — Geocodes zip via Open-Meteo, fetches 16-day forecast, returns only dates overlapping with trip range
 
 ### CALENDAR VIEW — Full Trip Overview
 
@@ -216,12 +224,10 @@ Hero View ──────┬─→ Calendar View
 **Content Zones (top to bottom):**
 
 1. **Compact Header** — Smaller hero image, no title
-2. **Month Navigation** — Prev/next chevron buttons (44x44px) flanking the month title + "Activity days by island" subtitle. Swipe gesture via Framer Motion `drag="x"` with 80px threshold. Slide + fade animation (250ms enter, 150ms exit) on month change.
+2. **Month Navigation** — Prev/next chevron buttons (44x44px) flanking the month title + "Activity days" subtitle (`typography.body` 15px, `warmPalette.textMedium` color). Swipe gesture via Framer Motion `drag="x"` with 80px threshold. Slide + fade animation (250ms enter, 150ms exit) on month change.
 3. **Calendar Grid** — 7-column grid with color-coded DayCard cells. Selected date gets accent ring (2.5px solid #0E7490), today gets subtle textLight border, event density shown via horizontal bars instead of dots, destination shape indicators (circle=Kauai, square=Maui).
-4. **CalendarTooltip** — On day tap, a positioned popover shows day label, destination with color dot, event breakdown grouped by type (icon + label + count), and "View Day" navigation button. Responsive width (75% of container, 260–340px). Dismissed via backdrop tap, X button, or Escape key.
-5. **CalendarLegend** — Interactive destination pill buttons with shape indicator + name + day count. Tapping a pill filters/highlights those days on the grid (non-matching days dim to 0.3 opacity). Tapping again deselects.
-6. **MonthSummary** — Single summary line: "9 trip days · 5 Kauai · 4 Maui" with inline color dots.
-7. **Add Button** — Solid accent pill button (matches Day tab style) navigates to Day timeline.
+4. **CalendarTooltip** — On day tap, a positioned popover shows day label, destination with color dot, event breakdown grouped by type (icon + label + count), and "View Day" navigation button. Responsive width (75% of container, 260–340px). Dismissed via backdrop tap, 36x36 circular close button (`warmPalette.warmGray` background, matching EventEditor style), or Escape key.
+5. **CalendarLegend** — Interactive destination pill buttons with larger padding (`md`/`xl` = 12px/24px), 12px shape indicators, 16px name text, and 15px count text. Tapping a pill filters/highlights those days on the grid (non-matching days dim to 0.3 opacity). Tapping again deselects.
 
 ### DAY TIMELINE VIEW — Single Day Deep Dive
 
@@ -229,9 +235,9 @@ Hero View ──────┬─→ Calendar View
 
 **Content Zones (top to bottom):**
 
-1. **Sticky Header** — Glassmorphic blur; prev/next day buttons, day counter, Add button
-2. **Destination Strip** — MapPin icon (strokeWidth 2.5), destination name and optional day label. No left border — clean full-width tinted bar.
-3. **Timeline** — 20px top padding before first card. Image card schedule with TimeBlocks (cover photo cards), buffer blocks (compact `#F3F1EE` cards), NowIndicator, inline Add button. Left hour labels group events by time. View scrolls to top on load and date change.
+1. **Sticky Header** — Glassmorphic blur; prev/next day buttons (44x44px glass pills), day counter (12px, `textMedium`), date title (`sectionHeader`). Day info centered between equal-width arrow buttons via `flex: 1`.
+2. **Destination Strip** — Centered layout with current island emphasized and other islands as subtle navigation links. Current destination: MapPin icon (14px, strokeWidth 2.5, destination color), bold name (15px, weight 700, `textDark`), optional day label (`body` 15px, `textMedium`). Other destinations: link button (15px, weight 500, `textMedium`) with MapPin (13px) and ChevronRight arrow (12px), gap 5px — tapping jumps to first day at that destination. Background: `#BAE5E0` (Kauai) or `#EDDBAF` (Maui), centered with `justifyContent: 'center'`. Separated by dot dividers.
+3. **Timeline** — 20px top padding before first card. Image card schedule with TimeBlocks (cover photo cards), buffer blocks (compact solid `#F5EDD8` cards with `1px solid rgba(0,0,0,0.04)` border), NowIndicator, inline Add button. Left hour labels (12px, `textMedium`) group events by time. View scrolls to top on load and date change.
 4. **Empty State** — "No events planned" with CTA (if no events)
 5. **Complete State** — "All done for today!" (if all events done)
 6. **Bottom Padding** — 80px to prevent content hidden behind nav
@@ -239,25 +245,28 @@ Hero View ──────┬─→ Calendar View
 **TimeBlock Image Card Layout:**
 - **Image area** (125px): Cover photo from Unsplash (type-based), gradient fallback on error. Dark gradient overlay at bottom for badge readability.
 - **Time + type badge** (bottom-left of image): Frosted dark pill with icon + time + event type label
-- **"NEXT UP" badge** (top-right of image): Amber pill on the next upcoming non-buffer event
-- **Content area** (white, below image): Title (`sectionHeader` 18px), subtitle/location (`body` 15px), and chevron arrow button for detail navigation
-- **Buffer events** render as compact white cards (`#F3F1EE` bg) with time range (`caption` 11px), type icon, and title (`bodyMedium` 15px) — no cover image
+- **Edit icon overlay** (top-right of image): Frosted circle (28px, `rgba(0,0,0,0.35)` + backdrop blur) with Pencil icon (13px white)
+- **Content area** (glass.card, below image): Title (`sectionHeader` 18px), subtitle/location (`body` 15px), and "Details" button
+- **Buffer events** render as compact cards (solid `#FFFFFF` bg, `1px solid rgba(0,0,0,0.04)` border) with time range header (13px), Clock icon (18px), and bold `~X min buffer` title (`sectionHeader` 15px) showing the computed duration. The descriptive label (e.g. "Morning prep time", "Airport security + boarding") appears below as body text. No cover image. **Tight buffers** (≤20 min): warning orange background, dashed left border, orange text/icon, and uppercase "TIGHT" badge
+- **Done state** on event cards: `opacity: 0.45`, `filter: 'grayscale(0.6)'`. Shows inline green "Done" badge (CheckCircle2 icon + "Done" text on `rgba(39,129,91,0.12)` background) in the content area
 
 ### EVENT DETAIL VIEW — Full Event Information
 
-**Purpose:** Display complete event information including time, location, confirmation number, notes, timezone, and status. Accessible via chevron arrow on TimeBlock cards.
+**Purpose:** Display complete event information including time, location, confirmation number, notes, timezone, and status. Accessible via chevron arrow on TimeBlock cards or HeroView highlight cards.
 
 **Content Zones (top to bottom):**
 
-1. **Sticky Header** — Back arrow (returns to day timeline), "Event Details" label, event title, Edit button (opens EventEditor)
-2. **Hero Card** — Event type icon (52px, heavy stroke) + type label + title + subtitle on tinted background
+1. **Sticky Header** — Back arrow (returns to previous view: hero or day), "Event Details" label, event title, Edit button (opens EventEditor)
+2. **Location Photo** — 80px banner using the same cover image source as TimeBlock cards (`event.coverImage` → `getCoverImage(type, id)` → gradient fallback). Ensures visual continuity between timeline card and detail page.
+3. **Hero Card** — Event type icon (52px, heavy stroke) + type label + title + subtitle on tinted background
 3. **Info Rows** — White cards with icon + label + value for: Time (range + duration), Location (origin → destination), Confirmation number (monospace), Timezone
 4. **Notes Section** — Pre-wrapped text block
 5. **Status Section** — Status badge with toggle button (tap to mark done/upcoming)
 
 **Navigation Flow:**
 - TimeBlock chevron → dispatches `SET_SELECTED_EVENT` with event ID → navigates to 'eventDetail'
-- Back button → navigates to 'day' view
+- HeroView highlight card → dispatches `SET_SELECTED_EVENT` + navigates to 'eventDetail' (previousView = 'hero')
+- Back button → navigates to `previousView` ('hero' or 'day'), with scroll restoration for hero
 - Edit button → opens EventEditor bottom sheet
 - Delete in editor → removes event and returns to day timeline
 
@@ -280,7 +289,7 @@ Hero View ──────┬─→ Calendar View
 | Booking | Ticket | Coral | Reservation confirmations |
 | Documents | FileText | Sand | Paperwork to prepare |
 | Health | Heart | Palm green | Medical/health prep |
-| Transport | Car | Info blue | Transportation logistics |
+| Transport | Car | Violet | Transportation logistics |
 | Other | MoreHorizontal | Gray | Miscellaneous |
 
 **Document Categories (6):**
@@ -363,27 +372,25 @@ The Travel app uses a tropical, premium vacation magazine aesthetic inspired by 
 
 | Token | Hex | Purpose |
 |-------|-----|---------|
-| `background` | `#F6F5F2` | Main page background; warm cream/linen |
 | `surface` | `#FFFFFF` | Primary card and container backgrounds |
-| `surfaceMuted` | `#EFEEE9` | Secondary surfaces; subtle differentiation |
-| `surfaceElevated` | `#FFFFFF` | Elevated containers and modals |
 
 ### Tropical Accent Colors
 
 | Token | Hex | Light Variant | Dark Variant | Purpose |
 |-------|-----|---|---|---------|
-| `ocean` | `#0E7490` | `#E0F7FA` | `#0C6478` | Primary teal-blue; CTA buttons, actions |
-| `coral` | `#E8725A` | `#FDE8E3` | — | Warm accent; tropical warmth |
-| `sand` | `#C4A265` | `#F5EDD8` | — | Beach sand; warm beige |
-| `sunset` | `#E8925A` | `#FFF0E3` | — | Golden hour accent; warmth |
+| `ocean` | `#0E7490` | `#E0F7FA` | — | Primary teal-blue; CTA buttons, actions |
+| `coral` | `#C74534` | `#FDE8E3` | — | Warm accent; tropical warmth |
+| `sand` | `#9E7C2E` | `#F5EDD8` | — | Beach sand; warm beige |
+| `sunset` | `#C05D10` | `#FDE8D3` | — | Golden hour accent; warmth |
 | `palm` | `#2D7D46` | `#E0F2E5` | — | Palm foliage; nature element |
-| `lagoon` | `#1B9AAA` | — | — | Deep tropical water |
-| `lavender` | `#7C3AED` | `#EDE9FE` | — | Sightseeing event type |
+| `amber` | `#B45309` | `#FFFBEB` | — | Sightseeing event type |
 | `aqua` | `#0891B2` | `#CFFAFE` | — | Beach event type |
 | `emerald` | `#059669` | `#D1FAE5` | — | Hiking event type |
 | `rose` | `#DB2777` | `#FCE7F3` | — | Shopping event type |
-| `purple` | `#9333EA` | `#F3E8FF` | — | Entertainment event type |
-| `tealLight` | — | `#D5F0F0` | — | Boat tour event bg |
+| `purple` | `#9333EA` | `#F3E8FF` | — | Fun (entertainment) event type |
+| `violet` | `#6D28D9` | `#EDE9FE` | — | Transport event type (darker purple) |
+| `tan` | `#7B5B3A` | `#F7EDE2` | — | Buffer event type (chocolate brown) |
+| `navy` | `#1E40AF` | `#DBEAFE` | — | Boat event type |
 
 ### Destination-Specific Colors
 
@@ -399,8 +406,8 @@ The Travel app uses a tropical, premium vacation magazine aesthetic inspired by 
 | `textPrimary` | `#1A1A1A` | Body text, main content |
 | `textSecondary` | `#6B6B6B` | Secondary information, subheadings |
 | `textMuted` | `#9B9B9B` | Tertiary text, captions, disabled state |
-| `textOnAccent` | `#FFFFFF` | Text on colored backgrounds |
-| `textOnDark` | `#FFFFFF` | Text on dark/opaque backgrounds |
+| `textOnAccent` | `#FFFFFF` | Text on colored action buttons |
+| `textOnDark` | `#FFFFFF` | Text on dark scrims, overlays, nav bar |
 
 ### Semantic Colors
 
@@ -417,18 +424,7 @@ The Travel app uses a tropical, premium vacation magazine aesthetic inspired by 
 |-------|-----|---------|
 | `border` | `#E2E0DB` | Primary borders, dividers |
 | `borderLight` | `#F0EFEA` | Subtle borders, low-contrast dividers |
-| `shadow` | `rgba(0, 0, 0, 0.06)` | Base shadow color |
-
-### Gradient Presets
-
-| Name | Gradient | Usage |
-|------|----------|-------|
-| `tropicalHeader` | `135deg`: Ocean → Lagoon → Sand | Hero sections, headers |
-| `oceanSky` | `180deg`: Ocean → Lagoon → Sky | Background vistas |
-| `sunset` | `135deg`: Sunset → Coral → Sand | Warm accents, overlays |
-| `sand` | `135deg`: Sand light → White | Subtle backgrounds |
-| `kauaiCard` | `135deg`: Ocean → Ocean dark | Destination cards (Kauai) |
-| `mauiCard` | `135deg`: Sand → Sand dark | Destination cards (Maui) |
+| `dragHandle` | `#D6D3CE` | Drag handles, pull indicators, hover borders |
 
 ## Typography
 
@@ -442,7 +438,6 @@ The Travel app uses a tropical, premium vacation magazine aesthetic inspired by 
 
 | Style | Font Size | Weight | Line Height | Letter Spacing | Use Case |
 |-------|-----------|--------|-------------|---|----------|
-| `hero` | 42px | 700 | 48px | -0.02em | Page titles, hero sections |
 | `title` | 28px | 700 | 34px | — | Section titles |
 | `sectionHeader` | 18px | 600 | 24px | — | Card headers, subsections |
 | `body` | 15px | 400 | 22px | — | Body text, standard content |
@@ -454,7 +449,6 @@ The Travel app uses a tropical, premium vacation magazine aesthetic inspired by 
 
 | Token | Pixels | Common Uses |
 |-------|--------|-------------|
-| `xxs` | 2px | Micro-spacing between tight elements |
 | `xs` | 4px | Minimal spacing, icon padding |
 | `sm` | 8px | Component internal padding |
 | `md` | 12px | Medium spacing, list gaps |
@@ -468,6 +462,7 @@ The Travel app uses a tropical, premium vacation magazine aesthetic inspired by 
 | Token | Pixels | Usage |
 |-------|--------|-------|
 | `sm` | 8px | Badges, small components |
+| `iconSquare` | 10px | Icon containers (32×32 event type icons) |
 | `md` | 12px | Buttons, input fields |
 | `lg` | 16px | Cards, panels (default) |
 | `xl` | 20px | Large containers, modals |
@@ -481,24 +476,22 @@ Clean drop shadows only — no neumorphism (dual-tone embossed/debossed shadows 
 |-------|-----------|-------|
 | `sm` | `0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)` | Day chips, nav buttons, calendar cells, checklist rows, buffer blocks |
 | `md` | `0 4px 12px rgba(0,0,0,0.08)` | Destination cards, featured highlight, "next up" event cards |
-| `lg` | `0 8px 24px rgba(0,0,0,0.12)` | Sticky headers, panels |
-| `xl` | `0 12px 40px rgba(0,0,0,0.16)` | Modals, bottom sheets |
-| `card` | `0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)` | Default card shadow (event cards, document cards) |
-| `cardHover` | `0 4px 16px rgba(0,0,0,0.1)` | Card hover state |
-| **Navigation** | `0 8px 32px rgba(0,0,0,0.25)` | Bottom nav bar (highest z-index) |
+| `glass` | `0 2px 8px rgba(0,0,0,0.06)` | Glass card box shadow |
+| `accentGlow` | `0 2px 8px rgba(14,116,144,0.25)` | Ocean-teal glow on CTA buttons |
+| `accentGlowStrong` | `0 4px 16px rgba(14,116,144,0.4)` | Strong teal glow on nav Add button |
+| **Navigation** | `0 8px 32px rgba(0,0,0,0.25)` | Bottom nav bar (via `glass.nav`, highest z-index) |
 
 ### Shadow Usage by Component
 
 | Component | Shadow Token | Notes |
 |-----------|-------------|-------|
-| EventCard | `shadows.card` (default), `shadows.md` + ring (when "next up") | "Next up" adds `0 0 0 1px rgba(180,83,9,0.2)` amber ring |
+| TimeBlock | `glass.card` (via glass token) | Image card schedule blocks |
 | DestCard (HeroView) | `shadows.md` | Elevated photo cards |
 | Day chips (HeroView) | `shadows.sm` | Horizontal scroll chips |
 | Featured highlight | `shadows.md` | Editorial card with photo |
 | DayCard (Calendar) | `shadows.sm` | Trip days only, non-trip = none |
-| BufferBlock | `shadows.sm` | Tight buffers get no shadow |
 | ChecklistItemRow | `shadows.sm` | With 4px left category border |
-| DocumentCard | `shadows.card` | 2-column grid cards |
+| DocumentCard | `shadows.sm` | 2-column grid cards |
 | EmptyState (complete) | `shadows.sm` | Success circle icon |
 | EmptyState (empty) | none | Uses `border: 1px solid rgba(0,0,0,0.06)` instead |
 | Nav buttons (prev/next) | `shadows.sm` | Disabled = no shadow |
@@ -524,51 +517,56 @@ All elevated surfaces use frosted glass tokens from `styles.js`. The system crea
 | Token | Background | Blur | Border | Shadow | Use Case |
 |-------|-----------|------|--------|--------|----------|
 | `glass.frosted` | `rgba(255,255,255,0.2)` | 24px | white 0.3 | — | Hero badges, photo overlays |
-| `glass.frostedDark` | `rgba(0,0,0,0.12)` | 20px | white 0.12 | — | Dark overlays on photos |
-| `glass.frostedMedium` | `rgba(255,255,255,0.55)` | 30px | white 0.5 | — | Medium-opacity overlays |
 | `glass.frostedLight` | `rgba(240,237,232,0.85)` | 20px | black 0.08 | — | Sticky headers |
 | `glass.card` | `rgba(255,255,255,0.82)` | 20px | black 0.06 | `0 2px 8px rgba(0,0,0,0.08)` | Event cards, info rows, destination cards |
-| `glass.panel` | `rgba(255,255,255,0.72)` | 24px | black 0.05 | `0 1px 4px rgba(0,0,0,0.06)` | Content panels (HeroView, CalendarView) |
 | `glass.sheet` | `rgba(255,255,255,0.92)` | 24px | black 0.08 | `0 2px 8px rgba(0,0,0,0.06)` | Bottom sheets (EventEditor, ChecklistEditor) |
 | `glass.nav` | `rgba(20,28,40,0.88)` | 20px | white 0.08 | `0 8px 32px rgba(0,0,0,0.25)` | Bottom navigation bar |
 | `glass.input` | `rgba(237,234,229,0.5)` | 8px | black 0.1 | — | Form fields inside sheets |
-| `glass.subtle` | `rgba(237,234,229,0.65)` | 12px | black 0.05 | `0 1px 4px rgba(0,0,0,0.04)` | Buffer blocks, empty states, day chips |
-| `glass.tooltip` | `rgba(255,255,255,0.90)` | 20px | black 0.08 | `0 12px 40px rgba(0,0,0,0.16)` | Calendar tooltip popover |
+| `glass.subtle` | `rgba(237,234,229,0.65)` | 12px | black 0.05 | `0 1px 4px rgba(0,0,0,0.04)` | Empty states |
 | `glass.badge` | `rgba(255,255,255,0.60)` | 8px | black 0.06 | — | Legend pills, small glass badges |
 
-### Visual Hierarchy (3-tier depth)
+### Visual Hierarchy (2-tier depth)
 
 ```
-Page background (#F0EDE8)
-  └─ glass.panel (72% white) — content panels, calendar wrapper
-       └─ glass.card (82% white) — event cards, info rows, destinations
-            └─ glass.sheet (92% white) — bottom sheets, modals (highest readability)
+Page background (#F0EDE8, flat glossyBg)
+  └─ glass.card (82% white) — event cards, info rows, destinations
+       └─ glass.sheet (92% white) — bottom sheets, modals (highest readability)
 ```
 
 ### Glass Usage by Component
 
 | Component | Token | Parent Surface |
 |-----------|-------|---------------|
-| EventCard, TimeBlock, ChecklistItemRow, DocumentCard | `glass.card` | Page bg or panel |
-| DestinationCard, InfoRow (EventDetail) | `glass.card` | Page bg |
-| HeroView content panel, CalendarView content area | `glass.panel` | Page bg |
+| TimeBlock, ChecklistItemRow, DocumentCard | `glass.card` | Page bg or panel |
+| InfoRow (EventDetail) | `glass.card` | Page bg |
+| HeroView content panel, CalendarView content area | flat `glossyBg` | Page bg |
 | EventEditor, ChecklistEditor, DocumentUploader | `glass.sheet` | Overlay |
 | DayTimelineView sticky header, StatusView header | `glass.frostedLight` | Page bg |
 | EventDetailView header | `glass.frostedLight` | Page bg |
 | Bottom navigation bar | `glass.nav` | Page bg |
-| CalendarTooltip | `glass.tooltip` | Calendar grid |
-| CalendarLegend inactive pills | `glass.badge` | Panel |
-| BufferBlock (normal), EmptyState, day chips | `glass.subtle` | Page bg |
+| CalendarTooltip | `glass.sheet` | Calendar grid |
+| CalendarLegend inactive pills | `glass.badge` | Page bg |
+| EmptyState | `glass.subtle` | Page bg |
+| Daily overview day chips | `glass.card` | Page bg |
 | Form inputs inside sheets | `glass.input` | Sheet |
 | Hero photo badges | `glass.frosted` | Photo |
-| DestCard island badge | `glass.frostedDark` | Photo |
+| DestCard island badge | `glass.frosted` | Photo |
+
+### Scrim Gradient Token
+
+A shared `scrimGradient` export provides the dark overlay for text readability over hero/header images. Used by TripHeader and HeroView:
+
+```
+linear-gradient(180deg, rgba(28,25,23,0.3) 0%, rgba(28,25,23,0.2) 30%,
+  rgba(28,25,23,0.25) 50%, rgba(28,25,23,0.6) 80%, rgba(28,25,23,0.9) 100%)
+```
 
 ### Glass Implementation Rules
 - Always spread as full style objects: `...glass.card`
 - Always include `WebkitBackdropFilter` alongside `backdropFilter` (Safari)
 - Borders use dark alpha (`rgba(0,0,0,...)`) for visible separation against warm bg
 - No blur on DayCard grid cells (42 simultaneous blur layers hurts scroll performance)
-- StatusBadge and AlertCard stay solid — semantic status colors must be instantly recognizable
+- StatusBadge stays solid — semantic status colors must be instantly recognizable
 
 ## Warm Palette Tokens
 
@@ -576,34 +574,28 @@ Extended color tokens for the warm, luxury aesthetic (exported from `styles.js`)
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `warmWhite` | `#FAF8F5` | Legacy token — cards now use `#FFFFFF` directly; retained for reference |
 | `warmGray` | `#EDEAE5` | Page-level backgrounds (all views), content panels |
-| `textDark` | `#1C1917` | Primary text on warm surfaces |
-| `textMedium` | `#57534E` | Secondary text, labels |
-| `textLight` | `#A8A29E` | Tertiary text, disabled, placeholder |
-| `accent` | `#0E7490` | Primary action color (teal-blue), CTA buttons, links |
+| `textDark` | `colors.textPrimary` (#1A1A1A) | Primary text on warm surfaces |
+| `textMedium` | `colors.textSecondary` (#6B6B6B) | Secondary text, labels |
+| `textLight` | `colors.textMuted` (#9B9B9B) | Tertiary text, disabled, placeholder |
+| `accent` | `colors.ocean` (#0E7490) | Primary action color (teal-blue), CTA buttons, links |
 | `accentSoft` | `rgba(14,116,144,0.12)` | Accent background tint |
-| `gold` | `#B8963E` | Maui destination accent |
 | `goldSoft` | `rgba(184,150,62,0.12)` | Gold background tint |
 
 ### Card Background Convention (v0.0.47+)
-All elevated surfaces use glass tokens (translucent with backdrop blur). Page backgrounds use flat `glossyBg` (#F0EDE8). Cards use `glass.card` (82% white), panels use `glass.panel` (72% white), sheets use `glass.sheet` (92% white). Buffer blocks use `glass.subtle` with `warmPalette.goldSoft` tint. Empty states use `glass.subtle`. No solid white (#FFFFFF) backgrounds on cards — all use glass tokens for the liquid glass aesthetic.
+All elevated surfaces use glass tokens (translucent with backdrop blur). Page backgrounds use flat `glossyBg` (#F0EDE8). Content panels (HeroView, CalendarView) use flat `glossyBg` directly. Cards use `glass.card` (82% white), sheets use `glass.sheet` (92% white). Buffer blocks use solid `#F5EDD8` (sandLight). Empty states use `glass.subtle`. No solid white (#FFFFFF) backgrounds on cards — all use glass tokens for the liquid glass aesthetic.
 
 ## Layout Tokens
 
 | Token | Value | Purpose |
 |-------|-------|---------|
-| `cardRadius` | 16px | Border radius for card components |
-| `buttonRadius` | 12px | Border radius for buttons |
-| `badgeRadius` | 8px | Border radius for badges and tags |
 | `cardBorder` | `1px solid #E2E0DB` | Divider and border standard |
-| `maxWidth` | 480px | Maximum container width (mobile-first) |
 
 ## Design Rationale
 
-The palette draws from natural island landscapes — ocean teals, coral warmth, sandy beiges, and sunset golds. Light variants create breathable, airy interfaces typical of premium travel publications. Large hero text (42px) paired with warm cream backgrounds creates an editorial, magazine-like experience. Generous spacing avoids density, mirroring high-end travel design where white space equals luxury.
+The palette draws from natural island landscapes — ocean teals, coral warmth, sandy beiges, and sunset golds. Light variants create breathable, airy interfaces typical of premium travel publications. Large title text (28px) paired with warm cream backgrounds creates an editorial, magazine-like experience. Generous spacing avoids density, mirroring high-end travel design where white space equals luxury.
 
-**Styling approach:** Liquid glass (glassmorphism). All elevated surfaces use translucent backgrounds with backdrop blur, creating a layered depth hierarchy. The flat warm page background (#F0EDE8) bleeds subtly through panels and cards. Borders use dark alpha values for visible separation. Shadows are soft and diffuse. The 3-tier system (page → panel → card → sheet) ensures clear visual hierarchy. No solid white cards — everything is glass.
+**Styling approach:** Liquid glass (glassmorphism). All elevated surfaces use translucent backgrounds with backdrop blur, creating a layered depth hierarchy. The flat warm page background (#F0EDE8) bleeds subtly through cards. Borders use dark alpha values for visible separation. Shadows are soft and diffuse. The 2-tier system (page → card → sheet) ensures clear visual hierarchy. No solid white cards — everything is glass.
 
 ---
 
@@ -622,7 +614,7 @@ The palette draws from natural island landscapes — ocean teals, coral warmth, 
 | `onAdd` | function | Yes | Callback fired when user taps the Add button |
 
 **Visual Description:**
-Dark gray (#1F2937) navigation bar anchored to the bottom with max-width 480px. Contains 5 tabs (Trip, Calendar, Add, Day, Status) with teal-blue (#0E7490) Add button. Active tab displays a small teal-blue indicator bar below the icon and white text; inactive tabs show gray text (#9CA3AF). Each tab has a 54px minimum height.
+Dark gray (#1F2937) navigation bar anchored to the bottom with max-width 480px. Contains 5 tabs (Trip, Plan, Add, Day, Status) with teal-blue (#0E7490) Add button. Active tab displays a small teal-blue indicator bar below the icon and white text; inactive tabs show gray text (`colors.textMuted` #9B9B9B). Each tab has a 54px minimum height.
 
 **Key Design Decisions:**
 - Touch targets 48x54px (exceeds WCAG AAA 44px minimum)
@@ -634,7 +626,7 @@ Dark gray (#1F2937) navigation bar anchored to the bottom with max-width 480px. 
 
 ## 2. TripHeader
 
-**Purpose:** Hero header with tropical beach photo, centered title, and dark overlay.
+**Purpose:** Hero header with tropical beach photo, centered title, and dark overlay. Reads custom hero photo from TripContext state if available.
 
 **Props:**
 
@@ -645,33 +637,11 @@ Dark gray (#1F2937) navigation bar anchored to the bottom with max-width 480px. 
 | `compact` | boolean | No | If true, height is 100px; else 240px |
 
 **Visual Description:**
-Full-width hero with Na Pali Coast background image. Dark gradient overlay (25% → 50% → 65% opacity). White text with drop shadow. Compact mode: 100px height, no subtitle.
+Full-width hero with sunset beach background image (`/hero-bg.png` default, or custom uploaded photo from `state.heroImage`). Warm brown gradient overlay matching HeroView (`rgba(28,25,23)` at 30%→20%→25%→60%→90%`). White text with drop shadow. Compact mode: 100px height, no subtitle.
 
 ---
 
-## 3. DestinationCard
-
-**Purpose:** Interactive card displaying a single destination with accommodation details, date range, day count, and event count.
-
-**Props:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `destination` | object | Yes | Destination data with id, name, color, dates, accommodation |
-| `dayCount` | number | Yes | Number of days at this destination |
-| `eventCount` | number | Yes | Number of events planned |
-| `onTap` | function | Yes | Callback fired when card is tapped |
-
-**Key Design Decisions:**
-- 4px left border accent in destination color
-- Island badge with map pin icon
-- Hover lift (-3px) with `shadows.md`
-- Tap scale 0.98 for tactile feedback
-- Background: `warmWhite` with clean drop shadow
-
----
-
-## 4. DayCard
+## 3. DayCard
 
 **Purpose:** Calendar grid cell representing a single day, with visual indicators for trip days, event density bars, destination shape encoding, selected state, and filter dimming.
 
@@ -694,6 +664,7 @@ Full-width hero with Na Pali Coast background image. Dark gradient overlay (25% 
 - **Shape encoding** in bottom-right: circle for Kauai, square for Maui (color isn't sole differentiator)
 - **Selected date:** Strong accent ring (2.5px solid #0E7490) + elevated shadow — distinct from "has events"
 - **Today:** Subtle textLight border (no longer confused with selection)
+- **Day number font:** 18px, line height 20px
 - **Text weight:** Bold (700) for days with events, medium (500) for trip days without, regular (400) for non-trip
 - **Filter dimming:** Non-matching destinations go to 0.3 opacity when filter is active
 - Trip days get `shadows.sm`, selected gets `shadows.md`, non-trip = no shadow
@@ -701,61 +672,18 @@ Full-width hero with Na Pali Coast background image. Dark gradient overlay (25% 
 
 ---
 
-## 5. EventCard
-
-**Purpose:** Timeline event card displaying a single trip event with time, status badge, location, and action chevron.
-
-**Props:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `event` | object | Yes | Event data with id, type, title, subtitle, startTime, status, location |
-| `isNext` | boolean | Yes | If true, shows "Next up" label |
-| `onTap` | function | Yes | Callback when card is tapped |
-
-**Key Design Decisions:**
-- Background: `warmWhite` with `shadows.card` (default) or `shadows.md` + amber ring (when "next up")
-- 4px left border in status color for at-a-glance identification
-- Type-specific icon (40x40, rounded 12px, 20px icon) + unique colored background per type
-- Title: `sectionHeader` (18px, weight 600) for readability
-- Location: `helper` (13px) in `textMedium` color for visibility
-- "Next up" amber (#B45309) pill positioned absolute top -8px right — distinct from CTA color per Nielsen H1 (temporal orientation vs action)
-- Right-aligned chevron indicates tappability
-- Hover: `scale: 1.01`, tap: `scale: 0.99`
-
----
-
-## 6. BufferBlock
-
-**Purpose:** Non-interactive timeline block for buffer/break time between events.
-
-**Props:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `event` | object | Yes | Event data: `{ bufferMinutes, bufferLabel, title }` |
-| `onTap` | function | No | Optional callback for editable buffers |
-
-**Key Design Decisions:**
-- Dashed 3px left border distinguishes from event cards
-- Normal buffers: `warmGray` background + `shadows.sm`
-- Tight buffer warning (<=20 min): amber background + "Tight" badge, no shadow
-- Coffee icon (14px) suggests break/downtime
-
----
-
-## 7. NowIndicator
+## 4. NowIndicator
 
 **Purpose:** Timeline marker showing the current time with glowing dot + horizontal line.
 
 **Props:** None. Stateless component.
 
 **Visual Description:**
-Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text label. Uses ocean teal color (#0D9488).
+Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text label. Uses ocean teal color (#0E7490).
 
 ---
 
-## 8. EventEditor
+## 5. EventEditor
 
 **Purpose:** Full-screen bottom sheet modal for adding or editing trip events.
 
@@ -769,18 +697,20 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 | `onSave` | function | Yes | Callback when user saves |
 | `onDelete` | function | No | Callback to delete existing event |
 | `onClose` | function | Yes | Callback to close modal |
-| `onStatusToggle` | function | No | Callback to toggle event status |
+| `onStatusToggle` | function | No | Callback to toggle event status (removed from UI in v0.0.70) |
 
 **Key Design Decisions:**
 - Bottom sheet pattern (standard mobile editing)
-- Horizontal scrollable type picker with color-coded buttons
-- Sticky header with close/done buttons
+- Grid-based type picker with color-coded buttons and 1.1 line-height labels
+- Sticky header with close button (Mark Done removed in v0.0.69)
 - Save button disabled until title is filled in
 - Delete with confirmation dialog
+- Time editing preserves original timezone offset (extracted from ISO string, not hardcoded)
+- **Body scroll lock:** Uses `position: fixed` with saved `scrollY` offset on mount, restores position + scroll on unmount. Prevents background scrolling AND horizontal wobble (no scrollbar disappearance shift). Sets `left: 0; right: 0; overflowX: hidden` to clamp horizontal movement
 
 ---
 
-## 9. StatusBadge
+## 6. StatusBadge
 
 **Purpose:** Reusable small pill displaying event status with semantic coloring.
 
@@ -788,12 +718,12 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `status` | string | Yes | Status value ('upcoming', 'done', 'delayed', etc.) |
+| `status` | string | Yes | Status value ('upcoming' or 'done') |
 | `size` | string | No | 'sm' (default) or 'lg' |
 
 ---
 
-## 10. EmptyState
+## 7. EmptyState
 
 **Purpose:** Placeholder for when a day has no events or when all events are done.
 
@@ -804,7 +734,7 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 | `type` | string | No | 'empty' (default) or 'complete' |
 | `onAddEvent` | function | No | Callback for Add Event button (empty state only) |
 
-## 11. ChecklistItemRow
+## 8. ChecklistItemRow
 
 **Purpose:** Single checklist item with checkbox toggle, category indicator, edit and delete buttons.
 
@@ -818,18 +748,19 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 | `onDelete` | function | Yes | Callback to delete item |
 
 **Key Design Decisions:**
-- Background: `#FFFFFF` (pure white) with `shadows.sm`
+- Background: glass.card with glassmorphic styling
 - 4px left border in category color for grouping identification
-- Checkbox: 24x24, rounded 6px, success green fill + white checkmark when complete
+- Checkbox: 22x22, rounded 6px, success green fill + white checkmark when complete
 - Title gets line-through + muted color when completed
-- Action buttons: edit (28x28, light bg) + delete (28x28, danger light)
+- Category label removed (v0.0.69) — left border color provides sufficient category indication
+- Action buttons: edit (40x40, light bg) + delete (40x40, danger light)
 - Animated layout with Framer Motion exit transitions (x: -20 on exit)
 
 ---
 
-## 12. ChecklistEditor
+## 9. ChecklistEditor
 
-**Purpose:** Bottom sheet for adding or editing checklist items with title input and category picker.
+**Purpose:** Bottom sheet for adding or editing checklist items with title input and category picker. Locks body scroll on mount.
 
 **Props:**
 
@@ -841,7 +772,7 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 
 ---
 
-## 13. DocumentCard
+## 10. DocumentCard
 
 **Purpose:** Thumbnail card in 2-column grid showing uploaded document with image preview or icon fallback.
 
@@ -855,9 +786,9 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 
 ---
 
-## 14. DocumentUploader
+## 11. DocumentUploader
 
-**Purpose:** Bottom sheet with file picker, category selector, name input, and 2MB size enforcement.
+**Purpose:** Bottom sheet with file picker, category selector, name input, and 2MB size enforcement. Locks body scroll on mount.
 
 **Props:**
 
@@ -874,9 +805,9 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 
 ---
 
-## 15. DocumentViewer
+## 12. DocumentViewer
 
-**Purpose:** Full-screen dark overlay for viewing uploaded documents at full size.
+**Purpose:** Full-screen dark overlay for viewing uploaded documents at full size. Locks body scroll on mount.
 
 **Props:**
 
@@ -893,21 +824,7 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 
 ---
 
-## 16. AlertCard
-
-**Purpose:** Colored notification card with icon, title, and optional message. Supports info, warning, and success types.
-
-**Props:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `type` | string | No | 'info' (default), 'warning', or 'success' |
-| `title` | string | Yes | Alert title |
-| `message` | string | No | Optional description text |
-
----
-
-## 17. CalendarTooltip
+## 13. CalendarTooltip
 
 **Purpose:** Lightweight popover shown on calendar day tap, displaying a day summary with event breakdown by type and a "View Day" navigation button.
 
@@ -927,7 +844,7 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 - Responsive width: 75% of container, clamped 260–340px
 - Positioned relative to tapped cell (above or below depending on available space)
 - Clamped to container edges to avoid overflow
-- Dismiss: backdrop tap, X button, Escape key
+- Dismiss: backdrop tap, 36x36 circular close button (`warmPalette.warmGray` background, matching EventEditor style), Escape key
 - Animation: scale + opacity spring (stiffness 400, damping 28)
 - Event breakdown grouped by type with icon + label + count
 - Destination shown with shape indicator (circle/square) + color
@@ -935,7 +852,7 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 
 ---
 
-## 18. CalendarLegend
+## 14. CalendarLegend
 
 **Purpose:** Interactive destination filter pills below the calendar grid. Tapping highlights matching days.
 
@@ -956,26 +873,7 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 
 ---
 
-## 19. MonthSummary
-
-**Purpose:** Single-line summary of trip days in the visible month, broken down by destination.
-
-**Props:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `days` | object | Yes | Map of day data by date |
-| `destinations` | array | Yes | Array of destination objects |
-| `trip` | object | Yes | Trip data |
-
-**Key Design Decisions:**
-- Format: "9 trip days · 5 Kauai · 4 Maui"
-- Inline color dots (circle/square per destination) before each name
-- Hidden when no trip days in visible month
-
----
-
-## 20. TimeBlock
+## 15. TimeBlock
 
 **Purpose:** Image card schedule block for the day timeline. Displays a cover photo with time/type badge overlay, title, subtitle, and chevron arrow for detail navigation. Buffer events render as compact text-only rows.
 
@@ -984,25 +882,26 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | `event` | object | Yes | Event data with id, type, title, subtitle, startTime, location, coverImage |
-| `isNext` | boolean | Yes | If true, shows "NEXT UP" badge on image |
+| `isNext` | boolean | Yes | Currently unused (Next Up badge removed in v0.0.70) |
 | `onTap` | function | Yes | Callback when card body is tapped (opens editor) |
-| `onDetail` | function | No | Callback when chevron is tapped (navigates to detail) |
+| `onDetail` | function | No | Callback when Details button is tapped (navigates to detail) |
 
 **Key Design Decisions:**
-- **Image area** (125px): Cover photo from Unsplash via `getCoverImage(type, id)` with gradient fallback per event type. `loading="lazy"` for performance.
+- **Image area** (125px): Cover photo from `event.coverImage` (explicit) or `getCoverImage(type, id)` (type-based fallback) with gradient fallback per event type on error. `loading="lazy"` for performance.
 - **Dark gradient overlay**: Bottom 60px of image has `rgba(0,0,0,0.5)` gradient for badge readability
 - **Time + type badge**: Frosted dark pill (`rgba(0,0,0,0.6)` + backdrop blur) at bottom-left with event icon (strokeWidth 2.5) + time + type label
-- **"NEXT UP" badge**: Amber (#B45309) pill at top-right, uppercase, 10px font
-- **Content area**: White (#FFFFFF) with title (`sectionHeader` 18px), subtitle/location (`body` 15px), and chevron button (`warmGray` bg)
-- **Buffer events**: Compact white card (`#F3F1EE` bg) with time range (`caption` 11px), type icon (16px), and title (`bodyMedium` 15px). No image, no left accent border.
-- **Cover image sources**: `coverImages.js` maps event types to Unsplash URLs with consistent hash-based selection per event ID. Gradient fallback on image load error.
-- **Card shadow**: `shadows.sm` with `border: 1px solid rgba(0,0,0,0.06)`
-- **Tap interaction**: Body tap → `onTap` (editor), chevron tap → `onDetail` (detail page) with `stopPropagation`
-- **Font compliance**: All text sizes use design system tokens — no overrides below minimum (11px). Title uses `sectionHeader`, subtitle uses `body`, buffer title uses `bodyMedium`.
+- **Edit icon overlay**: Frosted circle (28px, `rgba(0,0,0,0.35)` + backdrop blur) at top-right with Pencil icon (13px white)
+- **Content area**: glass.card bg with title (`sectionHeader` 18px), subtitle/location (`body` 15px), and "Details" button (`warmGray` bg)
+- **Buffer events**: Compact card (solid `#FFFFFF` bg, `1px solid rgba(0,0,0,0.04)` border) with time range (`helper` 13px), type icon (18px), and title (`sectionHeader` 16px). No image, no left accent border.
+- **Done state**: Event cards get `opacity: 0.45`, `filter: 'grayscale(0.6)'`. Inline green "Done" badge (CheckCircle2 icon + "Done" text on `rgba(39,129,91,0.12)` background) appears in the content area.
+- **Cover image sources**: Events with explicit `coverImage` field use that URL directly. Otherwise, `coverImages.js` maps event types to Unsplash URLs with consistent hash-based selection per event ID. Gradient fallback on image load error. Events with explicit cover images: 3 flights (e-0104, e-0505, e-0905) and all 5 Trip Highlight events (e-0205 Poipu Beach, e-0303 Waimea Canyon, e-0403 Na Pali Coast, e-0602 Road to Hana, e-0802 Haleakala Sunrise) — ensuring the same photo appears on the highlight card, timeline card, and event detail page.
+- **Card shadow**: glass.card shadow with `border: 1px solid rgba(0,0,0,0.06)`
+- **Tap interaction**: Body tap → `onTap` (editor), Details button tap → `onDetail` (detail page) with `stopPropagation`
+- **Font compliance**: All text sizes use design system tokens — no overrides below minimum (11px). Title uses `sectionHeader`, subtitle uses `body`, buffer title uses `sectionHeader` at 16px.
 
 ---
 
-## 21. EventDetailView
+## 16. EventDetailView
 
 **Purpose:** Full-screen event information page showing all event details. Accessed via TimeBlock chevron arrow.
 
@@ -1024,8 +923,8 @@ Glowing teal circle (10x10px with shadow), horizontal teal line, "Now" text labe
 Travel Layout
 ├── TripHeader (hero section)
 ├── [View-specific content]
-│   ├── Trip View → DestinationCard (horizontal list)
-│   ├── Calendar View → DayCard (grid) + CalendarTooltip + CalendarLegend + MonthSummary + EventEditor
+│   ├── Trip View → DestCard (inline, horizontal list)
+│   ├── Calendar View → DayCard (grid) + CalendarTooltip + CalendarLegend + EventEditor
 │   ├── Day View → TimeBlock (image cards), NowIndicator, EmptyState, EventEditor
 │   ├── Event Detail → EventDetailView (info rows, status toggle, EventEditor)
 │   └── Status View → ChecklistItemRow (grouped), DocumentCard (grid)
@@ -1043,28 +942,19 @@ Travel Layout
 ## 1. First-Time User Journey
 
 1. User launches the Travel app and lands on **HeroView**
-2. Hero page displays TripHeader, stats row, DestinationCards, "View Calendar" CTA, Quick Access day chips
+2. Hero page displays TripHeader, stats row, DestCards, "View Calendar" CTA, Quick Access day chips
 3. **Option A:** Tap "View Calendar" → CalendarView
 4. **Option B:** Tap destination card → DayTimelineView for first day of that destination
 5. **Option C:** Tap quick-access day chip → DayTimelineView for that date
 6. Page transitions with fade/slide animation (opacity 0→1, y: 12→0)
 
-## 2. Adding a New Event — Header "Add" Button
-
-1. User is on DayTimelineView with sticky header
-2. Taps "Add" pill button in header
-3. `handleCreateNew()` → sets `isCreating = true`
-4. EventEditor opens as bottom sheet
-5. User fills form, taps "Add Event"
-6. `ADD_EVENT` dispatched, editor closes, event appears in timeline
-
-## 3. Adding a New Event — Inline Timeline Button
+## 2. Adding a New Event — Inline Timeline Button
 
 1. User scrolls to bottom of timeline
 2. Taps dashed "Add event" button (positioned after last event, aligned with timeline)
 3. Same flow as header Add button
 
-## 4. Adding a New Event — Bottom Navigation Button
+## 3. Adding a New Event — Bottom Navigation Button
 
 1. User is on any view
 2. Taps teal "Add" button in bottom nav
@@ -1072,15 +962,15 @@ Travel Layout
 4. DayTimelineView detects `addTrigger` change via `useEffect`
 5. EventEditor automatically opens
 
-## 5. Editing an Existing Event
+## 4. Editing an Existing Event
 
-1. User taps EventCard or BufferBlock in timeline
+1. User taps TimeBlock in timeline
 2. `handleEventTap(event)` → sets `editingEvent`, opens EventEditor
 3. Form pre-populated with event data
 4. User modifies fields, taps "Save Changes"
 5. `UPDATE_EVENT` dispatched, editor closes
 
-## 6. Deleting an Event
+## 5. Deleting an Event
 
 1. User is editing an event (EventEditor open)
 2. Taps red trash icon
@@ -1088,21 +978,21 @@ Travel Layout
 4. Taps "Delete" → `DELETE_EVENT` dispatched
 5. Editor closes, timeline re-renders
 
-## 7. Navigating Between Days
+## 6. Navigating Between Days
 
 - **Chevron arrows:** Prev/next day buttons in sticky header
 - **Calendar tap:** Day cell → DayTimelineView
 - **Day chip tap:** Quick access in HeroView
 - **Destination card tap:** First day of that destination
 
-## 8. Toggling Event Status
+## 7. Toggling Event Status
 
 1. In EventEditor, tap status toggle button
 2. Toggles between 'done' and 'upcoming'
 3. `SET_EVENT_STATUS` dispatched
 4. If all events done, EmptyState "complete" appears
 
-## 9. Adding a Checklist Item
+## 8. Adding a Checklist Item
 
 1. User is on StatusView
 2. Taps "Add" pill button next to Preparation section header
@@ -1111,13 +1001,13 @@ Travel Layout
 5. Taps "Add Item"
 6. `ADD_CHECKLIST_ITEM` dispatched, editor closes, item appears under its category group
 
-## 10. Toggling/Editing/Deleting Checklist Items
+## 9. Toggling/Editing/Deleting Checklist Items
 
 - **Toggle:** Tap checkbox → `TOGGLE_CHECKLIST_ITEM` → sets `completed` + `completedAt`; progress bar animates
 - **Edit:** Tap pencil icon → ChecklistEditor opens pre-populated → save dispatches `UPDATE_CHECKLIST_ITEM`
 - **Delete:** Tap trash icon → `DELETE_CHECKLIST_ITEM` dispatched, item animates out
 
-## 11. Uploading a Document
+## 10. Uploading a Document
 
 1. User taps "Upload" pill button next to Documents section header
 2. DocumentUploader bottom sheet slides up
@@ -1126,7 +1016,7 @@ Travel Layout
 5. User sets name (auto-populated from filename), category, optional notes
 6. Taps "Upload Document" → `ADD_DOCUMENT` dispatched, card appears in grid
 
-## 12. Viewing/Deleting a Document
+## 11. Viewing/Deleting a Document
 
 - **Preview:** Tap document card → DocumentViewer full-screen overlay with dark backdrop
 - **Delete:** Tap small trash icon on card → `DELETE_DOCUMENT` dispatched
@@ -1135,11 +1025,10 @@ Travel Layout
 
 | Action | Entry Point | Components |
 |--------|-------------|-----------|
-| Add Event | Header button | DayTimelineView + EventEditor |
 | Add Event | Inline button | DayTimelineView + EventEditor |
 | Add Event | Nav button | Navigation + EventEditor |
 | Add Event | Empty state | EmptyState + EventEditor |
-| Edit Event | Event tap | EventCard + EventEditor |
+| Edit Event | Event tap | TimeBlock + EventEditor |
 | Delete Event | Delete button | EventEditor |
 | View Event Detail | Chevron arrow | TimeBlock + EventDetailView |
 | Navigate Day | Chevron | DayTimelineView |
@@ -1167,7 +1056,7 @@ Travel Layout
 | Primary text | #1A1A1A | #FFFFFF | 15:1 | AAA |
 | Secondary text | #6B6B6B | #FFFFFF | 8.3:1 | AA |
 | Muted text | #9B9B9B | #FFFFFF | 6.2:1 | AA |
-| Inactive nav | #9CA3AF | #1F2937 | 4.6:1 | AA |
+| Inactive nav | #9B9B9B | #1F2937 | 4.5:1 | AA |
 | Active nav | #FFFFFF | #1F2937 | 13.5:1 | AAA |
 | CTA button text | #FFFFFF | #0E7490 | 5.35:1 | AA |
 | Success text | #27815B | #E8F5E9 | 7.1:1 | AA |
@@ -1196,10 +1085,9 @@ Inline "Add Event" button placed directly after the last event, near the content
 
 ### Principle 2: FAB Removal
 
-Instead of a floating button, three redundant entry points:
+Instead of a floating button, two redundant entry points:
 1. Navigation bottom bar (always visible)
-2. Sticky header add button (visible during scroll)
-3. Inline add button (context-aware, after events)
+2. Inline add button (context-aware, after last event in timeline)
 
 ### Principle 3: Bottom Navigation Best Practices
 
@@ -1215,14 +1103,15 @@ Navigation tabs are 54px tall (23% above minimum). All buttons maintain 44px+ he
 
 ### Principle 5: Layout Stability (No Wobble)
 
-Three wobble causes were identified and fixed:
+Four wobble causes were identified and fixed:
 1. Removed Framer Motion `layoutId` (caused shared layout animation)
 2. Removed `whileTap={{ scale }}` on flex items (caused space redistribution)
 3. Set constant `fontWeight: 600` on all tabs (prevents text-width shift)
+4. **Body scroll lock on overlays:** All modal overlays (EventEditor, ChecklistEditor, DocumentUploader, DocumentViewer) use `position: fixed` with saved `scrollY` offset on `document.body`. This freezes the background without removing the scrollbar, preventing horizontal layout shift. On unmount, position is cleared and `window.scrollTo` restores the original scroll position.
 
 ### Principle 6: Redundant Encoding
 
-Status uses color + text + position (not color alone). EventCard left border color + StatusBadge text + shadow elevation = three-part encoding for maximum accessibility.
+Status uses color + text + position (not color alone). TimeBlock type color + StatusBadge text + shadow elevation = three-part encoding for maximum accessibility.
 
 ---
 
@@ -1281,7 +1170,7 @@ Status uses color + text + position (not color alone). EventCard left border col
   location: { origin?, destination? } | null,
   confirmationNumber: string | null,
   notes: string | null,
-  status: string,                  // 'upcoming', 'done', 'delayed', 'cancelled'
+  status: string,                  // 'upcoming' or 'done'
   sortOrder: number,
   bufferMinutes?: number,          // Buffer-specific
   bufferLabel?: string
@@ -1290,24 +1179,24 @@ Status uses color + text + position (not color alone). EventCard left border col
 
 ## Event Types Catalog (14 types)
 
-Each event type has a unique icon color + background color pairing for maximum visual variety. No two types share the same bg color (except buffer/custom which share surfaceMuted as utility types).
+Each event type has a unique icon color + background color pairing for maximum visual variety. No two types share the same bg color.
 
 | Type | Icon | Icon Color | Bg Color | Use Case |
 |------|------|-----------|----------|----------|
 | `flight` | Plane | `info` (#2B7A9E) | `infoLight` (#E0F1F8) | Air travel |
-| `ground_transport` | Car | `ocean` (#0E7490) | `oceanLight` (#E0F7FA) | Taxi, rental car, Uber |
-| `hotel` | Building2 | `sand` (#C4A265) | `sandLight` (#F5EDD8) | Check-in, checkout |
+| `ground_transport` | Car | `violet` (#6D28D9) | `violetLight` (#EDE9FE) | Taxi, rental car, Uber |
+| `hotel` | Building2 | `sand` (#9E7C2E) | `sandLight` (#F5EDD8) | Check-in, checkout |
 | `activity` | Palmtree | `palm` (#2D7D46) | `palmLight` (#E0F2E5) | Tours, excursions |
-| `dining` | UtensilsCrossed | `coral` (#E8725A) | `coralLight` (#FDE8E3) | Restaurant, meals |
-| `buffer` | Coffee | `textMuted` (#9B9B9B) | `surfaceMuted` (#EFEEE9) | Prep time, transitions |
-| `boat` | Ship | `lagoon` (#1B9AAA) | `tealLight` (#D5F0F0) | Boat tours, ferry |
-| `sunrise` | Sunrise | `sunset` (#E8925A) | `sunsetLight` (#FFF0E3) | Sunrise/sunset viewing |
-| `sightseeing` | Camera | `lavender` (#7C3AED) | `lavenderLight` (#EDE9FE) | Lookouts, photo stops |
+| `dining` | UtensilsCrossed | `coral` (#C74534) | `coralLight` (#FDE8E3) | Restaurant, meals |
+| `buffer` | Clock | `tan` (#7B5B3A) | `tanLight` (#F7EDE2) | Prep time, transitions |
+| `boat` | Ship | `navy` (#1E40AF) | `navyLight` (#DBEAFE) | Boat tours, ferry |
+| `sunrise` | Sunrise | `sunset` (#C05D10) | `sunsetLight` (#FDE8D3) | Sunrise/sunset viewing |
+| `sightseeing` | Camera | `amber` (#B45309) | `amberLight` (#FFFBEB) | Lookouts, photo stops |
 | `beach` | Waves | `aqua` (#0891B2) | `aquaLight` (#CFFAFE) | Swimming, sunbathing |
 | `hiking` | Mountain | `emerald` (#059669) | `emeraldLight` (#D1FAE5) | Trails, trekking |
 | `shopping` | ShoppingBag | `rose` (#DB2777) | `roseLight` (#FCE7F3) | Markets, retail |
-| `entertainment` | Music | `purple` (#9333EA) | `purpleLight` (#F3E8FF) | Shows, luaus |
-| `custom` | Circle | `textMuted` (#9B9B9B) | `surfaceMuted` (#EFEEE9) | User-defined |
+| `fun` | PartyPopper | `purple` (#9333EA) | `purpleLight` (#F3E8FF) | Shows, luaus |
+| `custom` | Circle | `textSecondary` (#6B6B6B) | `borderLight` (#F0EFEA) | User-defined |
 
 ## State Management Pattern
 
@@ -1331,10 +1220,13 @@ TripProvider (root wrapper)
   selectedEventId: string | null,
   checklistItems: ChecklistItem[],
   documents: Document[],
+  heroImage: string | null,  // Custom hero photo data URL (JPEG, canvas-compressed)
+  weatherZipCode: string,    // User-entered zip code for weather lookup
+  weatherData: {},           // { '2026-03-14': { high, low, code, condition }, ... }
 }
 ```
 
-### Reducer Actions (16 types)
+### Reducer Actions (19 types)
 
 | Action | Payload | Purpose |
 |--------|---------|---------|
@@ -1353,22 +1245,26 @@ TripProvider (root wrapper)
 | `ADD_DOCUMENT` | Document | Upload document |
 | `UPDATE_DOCUMENT` | `{ id, updates }` | Edit document metadata |
 | `DELETE_DOCUMENT` | doc id string | Remove document |
+| `SET_HERO_IMAGE` | data URL string | Set custom hero photo |
+| `SET_WEATHER_ZIP` | zip code string | Save weather zip code |
+| `SET_WEATHER_DATA` | `{ date: { high, low, code, condition } }` | Store fetched weather forecast |
 | `RESET` | none | Revert to sample data |
 
 ### localStorage Persistence
 
 - **Key:** `travel-trip-state`
 - **Debounced 500ms** after every state change
-- **Validation:** Trip ID check on load prevents data pollution
-- **Graceful fallback:** Falls back to sampleTrip if corrupted
+- **Validation:** Trip ID + `DATA_VERSION` check on load prevents data pollution
+- **Data versioning:** A `DATA_VERSION` constant (currently 5) is saved alongside state as `_dataVersion`. When sample data changes (new fields, updated URLs), bump this to invalidate stale cached data.
+- **Graceful fallback:** Falls back to sampleTrip if corrupted or version mismatch
 
 ### Hydration Strategy
 
 1. Build defaults object with all fields (including `checklistItems` and `documents`)
 2. Read from localStorage
-3. Validate trip ID matches sample trip
+3. Validate trip ID matches sample trip AND `_dataVersion` matches current `DATA_VERSION`
 4. Merge `{ ...defaults, ...parsed }` to backfill any new fields missing from old localStorage data
-5. Fall back to full defaults if empty/invalid
+5. Fall back to full defaults if empty/invalid/version mismatch
 
 ## Sample Data Overview
 
@@ -1403,7 +1299,7 @@ User Interaction → Component → dispatch(action) → tripReducer → New Stat
 The Travel app embodies a **premium vacation magazine aesthetic** with tropical design language.
 
 **Design Principles:**
-- Warm, inviting palette — foundation of beige backgrounds (#F6F5F2), white surfaces, tropical accents
+- Warm, inviting palette — foundation of beige backgrounds (#F0EDE8), white surfaces, tropical accents
 - Luxury through simplicity — clean layouts with generous whitespace
 - Nature-inspired interactions — smooth animations and pull gestures
 - Color as storytelling — each destination has distinct color identity
@@ -1417,14 +1313,14 @@ Hero image section (240px/100px) with rounded content card overlapping via `marg
 
 ### 2. Pull Handle Indicator
 
-36px wide x 4px tall, centered horizontally. Color: `#E2E0DB`. Borrowed from iOS design language to signal scrollability.
+36px wide x 4px tall, centered horizontally. Color: `#D6D3CE` (colors.dragHandle). Borrowed from iOS design language to signal scrollability.
 
 ### 3. Sticky Header with Glass Blur
 
 - Position: `sticky`, top: 0, z-index: 50
 - Uses `glass.frostedLight`: `rgba(240,237,232,0.85)` with `backdrop-filter: blur(20px)` + `WebkitBackdropFilter: blur(20px)`
 - Border bottom: `1px solid rgba(255, 255, 255, 0.4)`
-- DayTimelineView: two sections — day navigation controls + destination strip
+- DayTimelineView: two sections — day navigation controls + destination strip (current island emphasized, other islands as subtle links)
 - StatusView: title + progress bar
 
 ### 4. Image Card Timeline with Left Hour Labels
@@ -1432,7 +1328,7 @@ Hero image section (240px/100px) with rounded content card overlapping via `marg
 - No track line — replaced with image card layout
 - TimeBlock image cards: rounded corners, cover photo, white content area
 - Buffer events: compact text-only rows between image cards
-- Left hour labels (44px column): deduplicated by comparing with previous event's hour
+- Left hour labels (44px column, 12px font, `textMedium`): deduplicated by comparing with previous event's hour
 - 8px gap between cards creates vertical rhythm
 - NowIndicator positioned at `getNowPosition(events)` index
 
@@ -1451,8 +1347,9 @@ Hero image section (240px/100px) with rounded content card overlapping via `marg
 
 ## Hero Image Treatment
 
-- Na Pali Coast photograph at full coverage
-- Dark gradient overlay: `rgba(0,0,0,0.25)` → `rgba(0,0,0,0.5)` → `rgba(0,0,0,0.65)`
+- Default: sunset beach photograph (`/hero-bg.png`) at full coverage
+- **Custom photo upload:** Camera button (frosted glass circle, 32x32, top-right) opens file picker. Selected image compressed via canvas API (1200px max width, JPEG quality 0.7), stored as data URL in `heroImage` state. Shared between HeroView and TripHeader (calendar page).
+- Dark gradient overlay: `scrimGradient` token — warm brown (`rgba(28,25,23)`) from 30% → 20% → 25% → 60% → 90%
 - Progressive darkening ensures text readability
 - Text shadow: `0 2px 16px rgba(0,0,0,0.35)` on titles
 
@@ -1460,26 +1357,25 @@ Hero image section (240px/100px) with rounded content card overlapping via `marg
 
 Each destination cascades its color throughout the entire app:
 
-- **DestinationCard:** 4px left border
+- **DestCard (HeroView):** 4px left border
 - **Calendar grid:** Day cells with colored bottom border
-- **Destination strip:** Background uses accentLight
+- **Destination strip:** Background uses brightened tints (#BAE5E0 Kauai, #EDDBAF Maui), centered layout with current island bold + other as subtle link
 - **Quick access chips:** Bottom border in destination color
 - **Badge backgrounds:** accentLight with color text
 
 ## Card Design Language
 
-- **Background:** `#FFFFFF` (pure white) for all cards — event, document, checklist, destination, info rows, editor sheets. Buffer events use `#F3F1EE`.
+- **Background:** `#FFFFFF` (pure white) for all cards — event, document, checklist, destination, info rows, editor sheets. Buffer events use solid `#F5EDD8` (sandLight).
 - **Border radius:** 8px (badges) → 12px (buttons) → 16px (cards) → 20px (modals/sheets)
 - **Shadows:** Clean drop shadows from `shadows` object — `sm` for resting, `md` for elevated/highlighted
 - **Borders:** 1px solid rgba(0,0,0,0.06) for recessed containers; 4px colored left accent for categorization
-- **Interactive states:** Tap scale 0.97-0.99, hover lift -3px or scale 1.01 with shadow elevation
+- **Interactive states:** Tap scale 0.93-0.98 (no hover effects)
 - **No neumorphism:** Dual-tone embossed shadows (`#D4D0CA` / `#FFFFFF` pairs) were removed in v0.0.5
 
 ## Status Visual System
 
 - Left border color for instant recognition
 - StatusBadge pill with semantic text
-- "Next up" amber (#B45309) badge on first upcoming event (distinct from CTA buttons)
 - Event type icons with colored backgrounds
 
 ---
@@ -1506,24 +1402,23 @@ const pageVariants = {
 
 ## Staggered Content Reveals
 
-HeroView uses sequential reveal with 100ms stagger intervals:
-- Stats row: delay 0.2s
-- Destination cards: delay 0.3s
-- CTA button: delay 0.4s
-- Quick access chips: delay 0.5s
+HeroView uses sequential reveal with increasing delays:
+- Camera button: delay 0.3s
+- Next Up card: delay 0.55s
+- Flight status card: delay 0.65s
+- Destination cards container: delay 0.7s (individual cards: 0.75 + 0.1×i)
+- Trip countdown card: delay 0.75s
+- Quick access chips: delay 1.05 + 0.04×i
+- Highlights section: delay 1.25 + 0.08×i
 
 Guides user's eye downward through natural reading flow.
 
 ## Micro-Interactions
 
-### Hover Effects
-- `scale: 1.01` — EventCard, BufferBlock (1% enlargement)
-- `y: -3` — DestinationCard (3px upward lift + shadow)
-
 ### Pressure Feedback (whileTap)
 - Calendar cells: 0.93 (7% reduction, high confidence)
 - Day chips: 0.95 (5% reduction)
-- Event cards: 0.99 (1% reduction, subtle)
+- Event cards: 0.98 (2% reduction, subtle)
 - Inline add button: 0.97 (3% reduction)
 
 ## Modal Animations
@@ -1544,7 +1439,7 @@ EventEditor uses backdrop fade + bottom sheet with spring physics:
 **GPU-Accelerated (used):** opacity, transform (translateY, scale)
 **Avoided (layout thrashing):** width/height, top/bottom, padding/margin
 
-No `layout` prop used. Fixed viewport at 480px prevents cascading reflows.
+`layout` prop used on ChecklistItemRow and DocumentCard for animated reordering. Fixed viewport at 480px prevents cascading reflows.
 
 ## Animation Timing Summary
 
@@ -1569,56 +1464,49 @@ travel/
 │   ├── main.jsx                     React entry point
 │   ├── App.jsx                      Root component (TripProvider + view router)
 │   ├── index.css                    Tailwind imports
-│   ├── colors.js               (68 lines)    Color palette + gradients
-│   ├── styles.js               (97 lines)    Typography, spacing, shadows, glass tokens
+│   ├── colors.js               (63 lines)    Color palette (no gradients)
+│   ├── styles.js               (147 lines)   Typography, spacing, shadows, glass tokens, scrimGradient
 │   │
 │   ├── context/
-│   │   └── TripContext.jsx     (~230 lines)   Reducer (16 actions) + localStorage
+│   │   └── TripContext.jsx     (~235 lines)   Reducer (17 actions) + localStorage
 │   │
 │   ├── views/                  (5 files)
-│   │   ├── HeroView.jsx        (~614 lines)   Trip landing page + DestCard component
+│   │   ├── HeroView.jsx        (~1678 lines)  Trip landing page + DestCard component
 │   │   ├── CalendarView.jsx    (~370 lines)   Monthly calendar with nav, tooltip, legend
 │   │   ├── DayTimelineView.jsx (~350 lines)   Image card schedule timeline
 │   │   ├── EventDetailView.jsx (~280 lines)   Full event information page
 │   │   └── StatusView.jsx      (~345 lines)   Checklist + document management
 │   │
-│   ├── components/             (17 files)
+│   ├── components/             (15 files)
 │   │   ├── Navigation.jsx      (~169 lines)   Bottom tab navigation (5 items)
 │   │   ├── TripHeader.jsx      (~79 lines)    Hero header with photo
-│   │   ├── DestinationCard.jsx (~92 lines)    Destination preview card
 │   │   ├── DayCard.jsx         (~115 lines)   Calendar grid day cell (redesigned)
 │   │   ├── CalendarTooltip.jsx (~180 lines)   Day summary popover on cell tap
 │   │   ├── CalendarLegend.jsx  (~75 lines)    Interactive destination filter pills
-│   │   ├── MonthSummary.jsx    (~60 lines)    Trip day count summary line
-│   │   ├── TimeBlock.jsx       (~160 lines)   Image card schedule block (cover photo + badges)
-│   │   ├── EventCard.jsx       (~125 lines)   Timeline event card (legacy, retained)
+│   │   ├── TimeBlock.jsx       (~160 lines)   Image card schedule block (cover photo + badges + inline buffer)
 │   │   ├── EventEditor.jsx     (~463 lines)   Bottom sheet for event CRUD
-│   │   ├── BufferBlock.jsx     (~58 lines)    Buffer time display (legacy, retained)
 │   │   ├── EmptyState.jsx      (~113 lines)   Empty + complete states
 │   │   ├── StatusBadge.jsx     (~30 lines)    Status indicator badge
 │   │   ├── NowIndicator.jsx    (~40 lines)    "Now" timeline marker
-│   │   ├── AlertCard.jsx       (~65 lines)    Info/warning/success alert card
 │   │   ├── ChecklistItemRow.jsx(~111 lines)   Checkbox row with edit/delete
 │   │   ├── ChecklistEditor.jsx (~212 lines)   Bottom sheet for checklist CRUD
 │   │   ├── DocumentCard.jsx    (~114 lines)   Document thumbnail card
 │   │   ├── DocumentUploader.jsx(~304 lines)   Bottom sheet with file upload
 │   │   └── DocumentViewer.jsx  (~136 lines)   Full-screen document preview
 │   │
-│   ├── hooks/
-│   │   ├── useTrip.js          (53 lines)     Trip-level helpers
-│   │   └── useDay.js           (74 lines)     Day-level CRUD + stats
-│   │
 │   ├── data/
 │   │   ├── sampleTrip.js       (1,021 lines)  Hawaii vacation mock data
-│   │   ├── eventTypes.js       (128 lines)    Event type definitions
+│   │   ├── eventTypes.js       (120 lines)    Event type definitions
 │   │   ├── coverImages.js      (~80 lines)    Type-based cover photo URLs + gradient fallbacks
 │   │   ├── statusCategories.js (~95 lines)    Checklist + document categories
 │   │   └── sampleChecklist.js  (~80 lines)    8 sample preparation items
 │   │
 │   └── utils/
-│       ├── dateUtils.js        (~115 lines)   Date formatting, calendar grid, month nav
+│       ├── dateUtils.js        (~105 lines)   Date formatting, calendar grid, month nav
 │       └── timeUtils.js        (78 lines)     Time formatting, event colors
 │
+├── public/
+│   └── hero-bg.png                 Default hero background image
 ├── package.json
 ├── vite.config.js
 ├── Dockerfile
@@ -1668,11 +1556,10 @@ Travel (wrapper)
     └── TravelInner
         ├── AnimatePresence
         │   ├── HeroView
-        │   │   ├── TripHeader + DestinationCard + DayCard chips
+        │   │   ├── TripHeader + DestCard (inline) + DayCard chips
         │   ├── CalendarView
         │   │   ├── TripHeader (compact) + DayCard grid + CalendarTooltip
         │   │   ├── CalendarLegend (interactive filter)
-        │   │   ├── MonthSummary
         │   │   └── EventEditor (modal, from Add button)
         │   ├── DayTimelineView
         │   │   ├── TimeBlock (image cards) + NowIndicator + EmptyState
@@ -1728,9 +1615,330 @@ deploy.sh travel "commit message"  # Deploy to cluster
 
 ---
 
-*Updated February 2026 (v0.0.31). Standalone deployment. This document covers the complete Travel app architecture, design system (glassmorphism + clean shadows, no neumorphism), component library, interaction patterns, accessibility compliance, and technical implementation — including the Status tab with checklist management and document uploads, the redesigned Calendar view with month navigation, tooltip, and interactive legend, the image card timeline with cover photos, the event detail view, design system font compliance, and the warm-white/pure-white card convention.*
+*Updated February 2026 (v0.0.114). Standalone deployment. This document covers the complete Travel app architecture, design system (glassmorphism + clean shadows, no neumorphism), component library, interaction patterns, accessibility compliance, and technical implementation — including custom hero photo upload, body scroll lock on overlays, redesigned destination strip navigation, the Status tab with checklist management and document uploads, the redesigned Calendar view with month navigation, tooltip, and interactive legend, the image card timeline with cover photos, the event detail view, design system font compliance, real weather API via Open-Meteo, buffer card duration titles, highlight scroll restoration, the design system token cleanup (v0.0.106–v0.0.114), and the warm-white/pure-white card convention.*
 
 ## Changelog
+
+### v0.0.120 — Upload Zone Consistency
+
+Normalized cover photo zone (EventEditor) to match document upload zone (DocumentUploader) pattern:
+- Changed from `glass.subtle` bg + undefined dashed border → `glass.input.background` + `2px dashed colors.border`
+- Changed from fixed `height: 120` → `padding: spacing.xl` (natural height)
+- Icon size: 24px → 32px (matches Upload icon)
+- Added caption: "Images only · Max 5 MB"
+- Text "Tap to add a cover photo" was already 15px (normalized in v0.0.119)
+
+### v0.0.119 — Cover Photo Text Normalization
+
+Normalized cover photo placeholder text from 13px (`typography.helper.fontSize`) to 15px (`typography.body.fontSize`) for consistency with DocumentUploader's "Tap to select file" text.
+
+### v0.0.118 — Upload Icon Centering
+
+Fixed Upload icon in DocumentUploader not centering: added `display: 'block'` and `margin: '0 auto'`.
+
+### v0.0.115 — Design System V2 Responsive + Font Cleanup
+
+Updated TravelDesignSystemV2 page (ui-test v0.0.204):
+- Removed monospace font (`SF Mono`) from all design system page text — all text now uses Inter via `fontStack`
+- Added responsive layout: sidebar collapses to overlay on tablet (<1024px) and mobile (<768px), backdrop overlay, auto-close on nav click
+- Responsive section cards: reduced padding on mobile, scaled-down headings
+- Responsive grids: primary brand/surfaces and empty states switch to single column on mobile
+- Main content padding adapts to viewport size (desktop: 48/40px, tablet: 32/24px, mobile: 24/16px)
+- Added destination colors section (6 colors from sampleTrip.js)
+- Status colors reduced to 2 (upcoming + done), warning/danger removed from display
+- Typography inline overrides subsection added (12/14/15/16/22px)
+
+---
+
+### v0.0.114 — Color Token Audit (surfaceMuted Removal)
+
+Removed `colors.surfaceMuted` (#EFEEE9) — token was not visibly distinguishable in the app. Replaced all 10 references across 7 files with `colors.borderLight`. Updated design system page (ui-test) to remove surfaceMuted and update badge count (44→43 colors).
+
+---
+
+### v0.0.113 — Hardcoded Color Fix (#C4A265 → colors.sand)
+
+Fixed 4 hardcoded `#C4A265` values that should use the `colors.sand` design token:
+- HeroView DestCard arrow accent color (was `palette.gold`, broken after v0.0.110 removal)
+- HeroView CalendarDays icon color
+- HeroView DestCard gradient fallback
+- coverImages.js hotel gradient
+
+---
+
+### v0.0.112 — Maui Arrow Button Fix
+
+Fixed missing Maui arrow button on DestCard — `palette.gold` (removed in v0.0.110) left no accent color. Now uses `colors.sand` via destination color lookup.
+
+---
+
+### v0.0.111 — Design System V2 Page Updates
+
+Updated TravelDesignSystemV2 page (ui-test) to reflect v0.0.110 token removals: removed dead tokens from local copies (typography.hero, spacing.xxs, shadows.card/cardHover, glass.frostedMedium, warmPalette.warmWhite/gold, 5 composite tokens), updated section descriptions and badge counts.
+
+---
+
+### v0.0.110 — Dead Code Removal + Token Cleanup
+
+Comprehensive dead code audit removing unused components, tokens, imports, and exports:
+
+**Deleted components (4 files):**
+- `AlertCard.jsx` — never imported by any view
+- `BufferBlock.jsx` — never imported; TimeBlock handles buffer rendering inline
+- `EventCard.jsx` — never imported; TimeBlock replaced it
+- `DestinationCard.jsx` — never imported; HeroView uses inline DestCard sub-component
+
+**Removed tokens from styles.js:**
+- `typography.hero` (42px) — unused after HeroView redesign
+- `spacing.xxs` (2px) — no remaining usages
+- `shadows.card` and `shadows.cardHover` — card/cardHover only referenced by dead components
+- `glass.frostedMedium` — zero usages
+- `warmPalette.warmWhite` and `warmPalette.gold` — replaced by colors.js tokens
+- `tokens.cardRadius`, `tokens.buttonRadius`, `tokens.badgeRadius`, `tokens.cardShadow`, `tokens.maxWidth` — all unused; only `tokens.cardBorder` retained
+
+**Removed exports:**
+- `export default colors` from colors.js (only named export used)
+- `getTotalEventCount()` from sampleTrip.js
+- `getEventStatus()` from eventTypes.js
+
+**Cleaned imports:** 19 unused imports removed across 11 files, 3 unused variables removed.
+
+**Documentation:** Updated DOCUMENTATION.md — removed deleted component sections, renumbered components (19→15), updated file tree, fixed all stale component references in architecture/flow diagrams, updated token tables.
+
+---
+
+### v0.0.109 — CLAUDE.md Design System Audit
+
+Removed 29 unimplemented features from CLAUDE.md (skeleton screens, parallax, easing curves, focus traps, aria-live, role=dialog, etc.). Fixed 10+ incorrect values (backdrop opacity, drag handle color, button colors, nav colors, background hex, shadow table, checkbox size). 704→596 lines.
+
+---
+
+### v0.0.108 — Documentation Audit
+
+Fixed 26 stale/incorrect references in DOCUMENTATION.md (removed dead tokens, fixed hex values, added missing tokens, removed MonthSummary references, fixed nav label Calendar→Plan, updated component counts).
+
+---
+
+### v0.0.107 — Design System Cleanup + Documentation Audit
+
+7-phase cleanup establishing single source of truth for all design tokens, plus comprehensive documentation audit (26 fixes):
+
+**Token files (colors.js + styles.js):**
+- Removed 10 unused color tokens (`background`, `kauai/kauaiLight/kauaiBg`, `maui/mauiLight/mauiBg`, `stone/stoneLight`, `shadow`)
+- Removed unused `gradients` export (6 gradients, zero usage)
+- Added `colors.dragHandle` (#D6D3CE) and `colors.textOnDark` (#FFFFFF)
+- Added `radius.iconSquare` (10) for 32×32 icon containers
+- Added `shadows.accentGlow` / `shadows.accentGlowStrong` for ocean-teal button glows
+- Added `scrimGradient` export — shared dark overlay for hero/header images
+- Derived `warmPalette.textDark/textMedium/textLight/accent` from `colors.*` (single source of truth)
+- Consolidated `shadows.card` = `shadows.sm` (same value), removed unused `glassHover`/`lg`/`xl`
+- Removed unused glass variants: `frostedDark`, `tooltip`
+
+**Hardcoded value replacements (25+ component/view files):**
+- `#D6D3CE` → `colors.dragHandle` (6 files)
+- `#EDEAE5` → `warmPalette.warmGray` (6 files)
+- `#F0EFEA` → `colors.borderLight` (HeroView dividers)
+- `#FFFFFF/#FFF` → semantic tokens: `colors.textOnAccent` (buttons), `colors.textOnDark` (scrims/overlays), `colors.surface` (backgrounds) — 13+ instances across 10 files
+- `borderRadius: 10` → `radius.iconSquare` (9 instances in HeroView, StatusView, ChecklistItemRow)
+- `rgba(14,116,144,0.25/0.4)` box-shadows → `shadows.accentGlow` / `shadows.accentGlowStrong` (StatusView, EmptyState, Navigation, HeroView)
+- `rgba(196,162,101,0.12)` → `warmPalette.goldSoft` (HeroView countdown icon)
+- Duplicated 5-line scrim gradient → `scrimGradient` token (TripHeader, HeroView)
+- `fontSize: 13` → `typography.helper.fontSize` (~20 instances across 12 files)
+- `fontSize: 11` → `typography.caption.fontSize` or removed when redundant with `...typography.caption` spread (~15 instances)
+- Added `import { colors }` to Navigation.jsx and CalendarTooltip.jsx
+
+**Dead code removal:**
+- Deleted `MonthSummary.jsx` (returned null, was a no-op wrapper kept to avoid breaking imports)
+- Removed MonthSummary import and usage from CalendarView.jsx
+
+**Documentation audit (26 fixes):**
+- Removed 10 stale token references (`background`, `stone`, `kauai*`, `maui*`, `shadow`, gradients export)
+- Fixed wrong hex values: coral (#E8725A→#C74534), sand (#C4A265→#9E7C2E), sunset (#E8925A→#C05D10, light #FFF0E3→#FDE8D3)
+- Added missing tokens: `dragHandle`, `textOnDark`, `iconSquare`, `accentGlow`, `accentGlowStrong`, `scrimGradient`
+- Fixed warmPalette to show derivation from colors.js (`textDark: colors.textPrimary`, etc.)
+- Removed deleted shadows (`lg`, `xl`), glass variants (`tooltip`, `frostedDark`)
+- Fixed nav label "Calendar"→"Plan", inactive color #9CA3AF→#9B9B9B
+- Removed all MonthSummary references (component section, hierarchy trees, CalendarView zones, file tree)
+- Removed stale "header Add button" user flow (removed in v0.0.94)
+- Fixed hero gradient description to reference `scrimGradient` token
+- Updated component count (20→19), file tree line counts, version references
+
+### v0.0.102 — Highlight Cover Photo Consistency
+- **Highlight card photos match event detail and timeline:** Added `coverImage` fields to 4 highlight events in `sampleTrip.js` (e-0205 Poipu Beach, e-0303 Waimea Canyon, e-0602 Road to Hana, e-0802 Haleakala Sunrise) using the same Unsplash URLs from the `HIGHLIGHTS` array in HeroView. The 5th highlight (e-0403 Na Pali Coast) already had `coverImage` set. Now all three surfaces — highlight card, timeline TimeBlock, and EventDetailView — display the same curated photo for each highlight event.
+- **DATA_VERSION bumped 4 → 5** to invalidate stale localStorage and load new `coverImage` fields.
+
+### v0.0.101 — Cover Photo Match + Horizontal Wobble Fix
+- **EventDetailView cover photos match timeline cards:** Replaced the hardcoded `TYPE_PHOTOS` map (one generic photo per event type) with the same image resolution used by TimeBlock: `event.coverImage` → `getCoverImage(type, id)` → gradient fallback. The "Flight to Kauai" card and all other events now show the same cover photo in both the timeline and the detail page. Added `<img>` tag with `onError` fallback to gradient.
+- **Horizontal wobble eliminated on overlay open:** All 4 overlay components (EventEditor, ChecklistEditor, DocumentUploader, DocumentViewer) now use `position: fixed` with saved `scrollY` offset instead of `overflow: hidden` on body. This freezes the background without removing the scrollbar, preventing horizontal layout shift. On unmount, position is cleared and `window.scrollTo` restores the original scroll position. `overflow-x: hidden` set on body during overlay for additional horizontal clamping.
+
+### v0.0.100 — Scroll Restoration Fix
+- **Fixed hero scroll restoration (was completely broken):** The `onAnimationComplete` callback on the hero `motion.div` was checking `def === 'animate'`, but Framer Motion 11 with inline animation objects (`{...pageVariants}`) passes definition objects — not strings — to the callback. The condition was always `false` and scroll was never restored. Replaced with a `useEffect` watching `activeView`: when it returns to `'hero'` from another view, a 450ms `setTimeout` (exit 150ms + enter 250ms + 50ms buffer) restores `window.scrollTo(0, savedY)`.
+
+### v0.0.99 — Buffer Card Titles + Highlight Scroll Restoration
+- **Buffer cards show duration as title:** All buffer blocks in the day timeline now display `~X min buffer` (e.g. "~30 min buffer", "~95 min buffer") as the bold title instead of the event title. The descriptive `bufferLabel` (or original title if no label) appears below as body text subtitle. Matches the pattern: time range header → `~X min buffer` bold → descriptive label.
+- **Scroll restoration on highlight back-nav:** Tapping a Trip Highlight card on the Hero view, navigating to EventDetailView, then pressing back now restores the scroll position to the exact card that was tapped. The `heroScrollRef` save/restore mechanism was upgraded from single `requestAnimationFrame` to a dual-pass strategy (`requestAnimationFrame` + 100ms `setTimeout` fallback) to handle staggered child animations that need time to occupy full DOM height before `scrollTo` can reach the target position.
+
+### v0.0.98 — Weather API Accuracy Fix
+- **Real forecasts only for actual trip dates:** Removed the proxy data mapping that was using weather from ~2 weeks before the trip as fake estimates. The API now only returns data for trip dates that genuinely fall within Open-Meteo's 16-day forecast window. When no trip dates overlap, simulated weather is used as fallback.
+- **Info message on fetch:** After entering a zip code, the UI displays a contextual message: full forecast available ("Lihue forecast loaded"), partial ("Showing forecast for 3 of 9 trip days"), or not yet available ("Forecasts for Lihue aren't available yet for your trip dates. Real weather will appear once the trip is within 16 days.").
+- **Null entry safety:** Skips forecast entries with null temperature values (Open-Meteo sometimes returns null for the last day in a 16-day request).
+
+### v0.0.97 — Weather API Date Range Fix
+- **Trip date mapping for out-of-range forecasts:** Fixed weather not updating after entering zip code. The trip dates (Mar 14–22) fell outside Open-Meteo's 16-day forecast window, so no forecast data matched any trip date. Added logic to map the last available forecast days onto trip dates as best-estimate data when there's no direct overlap. (Superseded by v0.0.98 which removed the proxy mapping in favor of honest fallback.)
+
+### v0.0.96 — Destination Strip Sizing, Next Up Layout, Plan Gradient, Weather API
+- **Destination strip other-island link sizing:** Font size increased from 13px to 15px, icon-text gap from 3px to 5px, MapPin size from 11px to 13px — now consistent with the active destination pill styling.
+- **Next Up card icon alignment:** Restructured icon + title from vertical stack (icon above, `marginBottom: 8`) to horizontal flex row (`display: flex, alignItems: center, gap: 8`) matching the Flight Status and Trip Countdown card layouts. Icon has `flexShrink: 0`.
+- **TripHeader gradient matched to HeroView:** Replaced pure-black gradient (`rgba(0,0,0)` at 25%→50%→65%) with HeroView's warm brown gradient (`rgba(28,25,23)` at 30%→20%→25%→60%→90%`). Calendar/Status page headers now match the Trip tab's warm tone.
+- **Real weather API integration (Open-Meteo):** Added zip code input field in the Daily Overview section. On submit, geocodes the zip code via Open-Meteo's geocoding API, then fetches a 16-day weather forecast (temperature high/low in °F + WMO weather code). Data is stored in TripContext (`weatherZipCode`, `weatherData`) and persisted to localStorage. Day chips use real forecast data when available, falling back to `getSimulatedWeather()` for dates outside the forecast window. New helper functions: `mapWeatherCode()`, `fetchWeatherForZip()`. New reducer actions: `SET_WEATHER_ZIP`, `SET_WEATHER_DATA`.
+
+### v0.0.95 — Destination Strip Tap Target Improvement
+- **Destination strip padding increased:** Banner vertical padding increased from `spacing.sm + 2` (10px) to `spacing.md + 2` (14px) for easier tapping on mobile.
+- **Pill vertical padding increased:** Current destination pill padding from `4px 14px` to `6px 14px`.
+- **Other island button tap area:** Added `6px 4px` padding to plain text island link buttons (was `0`) for larger touch targets.
+
+### v0.0.94 — Header Centering + Add Button Removal
+- **Removed header Add button:** The teal "Add" pill button was removed from the DayTimelineView sticky header. Event creation is still accessible via the bottom nav "+" button and the inline "Add event" button at the end of the timeline.
+- **Day info perfectly centered:** Header layout simplified to `flex` with two equal-width 44px arrow buttons on each side and `flex: 1` center section. Removed `position: absolute` centering approach. Day text (`Day X of Y` + date) is now perfectly centered between the prev/next arrows.
+- **Vertical spacing fixed:** Removed `marginBottom: 21` from the date heading that was creating asymmetric vertical spacing. Header padding changed from `spacing.md` (12px) to `spacing.lg` (16px) for balanced top/bottom breathing room.
+
+### v0.0.93 — Destination Strip Pill Redesign + Day Info Centering
+- **Pill shape on active destination:** Flipped the pill/highlight pattern — the *current* island now has the pill shape (white semi-transparent background `rgba(255,255,255,0.65)`, `borderRadius: 20`, 14px/700 bold text, MapPin 13px). Previously the pill was on the *other* islands.
+- **Other islands as plain text:** Non-current islands changed from pill buttons to plain text links (no background, `fontSize: 13`, `fontWeight: 500`, `textMedium` color) with MapPin + ChevronRight for affordance.
+- **Day info centering (initial):** Used `position: absolute` with `left: 0; right: 0` to center day header text independently of left/right button widths. (Further refined in v0.0.94.)
+
+### v0.0.87 — Destination Strip Redesign + Card Text Sizing + Calendar Subtitle
+- **Destination strip redesigned:** Current island now visually emphasized (bold 15px/700 name, prominent MapPin, `textDark` color). Other islands rendered as subtle muted links (13px/400, `textLight`, ChevronRight arrow). Replaced prior dual-button pill design that made both islands appear co-equal.
+- **Cards above highlights text sizing:** Next Up card time/location bumped from `helper` (13px) to `body` (15px), MapPin 12→13px. Flight Status card title now full `sectionHeader` (18px, removed fontSize:15 override), date/time bumped to `body`, badge 11→12px. Trip Countdown card same treatment: title to full `sectionHeader`, date range to `body`, badge to 12px, location to `body` (15px).
+- **Calendar subtitle:** Changed text from "Activity days by island" to "Activity days". Changed style from `typography.helper` to `typography.body` (13px → 15px).
+
+### v0.0.86 — Cache Invalidation
+- **DATA_VERSION bumped:** 3 → 4 in `TripContext.jsx` to force localStorage reload from `sampleTrip` defaults after sample data changes.
+
+### v0.0.85 — Custom Hero Upload + Body Scroll Lock + Highlight Card Text Sizing
+- **Custom hero photo upload:** Added camera button (frosted glass circle, 32x32) to HeroView hero section. Users can select a photo which is compressed via canvas API (1200px max width, JPEG quality 0.7) and stored as data URL in `heroImage` state. TripHeader reads `state.heroImage` from context to display custom photo on calendar page.
+- **SET_HERO_IMAGE reducer action:** New action in TripContext to store custom hero photo.
+- **Body scroll lock on overlays:** EventEditor, ChecklistEditor, DocumentUploader, and DocumentViewer now set `document.body.style.overflow = 'hidden'` on mount and restore on unmount. Prevents page wobble caused by scrollbar appearance/disappearance.
+- **Destination strip centered + brightened:** Added `justifyContent: 'center'`. Changed backgrounds from `dest.accentLight` to brightened tints: `#BAE5E0` (Kauai) and `#EDDBAF` (Maui).
+- **Scroll restoration improved:** Changed `onAnimationComplete` in App.jsx to use `requestAnimationFrame` for more reliable scroll position restoration after hero view enter animation.
+- **Highlight card text sizing:** Content padding increased (12px 14px → 14px 16px). Title to `sectionHeader` (18px), meta info 11→13px with `textMedium`, description to `body` (15px), CTA 13→15px with marginTop 10→14px. Card gap 14→16px.
+
+### v0.0.84 — Hero Image + MonthSummary Cleanup + Day Tab Readability
+- **Hero image replaced:** Changed from Unsplash URL to local `/hero-bg.png` (sunset beach photo). Updated both HeroView and TripHeader.
+- **MonthSummary simplified:** Removed per-destination count breakdown ("5 Kauai · 4 Maui"). Now shows only total: "9 trip days".
+- **Hour labels readable:** DayTimelineView left hour labels changed from `caption` (11px, `textLight`) to 12px with `textMedium` color.
+- **Day counter readable:** "Day X of Y" counter changed from `caption` (11px) to 12px with `textMedium` color.
+- **Destination strip clickable:** Added island navigation to destination strip. Tapping a destination navigates to the first day at that location via `SET_SELECTED_DATE`.
+
+### v0.0.83 — Cover Image Fixes + Scroll Restoration
+- **Broken Unsplash URLs fixed:** Flight cover images `photo-1436491865332` and `photo-1464037866556` were returning 404. Replaced with verified working URLs in both `sampleTrip.js` (explicit `coverImage` fields) and `coverImages.js` (flight type fallback array).
+- **Scroll restoration on back from highlights:** `requestAnimationFrame` was firing before the AnimatePresence enter animation completed (250ms), so `window.scrollTo` had no effect. Replaced with `onAnimationComplete` callback on the hero `motion.div` — scroll restores only after content has rendered and animated in.
+- **Hero scroll save/restore:** `App.jsx` saves `window.scrollY` to a ref when leaving hero view. Non-hero navigations scroll to top. Hero returns restore the saved position.
+
+### v0.0.82 — Data Version Cache Invalidation
+- **`DATA_VERSION` added to TripContext:** localStorage now stores `_dataVersion` alongside state. On load, version mismatch causes full reload from `sampleTrip` defaults. Bump `DATA_VERSION` when sample data changes (new fields, fixed URLs, etc.).
+
+### v0.0.81 — Highlight Data Fix + Cover Images
+- **Haleakala Sunrise highlight:** Fixed incorrect date/day in `HIGHLIGHTS` array — `day: 7` / `2026-03-20` → `day: 8` / `2026-03-21`, time `4:30 AM – 8:00 AM` → `5:30 AM – 7:30 AM` to match actual event `e-0802` in sampleTrip.
+- **Explicit cover images added:** `coverImage` field added to 4 events in `sampleTrip.js`: `e-0104` (Flight to Kauai), `e-0403` (Na Pali Coast Boat Tour), `e-0505` (Flight to Maui), `e-0905` (Flight to Chicago). TimeBlock reads `event.coverImage` first, then falls back to `getCoverImage()`.
+
+### v0.0.79 — Icon Changes + Typography Enforcement
+- **Boat color:** Changed from `colors.ocean` (#0E7490) to new `colors.navy` (#1E40AF) / `navyLight` (#DBEAFE) — clearly distinct from flight's teal-blue (#2B7A9E).
+- **Fun icon:** Swapped `Music` → `PartyPopper` for better semantic match.
+- **Buffer icon:** Swapped `Coffee` → `Clock` across `eventTypes.js`, `BufferBlock.jsx`, and `TimeBlock.jsx`.
+- **Font weight token overrides (16 fixes):** Eliminated all `fontWeight` overrides that contradicted spread tokens — e.g. `...typography.body, fontWeight: 500` → `...typography.bodyMedium`, `...typography.helper, fontWeight: 600` → `...typography.sectionHeader, fontSize: 13`.
+- **Critical minimum fix:** `fontSize: 10` in HeroView milestone → `fontSize: 11` (CLAUDE.md: "Never go below 11px").
+- **Off-ramp font sizes:** Snapped ~20 instances to nearest standard (12→11, 14→13, 16→15, 17→18, 20→18, 38→42). Exception: `fontSize: 16` kept on `<input>` elements (iOS zoom prevention).
+- **Files touched:** 22 files across colors, data, views, and components.
+
+### v0.0.78 — Text Color Design System Enforcement
+- **Aligned `warmPalette` to design system:** `textDark` (#1C1917→#1A1A1A), `textMedium` (#57534E→#6B6B6B), `textLight` (#A8A29E→#9B9B9B) — cascades to all 18 files using these tokens.
+- **Removed accent color from non-link text:** Countdown badge, milestone times, count badges, "Now" indicator, category/type picker labels, destination name text — all switched from `#0E7490` or event/destination colors to approved text palette.
+- **Kept `#0E7490` for interactive links/buttons:** "View Day" links, "Back to timeline", "Add event" hover state, CalendarTooltip "View Day" button.
+- **Fixed category/type pickers:** Selected text in EventEditor, ChecklistEditor, DocumentUploader now uses `textPrimary` instead of category accent colors (colored border+background still communicates selection).
+- **Navigation inactive text:** Changed from `#9CA3AF` to `#9B9B9B` (textMuted).
+- **Hardcoded hex cleanup:** `EventEditor.jsx` input color changed from `'#1A1A1A'` to `colors.textPrimary` token.
+- **Semi-transparent white cleanup:** `rgba(255,255,255,0.8-0.9)` in HeroView hero pill and highlight cards changed to full `#FFFFFF`.
+
+### v0.0.76 — Dead Code Cleanup
+- **Removed `hooks/` directory:** Deleted `useTrip.js` and `useDay.js` — neither was imported anywhere. All views use `useTripContext` directly.
+- **Removed unused exports from `dateUtils.js`:** `formatMonthYear()` (superseded by `formatMonthYearFromParts`) and `areSameDay()`.
+- **Removed unused import:** `AlertTriangle` from `EventCard.jsx`, `isSameDay` from `dateUtils.js`.
+
+### v0.0.71 — Icon Overhaul, Hero Simplification, Tight Buffers
+- **Sunrise icon:** Replaced Lucide `Sun` with custom `LightMode` SVG component matching Material Symbols `light_mode` (larger r=5 circle, shorter 2px rays). Exported from `eventTypes.js`.
+- **Buffer color:** Changed `tan` from `#A0845C` to `#7B5B3A` (chocolate brown) with `#F7EDE2` light — clearly distinct from hotel's sand gold (#9E7C2E).
+- **Transport category:** `statusCategories.js` transport color changed from `colors.info` (blue) to `colors.violet` (#6D28D9) to match event type purple.
+- **Hero pills combined:** "9 DAYS" and "Xd away" merged into single frosted pill with dot separator, same 12px font size.
+- **Removed NEXT UP header:** Removed "NEXT UP" label and "Day X of Y" counter from the next up card header row on Trip tab.
+- **Tight buffer indication:** TimeBlock buffer cards with ≤20 min now show: warning orange background (`colors.warningLight`), dashed left border (`colors.warning`), orange text/icon, and uppercase "TIGHT" badge — matching BufferBlock design system reference.
+- **Icon audit:** All 14 event types verified with correct icon assignments.
+
+### v0.0.70 — Icon Updates, Card Refinements, Time Fix
+- **Sunrise icon:** Changed from `SunDim` to `Sun` for equal visual weight with other event type icons.
+- **Entertainment → Fun:** Event type label renamed from "Entertainment" to "Fun".
+- **Type picker line height:** Added `lineHeight: 1.1` to event type labels in EventEditor for tighter spacing.
+- **Calendar legend padding:** Added 4px top/bottom padding to "Activity days by island" subtitle.
+- **Removed Mark Done from editor:** Removed the status toggle button from EventEditor header.
+- **Removed done overlay:** Removed the checkmark toggle button overlay from TimeBlock card images.
+- **Edit icon overlay:** Added frosted circle (28px) with Pencil icon at top-right of TimeBlock image area.
+- **Removed "Next Up" badge:** Removed amber "NEXT UP" pill from TimeBlock cards.
+- **Removed checklist category label:** Removed redundant category icon + label from ChecklistItemRow (left border color suffices).
+- **Transport color → violet:** Changed ground_transport from `colors.stone` (#78716C) to `colors.violet` (#6D28D9, darker purple).
+- **Buffer color → tan:** Changed buffer from `colors.textSecondary` (#6B6B6B) to `colors.tan` (#A0845C, warm brown).
+- **New colors added:** `violet` (#6D28D9 / #EDE9FE) and `tan` (#A0845C / #F5ECD5) in colors.js.
+- **Day counter contrast:** "Day X of Y" text changed from `palette.textLight` to `palette.textMedium` with fontWeight 500.
+- **Time editing bugfix:** `formatInputTime` now extracts HH:MM directly from ISO string (regex) instead of using `new Date().getHours()` which converted to browser timezone. `buildISOTime` preserves the original event's timezone offset instead of hardcoding `-10:00`. EventEditor preserves `event.timezone` instead of always writing `Pacific/Honolulu`.
+
+### v0.0.64 — Buffer Card Visibility
+- **Buffer card background:** Changed from `#EDE8DF` to `#F5EDD8` (sandLight) for clearer contrast against glossy page background.
+
+### v0.0.63 — Buffer Card Distinction
+- **Buffer card styling:** Replaced `glass.subtle` with solid `#EDE8DF` background and `1px solid rgba(0,0,0,0.04)` border for clear visual distinction from white event cards.
+
+### v0.0.62 — Calendar Readability + Daily Overview + Done State
+- **White daily overview cards:** Day chips in Hero "Daily Overview" changed from `glass.subtle` to `glass.card` (white) for consistency with other cards.
+- **Swipe fix:** Added `touchAction: 'pan-x'` to daily overview day buttons to prevent Framer Motion from eating horizontal scroll gestures.
+- **Bigger calendar legend:** CalendarLegend button padding increased (8/16px → 12/24px), shape indicators 10→12px, name text 15→16px, count text 13→15px.
+- **Bigger month summary:** MonthSummary text changed from `helper` (13px) to `body` (15px), dots 8→10px.
+- **Readable calendar subtitle:** "Activity days by island" changed from `textLight` to `textMedium` with `fontWeight: 500`.
+- **Bigger calendar numbers:** DayCard day number font size 14→17px, line height 16→20px.
+- **Circular tooltip close button:** CalendarTooltip close button now 36x36 circle with `#EDEAE5` background (matching EventEditor style).
+- **Stronger done state:** TimeBlock done opacity 0.55→0.45, grayscale 0.4→0.6. Added inline green "Done" badge with CheckCircle2 icon in content area.
+
+### v0.0.61 — Glass Panel Removal
+- **Removed `glass.panel` token entirely** from `styles.js`. Was `rgba(255,255,255,0.72)` with 24px blur.
+- **HeroView:** Content panel wrapper now uses flat `background: glossyBg` instead of `...glass.panel`.
+- **CalendarView:** Content panel wrapper now uses flat `background: glossyBg` instead of `...glass.panel`.
+- **Glass system reduced from 12 to 11 tokens.** Visual hierarchy simplified to 2-tier: page bg → glass.card → glass.sheet.
+
+### v0.0.60 — Background Consistency
+- **App.jsx wrapper:** Changed outer background from `colors.background` (#EFEEEB) to `glossyBg` (#F0EDE8) for consistency across all views.
+- **HeroView content panel:** Already using `glossyBg` (confirmed no change needed).
+
+### v0.0.54–v0.0.59 — Design System Page + Incremental Fixes
+- **Design system page created:** New `/travel-design-system` page in ui-test app documenting all travel app design tokens (colors, typography, spacing, shadows, glass, events, icons, status, animation).
+- **Various UI polish:** Status card border removals, icon color-coding, background color matching across views.
+
+### v0.0.53 — Live Countdown, Inline Done Toggle, Background Darken, Overflow Fix
+- **Hero cover shift:** Cover image pulled up 30px for better visual overlap with the content panel below.
+- **Live next-up countdown:** "Upcoming" green dot pill on hero highlight cards replaced with a live countdown display (e.g. "2h 15m", "3d away", "Now"). Updates dynamically.
+- **Highlight card navigation:** Tapping a highlight card now navigates to the event's detail page (EventDetailView) instead of the day view. Each highlight now carries its `eventId`.
+- **Expanded highlights:** Hero view now shows 3 highlight cards (was 1). *(v0.0.52)*
+- **Card icons:** Flight status card shows Plane icon, Trip Countdown card shows CalendarDays icon. Typography hierarchy fixes across all views. *(v0.0.52)*
+- **EventEditor Mark Done fix:** Toggle button now updates local `formData` state AND dispatches to context simultaneously, so the button label/color reflects the change immediately without requiring a save.
+- **Type picker padding:** Added 5px extra horizontal padding to EventEditor type picker buttons for better label readability (especially longer labels like "Entertainment").
+- **Wider type picker grid:** Increased grid spacing for type picker. *(v0.0.51)*
+- **Whiter buffer cards:** Buffer card backgrounds made whiter. *(v0.0.51)*
+- **TimeBlock "Details" button:** Chevron-only button replaced with explicit "Details" text + ChevronRight icon for clearer affordance.
+- **Inline done toggle on timeline:** Added interactive checkmark overlay (top-left of image cards) for marking events done directly from the timeline. CheckCircle2 icon shows green fill when done, semi-transparent dark circle when upcoming. DayTimelineView passes `onToggleStatus` prop to TimeBlock.
+- **DayTimelineView heading restored:** Page heading restored to native 18px `sectionHeader` (was overridden to 16px in a prior version).
+- **CalendarView Add button removed:** Removed the "Add" button/icon below the calendar grid along with all associated dead code (EventEditor overlay, state variables, callbacks, unused imports).
+- **Background darkened globally:** Base background color changed from `#F6F5F2` to `#EFEEEB` in `colors.js`, applied across all views.
+- **Mobile overflow fix:** Added `overflow-x: hidden` to `html`/`body` in `index.css` and to the App.jsx wrapper to prevent horizontal page wobble on mobile.
+- **App max-width enforced:** App.jsx wrapper now explicitly sets `maxWidth: 480` for consistent mobile framing.
+- **Cover photo upload:** EventEditor supports cover photo uploads with canvas-based compression. *(v0.0.50)*
+- **StatusView documents verified:** Document upload persistence via TripContext + localStorage confirmed working correctly (no changes needed).
 
 ### v0.0.49 — Buffer Block Polish + Trip Tab Layout
 - **Next Up card contrast:** Restored `glass.card` border and shadow (were overridden to `none`), card now visually separates from panel.
@@ -1748,7 +1956,7 @@ deploy.sh travel "commit message"  # Deploy to cluster
 - **DayTimelineView:** Hour labels use `typography.caption`, dashed border uses `colors.border`.
 - **EventDetailView:** Success icon uses `colors.success` token, added `colors` import.
 - **BufferBlock:** Border color uses `colors.border` token.
-- **Design system docs:** Updated glassmorphism section with full 12-token reference table, 3-tier hierarchy diagram, component-to-token mapping.
+- **Design system docs:** Updated glassmorphism section with full 11-token reference table, 2-tier hierarchy diagram, component-to-token mapping.
 
 ### v0.0.46 — Buffer Block Cleanup
 - Removed left border accent line from buffer blocks (kept gold tint bg only).
@@ -1877,7 +2085,7 @@ deploy.sh travel "commit message"  # Deploy to cluster
 ### v0.0.7
 - CTA button color: `#2563EB` (pure blue) → `#0E7490` (teal-blue, 5.35:1 contrast)
 - Event type icon backgrounds: diversified from 4 shared colors to 14 unique bg colors
-- New icon colors for sightseeing (lavender), beach (aqua), hiking (emerald), shopping (rose), entertainment (purple)
+- New icon colors for sightseeing (amber), beach (aqua), hiking (emerald), shopping (rose), entertainment (purple)
 - EventCard title: 15px bodyMedium → 18px sectionHeader for readability
 - EventCard location: 12px → 13px helper, color upgraded to textMedium
 - EventCard icon container: 36x36px → 40x40px with 20px icon
