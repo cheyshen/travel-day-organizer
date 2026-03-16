@@ -2,6 +2,8 @@
 
 A mobile-first trip planning app for managing multi-day, multi-destination itineraries. Built for a Hawaii trip across Kauai and Maui with hour-by-hour timelines, flight tracking, weather, and packing checklists.
 
+**[Live Demo](https://travel.cheyshen.com/)** · **[Design System](https://travel-ds.cheyshen.com/)**
+
 
 
 
