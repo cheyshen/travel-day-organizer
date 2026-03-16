@@ -4,7 +4,7 @@
 
 const TYPE_IMAGES = {
   flight: [
-    'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=400&h=200&fit=crop&auto=format',
+    'https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=400&h=200&fit=crop&auto=format',
     'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=400&h=200&fit=crop&auto=format',
   ],
   ground_transport: [
@@ -74,7 +74,7 @@ export function getCoverImage(eventType, eventId) {
 const TYPE_GRADIENTS = {
   flight: 'linear-gradient(135deg, #2B7A9E 0%, #87CEEB 100%)',
   ground_transport: 'linear-gradient(135deg, #0E7490 0%, #1B9AAA 100%)',
-  hotel: 'linear-gradient(135deg, #C4A265 0%, #E8C97A 100%)',
+  hotel: 'linear-gradient(135deg, #9E7C2E 0%, #E8C97A 100%)',
   beach: 'linear-gradient(135deg, #0891B2 0%, #67E8F9 100%)',
   dining: 'linear-gradient(135deg, #E8725A 0%, #F0A090 100%)',
   hiking: 'linear-gradient(135deg, #059669 0%, #6EE7B7 100%)',

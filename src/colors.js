@@ -4,29 +4,22 @@
 
 export const colors = {
   // Backgrounds
-  background: '#F6F5F2',
   surface: '#FFFFFF',
-  surfaceMuted: '#EFEEE9',
-  surfaceElevated: '#FFFFFF',
-
   // Primary action teal-blue
   ocean: '#0E7490',
   oceanLight: '#E0F7FA',
-  oceanDark: '#0C6478',
-  sand: '#C4A265',
+  sand: '#9E7C2E',
   sandLight: '#F5EDD8',
-  coral: '#E8725A',
+  coral: '#C74534',
   coralLight: '#FDE8E3',
   palm: '#2D7D46',
   palmLight: '#E0F2E5',
-  sunset: '#E8925A',
-  sunsetLight: '#FFF0E3',
-  lagoon: '#1B9AAA',
+  sunset: '#C05D10',
+  sunsetLight: '#FDE8D3',
 
   // Extended event type palette
-  tealLight: '#D5F0F0',
-  lavender: '#7C3AED',
-  lavenderLight: '#EDE9FE',
+  amber: '#B45309',
+  amberLight: '#FFFBEB',
   aqua: '#0891B2',
   aquaLight: '#CFFAFE',
   emerald: '#059669',
@@ -35,14 +28,12 @@ export const colors = {
   roseLight: '#FCE7F3',
   purple: '#9333EA',
   purpleLight: '#F3E8FF',
-
-  // Destination colors
-  kauai: '#0A8F8F',
-  kauaiLight: '#D6F0EE',
-  kauaiBg: '#F0FAF9',
-  maui: '#C4A265',
-  mauiLight: '#F5EDD8',
-  mauiBg: '#FBF7EF',
+  violet: '#6D28D9',
+  violetLight: '#EDE9FE',
+  tan: '#7B5B3A',
+  tanLight: '#F7EDE2',
+  navy: '#1E40AF',
+  navyLight: '#DBEAFE',
 
   // Text
   textPrimary: '#1A1A1A',
@@ -61,20 +52,8 @@ export const colors = {
   info: '#2B7A9E',
   infoLight: '#E0F1F8',
 
-  // Borders & Shadows
+  // Borders & UI
   border: '#E2E0DB',
   borderLight: '#F0EFEA',
-  shadow: 'rgba(0, 0, 0, 0.06)',
+  dragHandle: '#D6D3CE',
 }
-
-// Gradient presets
-export const gradients = {
-  tropicalHeader: 'linear-gradient(135deg, #0A8F8F 0%, #1B9AAA 40%, #C4A265 100%)',
-  oceanSky: 'linear-gradient(180deg, #0A8F8F 0%, #1B9AAA 50%, #87CEEB 100%)',
-  sunset: 'linear-gradient(135deg, #E8925A 0%, #E8725A 50%, #C4A265 100%)',
-  sand: 'linear-gradient(135deg, #F5EDD8 0%, #FFFFFF 100%)',
-  kauaiCard: 'linear-gradient(135deg, #0A8F8F 0%, #0D7A7A 100%)',
-  mauiCard: 'linear-gradient(135deg, #C4A265 0%, #A88B4A 100%)',
-}
-
-export default colors

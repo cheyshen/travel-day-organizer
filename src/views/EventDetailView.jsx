@@ -2,28 +2,12 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Clock, MapPin, Hash, FileText, Edit3, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
-import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg } from '../styles'
+import { typography, spacing, radius, warmPalette, glass, glossyBg } from '../styles'
 import { colors } from '../colors'
 import { formatTime, formatTimeRange, getDurationMinutes, formatDuration, getEventIcon, getEventColor, getEventBgColor, getStatusLabel, getStatusColor, getStatusBg } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
+import { getCoverImage, getCoverGradient } from '../data/coverImages'
 import EventEditor from '../components/EventEditor'
-
-// Event type → location photo mapping (Unsplash)
-const TYPE_PHOTOS = {
-  flight: 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?auto=format&fit=crop&w=600&h=160&q=80',
-  ground_transport: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=600&h=160&q=80',
-  hotel: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=600&h=160&q=80',
-  activity: 'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?auto=format&fit=crop&w=600&h=160&q=80',
-  dining: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=600&h=160&q=80',
-  boat: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&h=160&q=80',
-  sunrise: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=600&h=160&q=80',
-  sightseeing: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&h=160&q=80',
-  beach: 'https://images.unsplash.com/photo-1559494007-9f5847c49d94?auto=format&fit=crop&w=600&h=160&q=80',
-  hiking: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&h=160&q=80',
-  shopping: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&h=160&q=80',
-  entertainment: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=600&h=160&q=80',
-}
-const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?auto=format&fit=crop&w=600&h=160&q=80'
 
 // =============================================================================
 // EVENT DETAIL VIEW — Full event information page
@@ -31,7 +15,7 @@ const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1505852679233-d9fd70aff
 
 export default function EventDetailView({ onNavigate }) {
   const { state, dispatch } = useTripContext()
-  const { days, selectedDate, selectedEventId } = state
+  const { days, selectedDate, selectedEventId, previousView } = state
 
   const [isEditing, setIsEditing] = useState(false)
 
@@ -43,7 +27,7 @@ export default function EventDetailView({ onNavigate }) {
     return (
       <div style={{ background: glossyBg, minHeight: '100vh', padding: spacing.xl }}>
         <button
-          onClick={() => onNavigate('day')}
+          onClick={() => onNavigate(previousView === 'hero' ? 'hero' : 'day')}
           style={{
             display: 'flex', alignItems: 'center', gap: spacing.sm,
             border: 'none', background: 'none', cursor: 'pointer',
@@ -67,7 +51,7 @@ export default function EventDetailView({ onNavigate }) {
   const duration = getDurationMinutes(event.startTime, event.endTime)
 
   function handleBack() {
-    onNavigate('day')
+    onNavigate(previousView === 'hero' ? 'hero' : 'day')
   }
 
   function handleEdit() {
@@ -121,7 +105,7 @@ export default function EventDetailView({ onNavigate }) {
           style={{
             width: 44, height: 44,
             borderRadius: radius.sm,
-            backgroundColor: '#EDEAE5',
+            backgroundColor: warmPalette.warmGray,
             border: 'none',
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -164,18 +148,31 @@ export default function EventDetailView({ onNavigate }) {
         </button>
       </div>
 
-      {/* Location photo */}
+      {/* Location photo — same source as TimeBlock card */}
       <div style={{
         height: 80,
         margin: `0 ${spacing.lg}px`,
         marginTop: spacing.md,
         borderRadius: `${radius.md}px ${radius.md}px 0 0`,
-        backgroundImage: `url(${TYPE_PHOTOS[event.type] || DEFAULT_PHOTO})`,
+        backgroundImage: `url(${event.coverImage || getCoverImage(event.type, event.id)})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         position: 'relative',
         overflow: 'hidden',
+        background: getCoverGradient(event.type),
       }}>
+        <img
+          src={event.coverImage || getCoverImage(event.type, event.id)}
+          alt=""
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+          onError={(e) => { e.target.style.display = 'none' }}
+        />
         <div style={{
           position: 'absolute',
           inset: 0,
@@ -189,9 +186,6 @@ export default function EventDetailView({ onNavigate }) {
         ...glass.card,
         borderRadius: `0 0 ${radius.lg}px ${radius.lg}px`,
         borderTop: 'none',
-        borderLeftWidth: 5,
-        borderLeftColor: accentColor,
-        borderLeftStyle: 'solid',
         padding: `${spacing.xl}px ${spacing.lg}px`,
         display: 'flex',
         alignItems: 'center',
@@ -213,7 +207,7 @@ export default function EventDetailView({ onNavigate }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <span style={{
             ...typography.caption,
-            color: accentColor,
+            color: warmPalette.textMedium,
             display: 'block',
             marginBottom: 4,
           }}>
@@ -345,14 +339,15 @@ export default function EventDetailView({ onNavigate }) {
           <button
             onClick={handleStatusToggle}
             style={{
-              padding: `${spacing.xs}px ${spacing.md}px`,
+              padding: '3px 10px',
               borderRadius: radius.pill,
               border: 'none',
               backgroundColor: getStatusBg(event.status),
               color: getStatusColor(event.status),
               cursor: 'pointer',
-              ...typography.helper,
+              fontSize: 12,
               fontWeight: 600,
+              letterSpacing: '0.02em',
             }}
           >
             {getStatusLabel(event.status)}

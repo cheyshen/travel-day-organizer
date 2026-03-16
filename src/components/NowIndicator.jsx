@@ -30,7 +30,7 @@ export default function NowIndicator() {
       }} />
       <span style={{
         ...typography.caption,
-        color: colors.ocean,
+        color: colors.textPrimary,
         flexShrink: 0,
       }}>
         Now

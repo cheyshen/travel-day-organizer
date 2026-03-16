@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, CheckCircle2, Pencil } from 'lucide-react'
 import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
+import { colors } from '../colors'
 import { formatTime, getEventColor, getEventIcon } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
 import { getCoverImage, getCoverGradient } from '../data/coverImages'
@@ -22,8 +23,12 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
 
   const [imgError, setImgError] = useState(false)
 
-  // Buffer events stay minimal — compact white card, no image
+  // Buffer events stay minimal — compact card, no image
   if (isBuffer) {
+    const minutes = event.bufferMinutes || 0
+    const isTight = minutes > 0 && minutes <= 20
+    const bufferTextColor = isTight ? colors.warning : warmPalette.textMedium
+
     const timeRange = event.startTime && event.endTime
       ? `${formatTime(event.startTime)} – ${formatTime(event.endTime)}`
       : formatTime(event.startTime)
@@ -35,9 +40,10 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
         whileTap={{ scale: 0.98 }}
         onClick={() => onTap(event)}
         style={{
-          ...glass.subtle,
           borderRadius: radius.md,
-          backgroundColor: 'rgba(245, 237, 216, 0.45)',
+          backgroundColor: isTight ? colors.warningLight : colors.surface,
+          border: `1px solid ${isTight ? colors.warning + '30' : 'rgba(0,0,0,0.04)'}`,
+          borderLeft: isTight ? `3px dashed ${colors.warning}` : '1px solid rgba(0,0,0,0.04)',
           padding: `${spacing.lg}px`,
           cursor: 'pointer',
           display: 'flex',
@@ -48,21 +54,33 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
         tabIndex={0}
       >
         <span style={{
-          ...typography.helper,
-          color: warmPalette.textMedium,
-          fontWeight: 600,
+          ...typography.sectionHeader,
+          fontSize: typography.helper.fontSize,
+          color: bufferTextColor,
         }}>
           {timeRange}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-          <Icon size={18} color={accentColor} strokeWidth={2.5} />
-          <p style={{ ...typography.sectionHeader, fontSize: 16, color: warmPalette.textDark, margin: 0 }}>
-            {event.title}
+          <Icon size={18} color={isTight ? colors.warning : accentColor} strokeWidth={2.5} />
+          <p style={{ ...typography.sectionHeader, fontSize: 15, color: isTight ? colors.warning : warmPalette.textDark, margin: 0, flex: 1 }}>
+            {minutes > 0 ? `~${minutes} min buffer` : event.title}
           </p>
+          {isTight && (
+            <span style={{
+              ...typography.caption,
+              color: colors.warning,
+              backgroundColor: 'rgba(217,123,43,0.12)',
+              padding: `2px ${spacing.sm}px`,
+              borderRadius: radius.sm,
+              flexShrink: 0,
+            }}>
+              Tight
+            </span>
+          )}
         </div>
-        {event.bufferLabel && !event.subtitle && (
-          <p style={{ ...typography.body, color: warmPalette.textMedium, margin: 0 }}>
-            {event.bufferLabel}
+        {(event.bufferLabel || (minutes > 0 && event.title)) && !event.subtitle && (
+          <p style={{ ...typography.body, color: bufferTextColor, margin: 0 }}>
+            {event.bufferLabel || event.title}
           </p>
         )}
       </motion.div>
@@ -80,6 +98,8 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
         overflow: 'hidden',
         ...glass.card,
         cursor: 'pointer',
+        ...(event.status === 'done' && { opacity: 0.45, filter: 'grayscale(0.6)' }),
+        position: 'relative',
       }}
       role="button"
       tabIndex={0}
@@ -132,10 +152,10 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
           padding: `4px ${spacing.sm + 2}px`,
           borderRadius: radius.sm,
         }}>
-          <Icon size={14} color="#FFFFFF" strokeWidth={2.5} />
+          <Icon size={14} color={colors.textOnDark} strokeWidth={2.5} />
           <span style={{
-            color: '#FFFFFF',
-            fontSize: 12,
+            color: colors.textOnDark,
+            fontSize: typography.caption.fontSize,
             fontWeight: 600,
             letterSpacing: '0.01em',
           }}>
@@ -143,31 +163,31 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
           </span>
           <span style={{
             color: 'rgba(255,255,255,0.7)',
-            fontSize: 11,
+            fontSize: typography.caption.fontSize,
             fontWeight: 500,
           }}>
             · {eventType.label}
           </span>
         </div>
 
-        {/* "NEXT UP" badge (top-right) */}
-        {isNext && (
-          <div style={{
-            position: 'absolute',
-            top: spacing.sm,
-            right: spacing.sm,
-            backgroundColor: '#B45309',
-            color: '#FFFFFF',
-            padding: `4px ${spacing.sm + 2}px`,
-            borderRadius: radius.sm,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-          }}>
-            Next up
-          </div>
-        )}
+        {/* Edit icon overlay (top-right) */}
+        <div style={{
+          position: 'absolute',
+          top: spacing.sm,
+          right: spacing.sm,
+          width: 28,
+          height: 28,
+          borderRadius: 14,
+          backgroundColor: 'rgba(0,0,0,0.35)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2,
+        }}>
+          <Pencil size={13} color={colors.textOnDark} strokeWidth={2} />
+        </div>
       </div>
 
       {/* Content area */}
@@ -201,7 +221,31 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
           )}
         </div>
 
-        {/* Chevron → detail page */}
+        {/* Done badge inline */}
+        {event.status === 'done' && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            backgroundColor: 'rgba(39,129,91,0.12)',
+            padding: '3px 10px',
+            borderRadius: radius.pill,
+            flexShrink: 0,
+            marginRight: 4,
+          }}>
+            <CheckCircle2 size={14} color="#27815B" strokeWidth={2} />
+            <span style={{
+              fontSize: typography.caption.fontSize,
+              fontWeight: 600,
+              color: '#27815B',
+              letterSpacing: '0.02em',
+            }}>
+              Done
+            </span>
+          </div>
+        )}
+
+        {/* Details button */}
         {onDetail && (
           <button
             onClick={(e) => {
@@ -209,21 +253,25 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
               onDetail(event)
             }}
             style={{
-              width: 34,
               height: 34,
+              paddingLeft: 12,
+              paddingRight: 10,
               borderRadius: radius.sm,
               border: 'none',
-              backgroundColor: '#EDEAE5',
+              backgroundColor: warmPalette.warmGray,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: 4,
               flexShrink: 0,
-              padding: 0,
+              fontSize: typography.helper.fontSize,
+              fontWeight: 600,
+              color: warmPalette.textMedium,
             }}
             aria-label={`View details for ${event.title}`}
           >
-            <ChevronRight size={18} color={warmPalette.textMedium} strokeWidth={2.5} />
+            Details
+            <ChevronRight size={16} color={warmPalette.textMedium} strokeWidth={2.5} />
           </button>
         )}
       </div>

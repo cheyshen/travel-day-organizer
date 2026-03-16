@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Plus, MapPin } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette, glass, glossyBg } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg } from '../styles'
 import { formatTripDate, getDayIndex, getAdjacentDates, isTodayDate } from '../utils/dateUtils'
-import { getNowPosition, formatTime } from '../utils/timeUtils'
+import { getNowPosition, formatTime, formatHourLabel } from '../utils/timeUtils'
 import TimeBlock from '../components/TimeBlock'
 import NowIndicator from '../components/NowIndicator'
 import EmptyState from '../components/EmptyState'
@@ -118,12 +118,13 @@ export default function DayTimelineView({ onNavigate }) {
         ...glass.frostedLight,
         borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
       }}>
-        {/* Day navigation */}
+        {/* Day navigation — arrows on sides, day info perfectly centered */}
         <div style={{
+          position: 'relative',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: `${spacing.md}px ${spacing.lg}px`,
+          padding: `${spacing.lg}px ${spacing.lg}px`,
         }}>
           <button
             onClick={() => goDay(adjacent.prev)}
@@ -139,90 +140,121 @@ export default function DayTimelineView({ onNavigate }) {
               cursor: adjacent.prev ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               opacity: adjacent.prev ? 1 : 0.3,
+              zIndex: 1,
+              flexShrink: 0,
             }}
           >
             <ChevronLeft size={20} color={warmPalette.textDark} />
           </button>
 
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ ...typography.caption, color: warmPalette.textLight, marginBottom: 2 }}>
+          {/* Centered day info — flex:1 between equal-width arrow buttons */}
+          <div style={{
+            flex: 1,
+            textAlign: 'center',
+          }}>
+            <p style={{ ...typography.caption, fontSize: 12, color: warmPalette.textMedium, marginBottom: 2 }}>
               Day {dayNum} of {Object.keys(days).length}
             </p>
-            <h2 style={{ ...typography.sectionHeader, color: warmPalette.textDark, fontSize: 16 }}>
+            <h2 style={{ ...typography.sectionHeader, color: warmPalette.textDark, margin: 0 }}>
               {formatTripDate(selectedDate)}
             </h2>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-            {/* Header "Add" — always-visible entry point per NN/g:
-                "Don't hide frequently used actions in menus" */}
-            <button
-              onClick={handleCreateNew}
-              style={{
-                height: 44,
-                padding: `0 ${spacing.lg}px`,
-                borderRadius: radius.pill,
-                border: 'none',
-                backgroundColor: warmPalette.accent,
-                color: '#FFFFFF',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                fontSize: 13,
-                fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(14, 116, 144, 0.25)',
-              }}
-            >
-              <Plus size={14} strokeWidth={2.5} />
-              Add
-            </button>
-
-            <button
-              onClick={() => goDay(adjacent.next)}
-              disabled={!adjacent.next}
-              style={{
-                width: 44, height: 44,
-                borderRadius: radius.sm,
-                border: adjacent.next ? '1px solid rgba(255,255,255,0.45)' : '1px solid rgba(0,0,0,0.06)',
-                background: adjacent.next ? 'rgba(255,255,255,0.65)' : 'transparent',
-                backdropFilter: adjacent.next ? 'blur(12px)' : 'none',
-                WebkitBackdropFilter: adjacent.next ? 'blur(12px)' : 'none',
-                boxShadow: adjacent.next ? shadows.glass : 'none',
-                cursor: adjacent.next ? 'pointer' : 'default',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                opacity: adjacent.next ? 1 : 0.3,
-              }}
-            >
-              <ChevronRight size={20} color={warmPalette.textDark} />
-            </button>
-          </div>
+          <button
+            onClick={() => goDay(adjacent.next)}
+            disabled={!adjacent.next}
+            style={{
+              width: 44, height: 44,
+              borderRadius: radius.sm,
+              border: adjacent.next ? '1px solid rgba(255,255,255,0.45)' : '1px solid rgba(0,0,0,0.06)',
+              background: adjacent.next ? 'rgba(255,255,255,0.65)' : 'transparent',
+              backdropFilter: adjacent.next ? 'blur(12px)' : 'none',
+              WebkitBackdropFilter: adjacent.next ? 'blur(12px)' : 'none',
+              boxShadow: adjacent.next ? shadows.glass : 'none',
+              cursor: adjacent.next ? 'pointer' : 'default',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: adjacent.next ? 1 : 0.3,
+              zIndex: 1,
+              flexShrink: 0,
+            }}
+          >
+            <ChevronRight size={20} color={warmPalette.textDark} />
+          </button>
         </div>
 
-        {/* Destination strip */}
+        {/* Destination strip — pill on current island, others as plain text links */}
         {dest && (
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: spacing.sm,
-            padding: `${spacing.sm}px ${spacing.lg}px`,
-            backgroundColor: dest.accentLight,
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderTop: `1px solid ${dest.color}30`,
+            justifyContent: 'center',
+            gap: 6,
+            padding: `${spacing.md + 2}px ${spacing.lg}px`,
+            backgroundColor: dest.id === 'dest-kauai' ? '#BAE5E0' : '#EDDBAF',
+            borderTop: `1px solid ${dest.color}40`,
           }}>
-            <MapPin size={14} color={dest.color} strokeWidth={2.5} />
-            <span style={{ ...typography.helper, fontWeight: 600, color: warmPalette.textDark }}>
-              {dest.name}
+            {/* Current destination — pill shape, bold */}
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 5,
+              padding: '6px 14px',
+              background: 'rgba(255,255,255,0.65)',
+              borderRadius: 20,
+            }}>
+              <MapPin size={13} color={dest.color} strokeWidth={2.5} />
+              <span style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: warmPalette.textDark,
+              }}>
+                {dest.name}
+              </span>
             </span>
+
             {day?.label && (
               <>
-                <span style={{ color: warmPalette.textLight }}>·</span>
-                <span style={{ ...typography.helper, color: warmPalette.textMedium }}>
+                <span style={{ color: warmPalette.textLight, margin: '0 2px' }}>·</span>
+                <span style={{ ...typography.body, color: warmPalette.textMedium }}>
                   {day.label}
                 </span>
               </>
             )}
+
+            {/* Other islands — plain text links */}
+            {trip.destinations.filter(d => d.id !== dest.id).map(d => {
+              const firstDate = Object.entries(days).find(([, dy]) => dy.destinationId === d.id)?.[0]
+              return (
+                <span key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4 }}>
+                  <span style={{ color: warmPalette.textLight, marginRight: 2 }}>·</span>
+                  <button
+                    onClick={() => {
+                      if (firstDate) dispatch({ type: 'SET_SELECTED_DATE', payload: firstDate })
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '6px 4px',
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <MapPin size={13} color={d.color} strokeWidth={2} />
+                    <span style={{
+                      fontSize: 15,
+                      fontWeight: 500,
+                      color: warmPalette.textMedium,
+                    }}>
+                      {d.name}
+                    </span>
+                    <ChevronRight size={12} color={warmPalette.textMedium} strokeWidth={2} />
+                  </button>
+                </span>
+              )
+            })}
           </div>
         )}
       </div>
@@ -241,12 +273,12 @@ export default function DayTimelineView({ onNavigate }) {
               const showNow = idx === nowPos
               // Extract hour label from start time
               const startHour = event.startTime
-                ? new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true })
+                ? formatHourLabel(event.startTime)
                 : ''
               // Show hour label if it differs from previous event's hour
               const prevEvent = idx > 0 ? events[idx - 1] : null
               const prevHour = prevEvent?.startTime
-                ? new Date(prevEvent.startTime).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true })
+                ? formatHourLabel(prevEvent.startTime)
                 : ''
               const showHourLabel = startHour !== prevHour
 
@@ -268,7 +300,8 @@ export default function DayTimelineView({ onNavigate }) {
                       {showHourLabel && (
                         <span style={{
                           ...typography.caption,
-                          color: warmPalette.textLight,
+                          fontSize: 12,
+                          color: warmPalette.textMedium,
                         }}>
                           {startHour}
                         </span>
@@ -282,6 +315,7 @@ export default function DayTimelineView({ onNavigate }) {
                         isNext={nextUpcoming?.id === event.id}
                         onTap={handleEventTap}
                         onDetail={handleEventDetail}
+                        onToggleStatus={handleStatusToggle}
                       />
                     </div>
                   </div>
@@ -316,12 +350,12 @@ export default function DayTimelineView({ onNavigate }) {
                   e.currentTarget.style.color = warmPalette.accent
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = '#D6D3CE'
+                  e.currentTarget.style.borderColor = colors.dragHandle
                   e.currentTarget.style.color = warmPalette.textMedium
                 }}
               >
                 <Plus size={16} strokeWidth={2} />
-                <span style={{ ...typography.helper, fontWeight: 500 }}>
+                <span style={{ ...typography.bodyMedium, fontSize: typography.helper.fontSize }}>
                   Add event
                 </span>
               </motion.button>

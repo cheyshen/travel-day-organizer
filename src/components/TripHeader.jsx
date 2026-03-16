@@ -1,14 +1,17 @@
 import { motion } from 'framer-motion'
 import { colors } from '../colors'
-import { typography, spacing, fontStack } from '../styles'
+import { typography, spacing, fontStack, scrimGradient } from '../styles'
+import { useTripContext } from '../context/TripContext'
 
 // =============================================================================
 // TROPICAL HEADER — Square photo with centered text + dark overlay
 // =============================================================================
 
-const HERO_PHOTO = 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80'
+const DEFAULT_PHOTO = '/hero-bg.png'
 
 export default function TripHeader({ title, subtitle, compact }) {
+  const { state } = useTripContext()
+  const heroSrc = state.heroImage || DEFAULT_PHOTO
   const height = compact ? 100 : 240
 
   return (
@@ -25,7 +28,7 @@ export default function TripHeader({ title, subtitle, compact }) {
       <div style={{
         position: 'absolute',
         inset: 0,
-        backgroundImage: `url(${HERO_PHOTO})`,
+        backgroundImage: `url(${heroSrc})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }} />
@@ -34,7 +37,7 @@ export default function TripHeader({ title, subtitle, compact }) {
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.65) 100%)',
+        background: scrimGradient,
       }} />
 
       {/* Centered title — only render when title is provided */}
@@ -52,9 +55,9 @@ export default function TripHeader({ title, subtitle, compact }) {
         >
           <h1 style={{
             fontFamily: fontStack,
-            fontSize: compact ? 28 : 38,
+            fontSize: compact ? 28 : 42,
             fontWeight: 700,
-            color: '#FFFFFF',
+            color: colors.textOnDark,
             margin: 0,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',

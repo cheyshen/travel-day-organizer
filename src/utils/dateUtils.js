@@ -1,4 +1,4 @@
-import { format, parseISO, differenceInDays, addDays, startOfDay, isSameDay, isToday } from 'date-fns'
+import { format, parseISO, differenceInDays, addDays, startOfDay, isToday } from 'date-fns'
 
 // =============================================================================
 // DATE UTILITIES — Trip date math helpers
@@ -20,10 +20,6 @@ export function formatDayNumber(dateStr) {
   return format(parseISO(dateStr), 'd')
 }
 
-export function formatMonthYear(dateStr) {
-  return format(parseISO(dateStr), 'MMMM yyyy')
-}
-
 export function getDayIndex(tripStartDate, currentDate) {
   return differenceInDays(parseISO(currentDate), parseISO(tripStartDate)) + 1
 }
@@ -43,10 +39,6 @@ export function isTripDay(dateStr, tripStartDate, tripEndDate) {
   const start = parseISO(tripStartDate)
   const end = parseISO(tripEndDate)
   return date >= startOfDay(start) && date <= startOfDay(end)
-}
-
-export function areSameDay(dateStr1, dateStr2) {
-  return isSameDay(parseISO(dateStr1), parseISO(dateStr2))
 }
 
 export function isTodayDate(dateStr) {

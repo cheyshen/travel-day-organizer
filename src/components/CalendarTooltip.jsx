@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ChevronRight, X } from 'lucide-react'
-import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
+import { colors } from '../colors'
+import { typography, spacing, radius, warmPalette } from '../styles'
 import { formatTripDate } from '../utils/dateUtils'
 import { getEventType } from '../data/eventTypes'
 
@@ -92,7 +93,9 @@ export default function CalendarTooltip({
           top: layout.top,
           left: layout.left,
           width: layout.width,
-          ...glass.tooltip,
+          background: colors.surface,
+          border: '1px solid rgba(0,0,0,0.08)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.16)',
           borderRadius: radius.lg,
           zIndex: 100,
           overflow: 'hidden',
@@ -128,7 +131,7 @@ export default function CalendarTooltip({
                   backgroundColor: destination.color,
                   display: 'inline-block',
                 }} />
-                <span style={{ ...typography.body, color: destination.color, fontWeight: 500 }}>
+                <span style={{ ...typography.bodyMedium, color: warmPalette.textDark }}>
                   {destination.name}
                 </span>
               </div>
@@ -138,11 +141,11 @@ export default function CalendarTooltip({
             onClick={onClose}
             aria-label="Close tooltip"
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
               border: 'none',
-              backgroundColor: 'transparent',
+              backgroundColor: warmPalette.warmGray,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -151,7 +154,7 @@ export default function CalendarTooltip({
               flexShrink: 0,
             }}
           >
-            <X size={16} color={warmPalette.textLight} />
+            <X size={18} color={warmPalette.textMedium} strokeWidth={2} />
           </button>
         </div>
 
@@ -172,7 +175,18 @@ export default function CalendarTooltip({
                     alignItems: 'center',
                     gap: spacing.md,
                   }}>
-                    <Icon size={18} color={eventType.color} strokeWidth={2} />
+                    <div style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 8,
+                      backgroundColor: eventType.bgColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <Icon size={16} color={eventType.color} strokeWidth={2} />
+                    </div>
                     <span style={{ ...typography.body, color: warmPalette.textMedium, flex: 1 }}>
                       {eventType.label}
                     </span>
@@ -200,8 +214,8 @@ export default function CalendarTooltip({
             borderTop: '1px solid rgba(0,0,0,0.06)',
             backgroundColor: 'transparent',
             cursor: 'pointer',
-            ...typography.bodyMedium,
-            fontWeight: 600,
+            ...typography.sectionHeader,
+            fontSize: 15,
             color: warmPalette.accent,
           }}
         >

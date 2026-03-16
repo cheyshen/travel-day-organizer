@@ -1,16 +1,14 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Camera } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg } from '../styles'
+import { typography, spacing, radius, warmPalette, glass, glossyBg } from '../styles'
 import { getCalendarGrid, getAdjacentMonth, formatMonthYearFromParts } from '../utils/dateUtils'
 import TripHeader from '../components/TripHeader'
 import DayCard from '../components/DayCard'
 import CalendarTooltip from '../components/CalendarTooltip'
 import CalendarLegend from '../components/CalendarLegend'
-import MonthSummary from '../components/MonthSummary'
-import EventEditor from '../components/EventEditor'
 
 // =============================================================================
 // CALENDAR VIEW — Month navigation + tooltip + interactive legend
@@ -25,6 +23,31 @@ export default function CalendarView({ onNavigate }) {
   const { state, dispatch } = useTripContext()
   const { trip, days, selectedDate } = state
   const gridContainerRef = useRef(null)
+  const calFileRef = useRef(null)
+
+  // Hero photo upload (shared with HeroView)
+  const handlePhotoUpload = useCallback((e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const maxW = 1200
+        const scale = Math.min(1, maxW / img.width)
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+        dispatch({ type: 'SET_HERO_IMAGE', payload: dataUrl })
+      }
+      img.src = reader.result
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }, [dispatch])
 
   // Month navigation state — initialize to trip start month
   const tripStart = new Date(trip.startDate)
@@ -41,9 +64,6 @@ export default function CalendarView({ onNavigate }) {
 
   // Slide direction for animation
   const [slideDirection, setSlideDirection] = useState(0)
-
-  // EventEditor state
-  const [isAddingEvent, setIsAddingEvent] = useState(false)
 
   // Calendar grid for current view month
   const grid = useMemo(
@@ -83,30 +103,6 @@ export default function CalendarView({ onNavigate }) {
     setActiveFilter(destId)
   }, [])
 
-  // Event editor handlers
-  const handleAddEvent = useCallback(() => {
-    setIsAddingEvent(true)
-  }, [])
-
-  const handleEventSave = useCallback((eventData) => {
-    const day = days[selectedDate]
-    dispatch({
-      type: 'ADD_EVENT',
-      payload: {
-        date: selectedDate,
-        event: {
-          ...eventData,
-          sortOrder: day?.events?.length || 0,
-        },
-      },
-    })
-    setIsAddingEvent(false)
-  }, [dispatch, selectedDate, days])
-
-  const handleEventEditorClose = useCallback(() => {
-    setIsAddingEvent(false)
-  }, [])
-
   // Swipe handling
   const dragStartX = useRef(0)
 
@@ -136,15 +132,47 @@ export default function CalendarView({ onNavigate }) {
 
   return (
     <div style={{ background: glossyBg, minHeight: '100vh' }}>
-      <TripHeader compact />
+      <div style={{ position: 'relative' }}>
+        <TripHeader compact />
+        {/* Camera upload button */}
+        <button
+          onClick={() => calFileRef.current?.click()}
+          aria-label="Change cover photo"
+          style={{
+            ...glass.frosted,
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            zIndex: 3,
+            padding: 0,
+          }}
+        >
+          <Camera size={14} color={colors.textOnDark} strokeWidth={2} />
+        </button>
+        <input
+          ref={calFileRef}
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoUpload}
+          style={{ display: 'none' }}
+        />
+      </div>
 
       {/* Rounded content card */}
       <div style={{
-        ...glass.panel,
+        background: glossyBg,
         borderRadius: '24px 24px 0 0',
         marginTop: -28,
         position: 'relative',
-        zIndex: 2,
+        zIndex: tooltipState ? 100 : 2,
         padding: `${spacing.xl}px ${spacing.lg}px`,
       }}>
         {/* Pull handle */}
@@ -152,7 +180,7 @@ export default function CalendarView({ onNavigate }) {
           width: 32,
           height: 4,
           borderRadius: 2,
-          backgroundColor: '#D6D3CE',
+          backgroundColor: colors.dragHandle,
           margin: '0 auto',
           marginBottom: spacing.lg,
         }} />
@@ -194,12 +222,14 @@ export default function CalendarView({ onNavigate }) {
               {monthTitle}
             </h2>
             <p style={{
-              ...typography.helper,
-              color: warmPalette.textLight,
+              ...typography.body,
+              color: warmPalette.textMedium,
               margin: 0,
               marginTop: 2,
+              paddingTop: 4,
+              paddingBottom: 4,
             }}>
-              Activity days by island
+              Activity days
             </p>
           </div>
 
@@ -314,57 +344,9 @@ export default function CalendarView({ onNavigate }) {
           onFilter={handleFilter}
         />
 
-        {/* Month summary */}
-        <MonthSummary
-          days={days}
-          destinations={trip.destinations}
-          trip={trip}
-        />
-
-        {/* Add event button */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          marginTop: spacing.md,
-        }}>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleAddEvent}
-            style={{
-              height: 44,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: `0 ${spacing.lg}px`,
-              borderRadius: radius.pill,
-              border: 'none',
-              backgroundColor: warmPalette.accent,
-              color: '#FFFFFF',
-              cursor: 'pointer',
-              fontSize: 13,
-              fontWeight: 600,
-              boxShadow: '0 2px 8px rgba(14, 116, 144, 0.25)',
-            }}
-          >
-            <Plus size={14} strokeWidth={2.5} />
-            Add
-          </motion.button>
-        </div>
+        {/* Bottom padding so content isn't hidden behind nav */}
+        <div style={{ height: 80 }} />
       </div>
-
-      {/* EventEditor overlay */}
-      <AnimatePresence>
-        {isAddingEvent && (
-          <EventEditor
-            event={null}
-            isNew={true}
-            date={selectedDate}
-            onSave={handleEventSave}
-            onDelete={() => {}}
-            onClose={handleEventEditorClose}
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }

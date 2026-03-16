@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { X, FileText } from 'lucide-react'
 import { colors } from '../colors'
@@ -9,6 +10,24 @@ import { getDocumentCategory } from '../data/statusCategories'
 // =============================================================================
 
 export default function DocumentViewer({ doc, onClose }) {
+  // Lock body scroll while overlay is open — prevent horizontal wobble
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.overflowX = 'hidden'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.overflowX = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   if (!doc) return null
 
   const category = getDocumentCategory(doc.category)
@@ -39,7 +58,7 @@ export default function DocumentViewer({ doc, onClose }) {
         <div style={{ minWidth: 0 }}>
           <p style={{
             ...typography.bodyMedium,
-            color: '#fff',
+            color: colors.textOnDark,
             margin: 0,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -68,7 +87,7 @@ export default function DocumentViewer({ doc, onClose }) {
             marginLeft: spacing.md,
           }}
         >
-          <X size={18} color="#fff" />
+          <X size={18} color={colors.textOnDark} />
         </button>
       </div>
 
@@ -112,10 +131,10 @@ export default function DocumentViewer({ doc, onClose }) {
               style={{
                 padding: `${spacing.md}px ${spacing.xl}px`,
                 backgroundColor: colors.ocean,
-                color: '#fff',
+                color: colors.textOnDark,
                 borderRadius: radius.md,
                 textDecoration: 'none',
-                fontSize: 14,
+                fontSize: typography.helper.fontSize,
                 fontWeight: 600,
               }}
             >

@@ -1,7 +1,7 @@
 import { Eye, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
+import { typography, spacing, radius, warmPalette, glass } from '../styles'
 import { getDocumentCategory } from '../data/statusCategories'
 
 // =============================================================================
@@ -63,7 +63,7 @@ export default function DocumentCard({ doc, onPreview, onDelete }) {
           opacity: 0,
           transition: 'opacity 0.15s',
         }}>
-          <Eye size={20} color={colors.textOnDark} />
+          <Eye size={20} color={colors.textOnAccent} />
         </div>
       </div>
 

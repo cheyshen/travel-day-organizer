@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { X, Upload, FileText } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette, glass } from '../styles'
+import { typography, spacing, radius, tokens, warmPalette, glass } from '../styles'
 import { DOCUMENT_CATEGORIES } from '../data/statusCategories'
 import { generateId } from '../utils/timeUtils'
 
@@ -27,6 +27,24 @@ const inputStyle = {
 }
 
 export default function DocumentUploader({ onSave, onClose }) {
+  // Lock body scroll while overlay is open — prevent horizontal wobble
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.overflowX = 'hidden'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.overflowX = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   const [category, setCategory] = useState('passport')
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
@@ -82,7 +100,7 @@ export default function DocumentUploader({ onSave, onClose }) {
         inset: 0,
         zIndex: 100,
         display: 'flex',
-        alignItems: 'flex-end',
+        alignItems: 'center',
         justifyContent: 'center',
       }}
     >
@@ -92,23 +110,23 @@ export default function DocumentUploader({ onSave, onClose }) {
       />
 
       <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
         style={{
           position: 'relative',
-          width: '100%',
-          maxWidth: 480,
-          maxHeight: '90vh',
+          width: 'calc(100% - 32px)',
+          maxWidth: 440,
+          maxHeight: '80vh',
           ...glass.sheet,
-          borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
+          borderRadius: radius.xl,
           overflow: 'auto',
         }}
       >
         {/* Drag handle */}
         <div style={{ padding: `${spacing.md}px 0 0`, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#D6D3CE' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: colors.dragHandle }} />
         </div>
 
         {/* Header */}
@@ -132,7 +150,7 @@ export default function DocumentUploader({ onSave, onClose }) {
             onClick={onClose}
             style={{
               width: 36, height: 36, borderRadius: 18,
-              backgroundColor: '#EDEAE5',
+              backgroundColor: warmPalette.warmGray,
               border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -180,7 +198,7 @@ export default function DocumentUploader({ onSave, onClose }) {
               </>
             ) : (
               <>
-                <Upload size={32} color={colors.textMuted} strokeWidth={1.5} style={{ marginBottom: spacing.sm }} />
+                <Upload size={32} color={colors.textMuted} strokeWidth={1.5} style={{ display: 'block', margin: `0 auto ${spacing.sm}px` }} />
                 <p style={{ ...typography.body, color: colors.textSecondary, margin: 0 }}>
                   Tap to select file
                 </p>
@@ -246,16 +264,16 @@ export default function DocumentUploader({ onSave, onClose }) {
                       alignItems: 'center',
                       gap: spacing.xs,
                       padding: `${spacing.md}px ${spacing.lg}px`,
-                      backgroundColor: isSelected ? opt.bgColor : '#EDEAE5',
+                      backgroundColor: isSelected ? opt.bgColor : warmPalette.warmGray,
                       border: isSelected ? `2px solid ${opt.color}` : '2px solid transparent',
                       borderRadius: radius.md,
                       cursor: 'pointer',
-                      fontSize: 13,
+                      fontSize: typography.helper.fontSize,
                       fontWeight: isSelected ? 600 : 500,
-                      color: isSelected ? opt.color : warmPalette.textMedium,
+                      color: isSelected ? warmPalette.textDark : warmPalette.textMedium,
                     }}
                   >
-                    <Icon size={16} strokeWidth={2} />
+                    <Icon size={16} strokeWidth={2} color={opt.color} />
                     {opt.label}
                   </button>
                 )
@@ -289,7 +307,7 @@ export default function DocumentUploader({ onSave, onClose }) {
             style={{
               width: '100%',
               padding: `${spacing.lg}px`,
-              backgroundColor: (fileData && name.trim()) ? colors.ocean : colors.surfaceMuted,
+              backgroundColor: (fileData && name.trim()) ? colors.ocean : colors.borderLight,
               color: (fileData && name.trim()) ? colors.textOnAccent : colors.textMuted,
               border: 'none',
               borderRadius: radius.md,

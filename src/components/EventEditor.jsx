@@ -1,12 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { X, Trash2, CheckCircle2, Clock, MapPin, FileText, Hash, Tag } from 'lucide-react'
+import { X, Trash2, Clock, MapPin, FileText, Hash, Tag, ImagePlus } from 'lucide-react'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, tokens, warmPalette, glass } from '../styles'
-import { formatTime } from '../utils/timeUtils'
+import { typography, spacing, radius, tokens, warmPalette, glass } from '../styles'
 import { generateId } from '../utils/timeUtils'
 import { EVENT_TYPES } from '../data/eventTypes'
-import StatusBadge from './StatusBadge'
+import { getCoverImage } from '../data/coverImages'
 
 // =============================================================================
 // EVENT EDITOR — Add/Edit/Delete event modal (bottom sheet)
@@ -14,7 +13,51 @@ import StatusBadge from './StatusBadge'
 
 const typeOptions = Object.values(EVENT_TYPES).filter(t => t.id !== 'custom')
 
+function compressImage(dataUrl, maxDim = 800, quality = 0.6) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      let { width, height } = img
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height)
+        width = Math.round(width * ratio)
+        height = Math.round(height * ratio)
+      }
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.src = dataUrl
+  })
+}
+
 export default function EventEditor({ event, isNew, date, onSave, onDelete, onClose, onStatusToggle }) {
+  // Lock body scroll while overlay is open — prevent horizontal wobble
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.overflowX = 'hidden'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.overflowX = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
+  // Preserve the original timezone offset from the event's times
+  const originalTzOffset = event?.startTime
+    ? extractTimezoneOffset(event.startTime)
+    : '-10:00'
+
   const [formData, setFormData] = useState({
     type: event?.type || 'activity',
     title: event?.title || '',
@@ -27,12 +70,23 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
     status: event?.status || 'upcoming',
     bufferMinutes: event?.bufferMinutes || 30,
     bufferLabel: event?.bufferLabel || '',
+    coverImage: event?.coverImage || null,
   })
 
   const [showDelete, setShowDelete] = useState(false)
+  const [photoError, setPhotoError] = useState(null)
+  const fileInputRef = useRef(null)
 
   function update(field, value) {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  function handleStatusToggle() {
+    if (onStatusToggle) onStatusToggle()
+    setFormData(prev => ({
+      ...prev,
+      status: prev.status === 'done' ? 'upcoming' : 'done',
+    }))
   }
 
   function handleSave() {
@@ -45,13 +99,14 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
       subtitle: formData.subtitle.trim() || null,
       startTime: formData.startTime || null,
       endTime: formData.endTime || null,
-      timezone: 'Pacific/Honolulu',
+      timezone: event?.timezone || 'Pacific/Honolulu',
       location: formData.location.trim()
         ? { destination: formData.location.trim() }
         : null,
       confirmationNumber: formData.confirmationNumber.trim() || null,
       notes: formData.notes.trim() || null,
       status: formData.status,
+      coverImage: formData.coverImage || null,
     }
 
     if (formData.type === 'buffer') {
@@ -65,8 +120,6 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
   function handleDelete() {
     if (event?.id) onDelete(event.id)
   }
-
-  const selectedType = EVENT_TYPES[formData.type] || EVENT_TYPES.custom
 
   return (
     <motion.div
@@ -103,14 +156,17 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
           width: '100%',
           maxWidth: 480,
           maxHeight: '90vh',
-          ...glass.sheet,
+          background: 'rgba(255,255,255,0.98)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(0,0,0,0.08)',
           borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
           overflow: 'auto',
         }}
       >
         {/* Drag handle */}
         <div style={{ padding: `${spacing.md}px 0 0`, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#D6D3CE' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: colors.dragHandle }} />
         </div>
 
         {/* Header */}
@@ -119,42 +175,20 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: `${spacing.sm}px ${spacing.lg}px ${spacing.md}px`,
-          borderBottom: tokens.cardBorder,
           position: 'sticky',
           top: 0,
-          background: glass.sheet.background,
-          backdropFilter: glass.sheet.backdropFilter,
-          WebkitBackdropFilter: glass.sheet.WebkitBackdropFilter,
+          background: 'rgba(255,255,255,0.98)',
           zIndex: 10,
         }}>
           <h3 style={{ ...typography.sectionHeader, color: warmPalette.textDark }}>
             {isNew ? 'New Event' : 'Edit Event'}
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-            {event && onStatusToggle && (
-              <button
-                onClick={onStatusToggle}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: spacing.xs,
-                  padding: `${spacing.xs}px ${spacing.sm}px`,
-                  backgroundColor: event.status === 'done' ? colors.successLight : colors.surfaceMuted,
-                  color: event.status === 'done' ? colors.success : colors.textSecondary,
-                  border: 'none',
-                  borderRadius: radius.sm,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                <CheckCircle2 size={16} strokeWidth={2} />
-                {event.status === 'done' ? 'Done' : 'Mark Done'}
-              </button>
-            )}
             <button
               onClick={onClose}
               style={{
                 width: 36, height: 36, borderRadius: 18,
-                backgroundColor: '#EDEAE5',
+                backgroundColor: warmPalette.warmGray,
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
@@ -166,13 +200,13 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
 
         <div style={{ padding: spacing.lg }}>
           {/* Type picker */}
-          <label style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: warmPalette.textMedium, display: 'block', marginBottom: spacing.sm }}>
+          <label style={{ fontSize: typography.helper.fontSize, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: warmPalette.textMedium, display: 'block', marginBottom: spacing.sm }}>
             Type
           </label>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
-            gap: spacing.sm,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(74px, 1fr))',
+            gap: spacing.md,
             marginBottom: spacing.lg,
           }}>
             {typeOptions.map(opt => {
@@ -188,8 +222,8 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 3,
-                    padding: `${spacing.md}px ${spacing.sm}px`,
-                    backgroundColor: isSelected ? opt.bgColor : '#EDEAE5',
+                    padding: `${spacing.md}px ${spacing.sm + 5}px`,
+                    backgroundColor: isSelected ? opt.bgColor : warmPalette.warmGray,
                     border: isSelected ? `2px solid ${opt.color}` : '2px solid transparent',
                     borderRadius: radius.md,
                     cursor: 'pointer',
@@ -198,9 +232,10 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                 >
                   <Icon size={22} color={isSelected ? opt.color : warmPalette.textMedium} strokeWidth={2} />
                   <span style={{
-                    fontSize: 11,
+                    fontSize: typography.caption.fontSize,
                     fontWeight: isSelected ? 600 : 500,
-                    color: isSelected ? opt.color : warmPalette.textMedium,
+                    color: isSelected ? warmPalette.textDark : warmPalette.textMedium,
+                    lineHeight: '1.1',
                   }}>
                     {opt.label}
                   </span>
@@ -208,6 +243,84 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
               )
             })}
           </div>
+
+          {/* Cover Photo */}
+          <FieldGroup label="Cover Photo" icon={ImagePlus}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                setPhotoError(null)
+                if (file.size > 5 * 1024 * 1024) {
+                  setPhotoError(`This file is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum size is 5MB.`)
+                  e.target.value = ''
+                  return
+                }
+                const reader = new FileReader()
+                reader.onload = async (ev) => {
+                  const compressed = await compressImage(ev.target.result)
+                  update('coverImage', compressed)
+                }
+                reader.readAsDataURL(file)
+                e.target.value = ''
+              }}
+            />
+            {(() => {
+              const displayImage = formData.coverImage || getCoverImage(formData.type, event?.id)
+              return displayImage ? (
+                <div style={{ position: 'relative' }}>
+                  <img
+                    src={displayImage}
+                    alt="Cover preview"
+                    style={{
+                      width: '100%',
+                      height: 120,
+                      objectFit: 'cover',
+                      borderRadius: radius.md,
+                      display: 'block',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                  />
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    width: '100%',
+                    padding: spacing.xl,
+                    backgroundColor: glass.input.background,
+                    border: `2px dashed ${colors.border}`,
+                    borderRadius: radius.md,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: spacing.sm,
+                    color: warmPalette.textMedium,
+                  }}
+                >
+                  <ImagePlus size={32} strokeWidth={1.5} />
+                  <span style={{ ...typography.body, color: colors.textSecondary, margin: 0 }}>Tap to add a cover photo</span>
+                  <span style={{ ...typography.caption, color: colors.textMuted, margin: 0 }}>Images only · Max 5 MB</span>
+                </button>
+              )
+            })()}
+            {photoError && (
+              <p style={{
+                ...typography.helper,
+                color: colors.danger,
+                marginTop: spacing.sm,
+              }}>
+                {photoError}
+              </p>
+            )}
+          </FieldGroup>
 
           {/* Title */}
           <FieldGroup label="Title" icon={Tag}>
@@ -238,7 +351,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                 <input
                   type="time"
                   value={formData.startTime ? formatInputTime(formData.startTime) : ''}
-                  onChange={e => update('startTime', buildISOTime(date, e.target.value))}
+                  onChange={e => update('startTime', buildISOTime(date, e.target.value, originalTzOffset))}
                   style={inputStyle}
                 />
               </FieldGroup>
@@ -248,7 +361,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                 <input
                   type="time"
                   value={formData.endTime ? formatInputTime(formData.endTime) : ''}
-                  onChange={e => update('endTime', buildISOTime(date, e.target.value))}
+                  onChange={e => update('endTime', buildISOTime(date, e.target.value, originalTzOffset))}
                   style={inputStyle}
                 />
               </FieldGroup>
@@ -342,7 +455,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
               style={{
                 flex: 1,
                 padding: `${spacing.lg}px`,
-                backgroundColor: formData.title.trim() ? colors.ocean : colors.surfaceMuted,
+                backgroundColor: formData.title.trim() ? colors.ocean : colors.borderLight,
                 color: formData.title.trim() ? colors.textOnAccent : colors.textMuted,
                 border: 'none',
                 borderRadius: radius.md,
@@ -368,7 +481,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                 textAlign: 'center',
               }}
             >
-              <p style={{ ...typography.body, color: colors.danger, fontWeight: 500, marginBottom: spacing.md }}>
+              <p style={{ ...typography.bodyMedium, color: colors.danger, marginBottom: spacing.md }}>
                 Delete "{event?.title}"?
               </p>
               <div style={{ display: 'flex', gap: spacing.md }}>
@@ -382,7 +495,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                     border: tokens.cardBorder,
                     borderRadius: radius.sm,
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: typography.helper.fontSize,
                     fontWeight: 500,
                   }}
                 >
@@ -398,7 +511,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                     border: 'none',
                     borderRadius: radius.sm,
                     cursor: 'pointer',
-                    fontSize: 14,
+                    fontSize: typography.helper.fontSize,
                     fontWeight: 600,
                   }}
                 >
@@ -421,7 +534,7 @@ function FieldGroup({ label, icon: Icon, children }) {
   return (
     <div style={{ marginBottom: spacing.lg }}>
       <label style={{
-        fontSize: 13,
+        fontSize: typography.helper.fontSize,
         fontWeight: 600,
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
@@ -442,27 +555,38 @@ function FieldGroup({ label, icon: Icon, children }) {
 const inputStyle = {
   width: '100%',
   padding: `${spacing.lg}px`,
-  ...glass.input,
+  background: 'rgba(240,238,235,0.7)',
+  border: '1px solid rgba(0,0,0,0.14)',
   borderRadius: radius.md,
   fontSize: 16,
-  color: warmPalette.textDark,
+  color: colors.textPrimary,
   outline: 'none',
   fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
   boxSizing: 'border-box',
 }
 
-// Time helpers
+// Time helpers — extract time directly from ISO string to preserve timezone
 function formatInputTime(isoString) {
   if (!isoString) return ''
   try {
-    const d = new Date(isoString)
-    const h = String(d.getHours()).padStart(2, '0')
-    const m = String(d.getMinutes()).padStart(2, '0')
-    return `${h}:${m}`
+    // Extract HH:MM directly from the ISO string (before the timezone offset)
+    // e.g. "2026-03-14T06:50:00-05:00" → "06:50"
+    const match = isoString.match(/T(\d{2}):(\d{2})/)
+    if (match) return `${match[1]}:${match[2]}`
+    return ''
   } catch { return '' }
 }
 
-function buildISOTime(date, timeStr) {
+function extractTimezoneOffset(isoString) {
+  if (!isoString) return '-10:00'
+  // Match timezone offset at end: +HH:MM, -HH:MM, or Z
+  const match = isoString.match(/([+-]\d{2}:\d{2})$/)
+  if (match) return match[1]
+  if (isoString.endsWith('Z')) return '+00:00'
+  return '-10:00'
+}
+
+function buildISOTime(date, timeStr, tzOffset) {
   if (!timeStr || !date) return ''
-  return `${date}T${timeStr}:00-10:00`
+  return `${date}T${timeStr}:00${tzOffset || '-10:00'}`
 }

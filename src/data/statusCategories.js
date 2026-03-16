@@ -1,6 +1,6 @@
 import {
   Shirt, Ticket, FileText, Heart, Car, MoreHorizontal,
-  CreditCard, Plane, Building2, Shield, Key
+  Plane, Building2, Shield, Key
 } from 'lucide-react'
 import { colors } from '../colors'
 
@@ -41,15 +41,15 @@ export const CHECKLIST_CATEGORIES = {
     id: 'transport',
     label: 'Transport',
     icon: Car,
-    color: colors.info,
-    bgColor: colors.infoLight,
+    color: colors.violet,
+    bgColor: colors.violetLight,
   },
   other: {
     id: 'other',
     label: 'Other',
     icon: MoreHorizontal,
     color: colors.textSecondary,
-    bgColor: colors.surfaceMuted,
+    bgColor: colors.borderLight,
   },
 }
 
@@ -94,7 +94,7 @@ export const DOCUMENT_CATEGORIES = {
     label: 'Other',
     icon: FileText,
     color: colors.textSecondary,
-    bgColor: colors.surfaceMuted,
+    bgColor: colors.borderLight,
   },
 }
 

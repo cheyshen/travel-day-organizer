@@ -68,7 +68,7 @@ export default function DayCard({ dateInfo, trip, days, destinations, selectedDa
       whileTap={isTrip ? { scale: 0.93 } : {}}
       onClick={handleClick}
       style={{
-        aspectRatio: '5 / 6',
+        aspectRatio: '1 / 1',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -88,40 +88,13 @@ export default function DayCard({ dateInfo, trip, days, destinations, selectedDa
     >
       {/* Day number */}
       <span style={{
-        fontSize: 14,
+        fontSize: 18,
         fontWeight,
         color: textColor,
-        lineHeight: '16px',
+        lineHeight: '20px',
       }}>
         {formatDayNumber(date)}
       </span>
-
-      {/* Event density bars (replaces dots) */}
-      {isTrip && eventCount > 0 && (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 2,
-        }}>
-          <div style={{
-            width: 16,
-            height: 3,
-            borderRadius: 1.5,
-            backgroundColor: dest?.color || colors.ocean,
-            opacity: 0.8,
-          }} />
-          {eventCount > 3 && (
-            <div style={{
-              width: 16,
-              height: 3,
-              borderRadius: 1.5,
-              backgroundColor: dest?.color || colors.ocean,
-              opacity: 0.4,
-            }} />
-          )}
-        </div>
-      )}
 
       {/* Destination shape indicator (bottom-right) */}
       {isTrip && dest && (

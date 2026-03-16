@@ -4,7 +4,8 @@
 
 **Live URL:** `http://192.168.1.198`
 **Deployment:** Standalone K8s namespace `travel`
-**Current Version:** v0.0.128
+**Current Version:** v0.0.145
+**Production URL:** `https://travel.cheyshen.com/`
 
 ---
 
@@ -191,12 +192,12 @@ Hero View ──────┬─→ Calendar View
 
 **Content Zones (top to bottom):**
 
-1. **Hero Image** — Full-bleed photo (210px) with gradient overlay, single frosted glass pill badge ("X days · Xd away" with dot separator, unified 12px font). Default image is `/hero-bg.png` (sunset beach). Users can upload a custom photo via the camera button (frosted glass circle, top-right of hero). Uploaded images are compressed via canvas (1200px max width, JPEG 0.7 quality) and stored as data URL in state (`heroImage`). Custom photo persists across sessions via localStorage and is shared with TripHeader on the calendar page.
+1. **Hero Image** — Full-bleed photo (110px) with gradient overlay. Default image is `/hero-bg.png` (sunset beach). Users can upload a custom photo via the camera button (frosted glass circle, top-right of hero). Uploaded images are compressed via canvas (1200px max width, JPEG 0.7 quality) and stored as data URL in state (`heroImage`). Custom photo persists across sessions via localStorage and is shared with TripHeader on the calendar page.
 2. **Content Panel** — Warm gray surface overlapping hero by -28px with 24px top radius
-3. **Next Up Card** — Shows next upcoming event with icon + title on the same horizontal row (matching Flight/Countdown card layout), time (`body` 15px), location (`body` 15px, MapPin 13px). No header label or day counter. Taps navigate to event detail.
-4. **Flight Status Card** — Shows next upcoming flight with route visualization (ORD ——✈—— LIH), status badge (On Time / Delayed, 12px), and **simulated milestone log** — a mini vertical timeline of 6 milestones (check-in, gate, boarding, doors, departed/in-flight, landed) with sliding window showing 3 at a time. Milestones: green filled dot (done), teal pulsing dot with glow (current), hollow circle (upcoming). Vertical connector lines between dots. Relative timestamps update every 60s. Skipped if flight is same as Next Up event. Title uses full `sectionHeader` (18px), date/time use `body` (15px).
-5. **Trip Countdown Card** — Pre-trip card showing days until departure with location route (Kauai → Maui). Uses same milestone log visual pattern with 6 countdown milestones (trip booked, 30 days out, 3 weeks out, 2 weeks out, 1 week out, trip begins). Sliding window of 3 centered on current. Hidden once trip has started. Title uses full `sectionHeader` (18px), date range uses `body` (15px), badge 12px, location uses `body` (15px).
-6. **Destination Cards** — Compact photo cards (50px photo height) per destination with name, date range, day count, and arrow CTA. Tap jumps to first day at that destination.
+3. **Destination Cards** — Compact photo cards (50px photo height) per destination with name, date range, day count, and arrow CTA. Tap jumps to first day at that destination. Positioned at the top of the content panel for immediate destination orientation.
+4. **Next Up Card** — Shows next upcoming event with icon + title on the same horizontal row (matching Flight/Countdown card layout), time (`body` 15px), location (`body` 15px, MapPin 13px). No header label or day counter. Taps navigate to event detail.
+5. **Flight Status Card** — Shows next upcoming flight with route visualization (ORD ——✈—— LIH), status badge (On Time / Delayed, 12px), and **simulated milestone log** — a mini vertical timeline of 6 milestones (check-in, gate, boarding, doors, departed/in-flight, landed) with sliding window showing 3 at a time. Milestones: green filled dot (done), teal pulsing dot with glow (current), hollow circle (upcoming). Vertical connector lines between dots. Relative timestamps update every 60s. Skipped if flight is same as Next Up event. Title uses full `sectionHeader` (18px), date/time use `body` (15px).
+6. **Trip Countdown Card** — Pre-trip card showing days until departure with location route (Kauai → Maui). Uses same milestone log visual pattern with 6 countdown milestones (trip booked, 30 days out, 3 weeks out, 2 weeks out, 1 week out, trip begins). Sliding window of 3 centered on current. Hidden once trip has started. Title uses full `sectionHeader` (18px), date range uses `body` (15px), badge 12px, location uses `body` (15px).
 7. **Daily Overview** — Horizontal scroll of day chips using `glass.card` (white cards) with `touchAction: 'pan-x'` for reliable horizontal scrolling. Shows: day-of-week abbreviation, date number, **weather icon** (sun/cloud-sun/cloud/rain), and **temperature**. Weather data comes from **Open-Meteo API** when a zip code is entered (real forecast for dates within 16-day window), falling back to **deterministic simulation** (75–85°F, Hawaii-realistic) for dates beyond forecast range. Includes a zip code input field with info message indicating forecast availability. Tapping a chip navigates to that day's timeline.
 8. **Featured Highlights** — 5 editorial cards (Na Pali Coast Boat Tour, Haleakala Sunrise, Waimea Canyon Drive, Poipu Beach Snorkeling, Road to Hana) with cover photo, title (`sectionHeader` 18px), meta info (13px), description (`body` 15px), destination badge, and "View Day X" CTA (15px). Card content area padded at 14px 16px. Card gap 16px. Tapping navigates to EventDetailView for that event. Defined in the `HIGHLIGHTS` array at the top of HeroView with `eventId`, `date`, `day`, and `time` fields that must match the actual sampleTrip data. Each highlight's curated photo URL is also set as `coverImage` on the corresponding event in `sampleTrip.js`, ensuring visual continuity across highlight card → timeline card → event detail page.
 
@@ -1233,7 +1234,7 @@ TripProvider (root wrapper)
 | `SET_SELECTED_DATE` | ISO date string | Change viewed day |
 | `SET_ACTIVE_VIEW` | 'hero' / 'calendar' / 'day' / 'eventDetail' / 'status' | Switch views |
 | `SET_SELECTED_EVENT` | event ID string | Set event for detail view |
-| `ADD_EVENT` | `{ date, event }` | Insert new event |
+| `ADD_EVENT` | `{ date, event }` | Insert new event (sorted by `startTime` chronologically) |
 | `UPDATE_EVENT` | `{ date, eventId, updates }` | Modify event |
 | `DELETE_EVENT` | `{ date, eventId }` | Remove event |
 | `SET_EVENT_STATUS` | `{ date, eventId, status }` | Change status |
@@ -1506,12 +1507,21 @@ travel/
 │   │
 │   └── utils/
 │       ├── dateUtils.js        (~105 lines)   Date formatting, calendar grid, month nav
-│       └── timeUtils.js        (77 lines)     Time formatting, event colors
+│       └── timeUtils.js        (~101 lines)   Time formatting, event colors
 │
 ├── public/
-│   └── hero-bg.png                 Default hero background image
+│   ├── hero-bg.png                 Default hero background image
+│   ├── manifest.json               PWA web app manifest
+│   ├── sw.js                       Service worker (network-first nav, cache-first assets)
+│   ├── favicon.svg                 TreePalm SVG favicon
+│   ├── apple-touch-icon.png        180px iOS home screen icon
+│   ├── pwa-icon-192.png            192px PWA icon
+│   ├── pwa-icon-512.png            512px PWA icon
+│   ├── pwa-icon-192-maskable.png   192px maskable PWA icon
+│   └── pwa-icon-512-maskable.png   512px maskable PWA icon
 ├── package.json
 ├── vite.config.js
+├── eslint.config.js                ESLint flat config (no-undef error, no-unused-vars warn)
 ├── Dockerfile
 ├── nginx.conf
 └── index.html
@@ -1598,7 +1608,8 @@ Travel (wrapper)
 
 | Function | Purpose |
 |----------|---------|
-| `formatTime(isoString)` | 12-hour display ("6:50 AM") |
+| `formatTime(isoString)` | 12-hour display ("6:50 AM") — extracts from ISO string to preserve event timezone |
+| `formatHourLabel(isoString)` | Hour-only label ("6 AM") — timezone-safe, used for timeline hour groups |
 | `formatTimeRange(start, end)` | Duration span |
 | `formatDuration(minutes)` | Human-friendly ("2h 25m") |
 | `getStatusColor(status)` | Color for status badge |
@@ -1612,15 +1623,103 @@ Travel (wrapper)
 cd /home/ubuntu/apps/travel
 npm install
 npm run dev          # http://localhost:5173
-npm run build        # Production bundle
+npm run build        # ESLint check + production bundle (eslint src/ && vite build)
 deploy.sh travel "commit message"  # Deploy to cluster
 ```
 
 ---
 
-*Updated February 2026 (v0.0.114). Standalone deployment. This document covers the complete Travel app architecture, design system (glassmorphism + clean shadows, no neumorphism), component library, interaction patterns, accessibility compliance, and technical implementation — including custom hero photo upload, body scroll lock on overlays, redesigned destination strip navigation, the Status tab with checklist management and document uploads, the redesigned Calendar view with month navigation, tooltip, and interactive legend, the image card timeline with cover photos, the event detail view, design system font compliance, real weather API via Open-Meteo, buffer card duration titles, highlight scroll restoration, the design system token cleanup (v0.0.106–v0.0.114), and the warm-white/pure-white card convention.*
+*Updated March 2026 (v0.0.145). Standalone deployment. This document covers the complete Travel app architecture, design system (glassmorphism + clean shadows, no neumorphism), component library, interaction patterns, accessibility compliance, and technical implementation — including custom hero photo upload, body scroll lock on overlays, redesigned destination strip navigation, the Status tab with checklist management and document uploads, the redesigned Calendar view with month navigation, tooltip, and interactive legend, the image card timeline with cover photos, the event detail view, design system font compliance, real weather API via Open-Meteo, buffer card duration titles, highlight scroll restoration, the design system token cleanup (v0.0.106–v0.0.114), the warm-white/pure-white card convention, timezone-safe time display (v0.0.128), ESLint build integration with chronological event sorting (v0.0.145), and standalone design system sections for Next Up / Flight Status / Trip Countdown cards (ui-test v0.0.290).*
 
 ## Changelog
+
+### Design System V2 Update (ui-test v0.0.290)
+
+Broke the single "Hero cards" subsection into 3 standalone design system sections, each with proper descriptions, live examples, and spec tables:
+
+- **Next Up card** — Live-updating card showing the next upcoming event. Example updated to "Breakfast at Brennecke's" with coral dining icon. Spec table covers container, icon box, title, day/time, location, tap feedback, and animation.
+- **Flight Status card** — Live-updating flight tracker with route diagram and milestone log. Example updated to "Flight to Maui" (LIH → OGG). Added status badge variants (On Time / Delayed), milestone dot states visual reference (done/current/upcoming), and 17-row spec table covering every element.
+- **Trip Countdown card** — Pre-trip countdown with destination route and milestone log. Spec table covers container, icon, trip name, countdown badge, date range, destination route, and milestone pattern.
+
+Each section now explains the live-updating behavior and sliding-window milestone pattern, not just visual specs.
+
+### v0.0.145 — ESLint Integration & Chronological Event Sorting
+
+Added ESLint to the build pipeline so undefined variable errors (like the v0.0.144 white screen crash) are caught before deployment. Events now sort chronologically when added.
+
+**Changes:**
+- `eslint.config.js` — New ESLint flat config with `no-undef` (error) and `no-unused-vars` (warn). Globals set for browser environment.
+- `package.json` — Build script now runs `eslint src/ && vite build`, so undefined variable errors block the build.
+- `TripContext.jsx` — `ADD_EVENT` reducer now sorts the day's events by `startTime` (ISO string `localeCompare`) instead of by `sortOrder`, so new events appear in chronological order on the timeline.
+- `public/sw.js` — Service worker cache name bumped from `travel-v1` to `travel-v2` to bust stale caches after the build pipeline change.
+- `HeroView.jsx` — Changed `eslint-disable-line react-hooks/exhaustive-deps` to generic `eslint-disable-line` since the react-hooks ESLint plugin is not installed.
+
+### v0.0.144 — Fix White Screen Crash (Missing Import)
+
+Fixed a runtime crash ("spacing is not defined") that caused a white screen on load.
+
+**Changes:**
+- `HeroView.jsx` — Added missing `spacing` import from `../styles.js`. The variable was used throughout the component but never imported, causing an immediate ReferenceError.
+
+### v0.0.142 — Destination Cards Moved to Top of Hero
+
+Destination cards (Kauai & Maui) relocated from zone 6 to zone 3 — immediately after the content panel pull indicator, before the Next Up card. Gives users instant destination orientation when landing on the hero page.
+
+**Changes:**
+- `HeroView.jsx` — Moved `DestCard` render block from after Trip Countdown Card to after pull indicator. Animation delay reduced from 0.7s to 0.3s since cards are now first visible content. Margin adjusted from 24px to 20px bottom.
+- `DOCUMENTATION.md` — Version bump to v0.0.142. Hero View content zones reordered (Destination Cards now zone 3). Added production URL. Added changelog entries for v0.0.137 and v0.0.142.
+
+### v0.0.137 — OG Image + Meta Tags for Link Previews
+
+Added Open Graph and Apple touch icon meta tags for rich link previews when sharing the app URL.
+
+**Changes:**
+- `index.html` — Added `og:title`, `og:description`, `og:image`, `og:url` meta tags with absolute URLs to `travel.cheyshen.com`. Added sized apple-touch-icons (120/152/167/180px).
+- `EventEditor.jsx` — Cover photo preview shows current event image (user-uploaded, event URL, or type fallback via `getCoverImage`). "Tap to change" overlay. X button only for user uploads.
+
+### v0.0.136 — Cover Photo Preview in Event Editor
+
+The EventEditor now shows the event's current cover image (user-uploaded, event-specific URL, or type-based fallback) instead of always showing the empty upload placeholder. Tapping the image opens the file picker to replace it.
+
+**Changes:**
+- `EventEditor.jsx` — Imported `getCoverImage` from coverImages.js. Cover photo section resolves display image via `formData.coverImage || getCoverImage(formData.type, event?.id)`. Shows image preview with "Tap to change" overlay. X remove button only appears for user-uploaded images.
+
+### v0.0.132 — Progressive Web App (PWA)
+
+Added full PWA support so the app is installable on mobile (Add to Home Screen) and desktop, with offline caching of static assets.
+
+**New files:**
+- `public/manifest.json` — Web app manifest: standalone display, ocean teal theme (#0E7490), warm background (#F0EDE8)
+- `public/sw.js` — Service worker with network-first strategy for navigation, cache-first for static assets, automatic old cache cleanup
+- `public/pwa-icon-{192,512}.png` — Standard PWA icons (palm tree on warm background)
+- `public/pwa-icon-{192,512}-maskable.png` — Maskable icons with safe-zone padding for adaptive icon shapes
+- `public/apple-touch-icon.png` — 180px iOS home screen icon
+
+**Modified files:**
+- `index.html` — Added manifest link, `theme-color` meta, Apple PWA meta tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, `apple-mobile-web-app-title`)
+- `src/main.jsx` — Service worker registration on window load
+
+### v0.0.131 — Lucide TreePalm Favicon
+
+Added SVG favicon to the travel app and design system using the exact Lucide `TreePalm` icon in palm green (`#2D7D46`) on a transparent background. Both https://travel.cheyshen.com/ and https://travel-ds.cheyshen.com/ now display the palm tree favicon.
+
+**Changes:**
+- `public/favicon.svg` — New SVG favicon using Lucide TreePalm icon paths with `stroke="#2D7D46"`, `stroke-width="2"`
+- `index.html` — Updated favicon link from `/vite.svg` to `/favicon.svg`
+
+### v0.0.128 — Timezone-Safe Time Display
+
+Fixed timezone mismatch where event times displayed in browser's local timezone instead of the event's own timezone. For example, a Hawaii event at 12:00 PM HST (-10:00) was showing as 5:00 PM when viewed from a CST (-05:00) browser.
+
+**Changes:**
+- `formatTime()` — Now extracts hours/minutes directly from the ISO string via regex instead of using `new Date().toLocaleTimeString()`. Preserves the event's timezone for display.
+- `formatHourLabel()` — New helper for hour-only labels (e.g. "12 PM"), also timezone-safe. Used by DayTimelineView hour group labels.
+- `DayTimelineView.jsx` — Replaced two raw `toLocaleTimeString()` calls with `formatHourLabel()`.
+- EventEditor already used regex extraction for its `<input type="time">` fields — now card display matches.
+
+**Not changed (correctly using `new Date()`):**
+- `getTimePosition()` / `getDurationMinutes()` — Compute absolute milliseconds for ordering/duration, not display.
+- HeroView milestone calculations — Same reason, used for comparisons not display.
 
 ### v0.0.120 — Upload Zone Consistency
 

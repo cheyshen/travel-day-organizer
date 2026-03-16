@@ -93,14 +93,14 @@ export default function EmptyState({ type = 'empty', onAddEvent }) {
             alignItems: 'center',
             gap: spacing.sm,
             backgroundColor: warmPalette.accent,
-            color: '#FFFFFF',
+            color: colors.textOnAccent,
             border: 'none',
             borderRadius: radius.md,
             padding: `${spacing.md}px ${spacing.xl}px`,
-            fontSize: 14,
+            fontSize: typography.helper.fontSize,
             fontWeight: 600,
             cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(14, 116, 144, 0.25)',
+            boxShadow: shadows.accentGlow,
           }}
         >
           <Plus size={16} />

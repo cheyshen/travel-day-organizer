@@ -29,7 +29,7 @@ function SectionHeader({ icon: Icon, title, count, children }) {
           <div style={{
             width: 32,
             height: 32,
-            borderRadius: 10,
+            borderRadius: radius.iconSquare,
             background: warmPalette.accentSoft,
             display: 'flex',
             alignItems: 'center',
@@ -48,8 +48,7 @@ function SectionHeader({ icon: Icon, title, count, children }) {
         {count !== undefined && (
           <span style={{
             ...typography.caption,
-            fontSize: 11,
-            color: warmPalette.accent,
+            color: warmPalette.textDark,
             backgroundColor: warmPalette.accentSoft,
             padding: `2px ${spacing.sm}px`,
             borderRadius: radius.pill,
@@ -152,14 +151,14 @@ export default function StatusView() {
               borderRadius: radius.pill,
               border: 'none',
               backgroundColor: warmPalette.accent,
-              color: '#FFFFFF',
+              color: colors.textOnAccent,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 4,
-              fontSize: 13,
+              fontSize: typography.helper.fontSize,
               fontWeight: 600,
-              boxShadow: '0 2px 8px rgba(14, 116, 144, 0.25)',
+              boxShadow: shadows.accentGlow,
             }}
           >
             <Plus size={14} strokeWidth={2.5} />
@@ -216,7 +215,7 @@ export default function StatusView() {
                 marginBottom: spacing.sm,
               }}>
                 <CatIcon size={14} color={cat.color} strokeWidth={2.5} />
-                <span style={{ ...typography.caption, color: warmPalette.textDark, fontSize: 12, fontWeight: 700 }}>
+                <span style={{ ...typography.caption, color: warmPalette.textDark }}>
                   {cat.label}
                 </span>
               </div>
@@ -266,14 +265,14 @@ export default function StatusView() {
               borderRadius: radius.pill,
               border: 'none',
               backgroundColor: warmPalette.accent,
-              color: '#FFFFFF',
+              color: colors.textOnAccent,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 4,
-              fontSize: 13,
+              fontSize: typography.helper.fontSize,
               fontWeight: 600,
-              boxShadow: '0 2px 8px rgba(14, 116, 144, 0.25)',
+              boxShadow: shadows.accentGlow,
             }}
           >
             <Upload size={14} strokeWidth={2.5} />

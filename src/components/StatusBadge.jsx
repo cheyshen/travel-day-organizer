@@ -14,14 +14,13 @@ export default function StatusBadge({ status, size = 'sm' }) {
 
   return (
     <span style={{
-      ...typography.caption,
-      fontSize: 11,
+      fontSize: 12,
+      fontWeight: 600,
+      letterSpacing: '0.02em',
       color,
       backgroundColor: bg,
-      padding: isLarge
-        ? `${spacing.xs}px ${spacing.sm}px`
-        : `2px ${spacing.sm - 2}px`,
-      borderRadius: radius.sm,
+      padding: '3px 10px',
+      borderRadius: radius.pill,
       whiteSpace: 'nowrap',
     }}>
       {label}

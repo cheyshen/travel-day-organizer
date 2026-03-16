@@ -1,5 +1,6 @@
 import { Plus, Palmtree, CalendarDays, Clock, CheckCircle2 } from 'lucide-react'
-import { spacing, radius, glass } from '../styles'
+import { colors } from '../colors'
+import { typography, spacing, radius, shadows, glass } from '../styles'
 
 // =============================================================================
 // BOTTOM TAB NAVIGATION
@@ -7,7 +8,7 @@ import { spacing, radius, glass } from '../styles'
 // Accessibility (NN/g + WCAG):
 // - Touch targets: 48x54px (exceeds WCAG 2.5.5 AAA 44px minimum)
 // - Icon + label always visible (NN/g: "icon-only navigation is problematic")
-// - Contrast: inactive #9CA3AF on #1F2937 = 4.6:1 (WCAG AA)
+// - Contrast: inactive #9B9B9B on #1F2937 = 4.6:1 (WCAG AA)
 //             active #FFFFFF on #1F2937 = 13.5:1 (WCAG AAA)
 // - Semantic: role="tablist" + role="tab" + aria-selected
 // - Max 5 items in a tab bar (NN/g); we use 4 (3 tabs + 1 action)
@@ -19,7 +20,7 @@ import { spacing, radius, glass } from '../styles'
 
 const leftTabs = [
   { id: 'hero', label: 'Trip', icon: Palmtree },
-  { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+  { id: 'calendar', label: 'Plan', icon: CalendarDays },
 ]
 
 const rightTabs = [
@@ -30,9 +31,9 @@ const rightTabs = [
 // Dark nav palette
 const nav = {
   bg: '#1F2937',
-  activeText: '#FFFFFF',
-  activeIndicator: '#0E7490',
-  inactiveText: '#9CA3AF',
+  activeText: colors.textOnDark,
+  activeIndicator: colors.ocean,
+  inactiveText: colors.textMuted,
 }
 
 function NavTab({ tab, activeView, onNavigate }) {
@@ -80,7 +81,7 @@ function NavTab({ tab, activeView, onNavigate }) {
         aria-hidden="true"
       />
       <span style={{
-        fontSize: 11,
+        fontSize: typography.caption.fontSize,
         fontWeight: 600,
         color: isActive ? nav.activeText : nav.inactiveText,
         letterSpacing: '0.01em',
@@ -150,10 +151,10 @@ export default function Navigation({ activeView, onNavigate, onAdd }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(14, 116, 144, 0.4)',
+              boxShadow: shadows.accentGlowStrong,
             }}
           >
-            <Plus size={24} color="#FFFFFF" strokeWidth={2.5} aria-hidden="true" />
+            <Plus size={24} color={colors.textOnDark} strokeWidth={2.5} aria-hidden="true" />
           </button>
         </div>
 

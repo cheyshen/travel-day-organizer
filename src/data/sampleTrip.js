@@ -109,6 +109,7 @@ export const sampleDays = {
         location: { origin: 'Chicago O\'Hare (ORD)', destination: 'Lihue Airport (LIH)' },
         confirmationNumber: 'UA-3R8W5N',
         notes: 'Meal service included. Bring neck pillow and download movies.',
+        coverImage: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 3,
       },
@@ -258,6 +259,7 @@ export const sampleDays = {
         timezone: 'Pacific/Honolulu',
         location: { destination: 'Poipu Beach' },
         notes: 'Snorkel gear in the car. Watch for sea turtles near the rocks.',
+        coverImage: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 4,
       },
@@ -325,6 +327,7 @@ export const sampleDays = {
         timezone: 'Pacific/Honolulu',
         location: { destination: 'Waimea Canyon Lookout' },
         notes: 'Stop at multiple lookout points. Cliff Trail is 0.1 mi and stunning.',
+        coverImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 2,
       },
@@ -432,6 +435,7 @@ export const sampleDays = {
         location: { origin: 'Port Allen Harbor', destination: 'Na Pali Coast' },
         confirmationNumber: 'CA-77412',
         notes: '5-hour catamaran cruise. Includes snorkel stop, lunch, and drinks. Dolphins and whales possible!',
+        coverImage: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 2,
       },
@@ -554,6 +558,7 @@ export const sampleDays = {
         location: { origin: 'Lihue Airport (LIH)', destination: 'Kahului Airport (OGG)' },
         confirmationNumber: 'HA-RW6244',
         notes: '35 min flight. Sit on left for views of Molokai.',
+        coverImage: 'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 4,
       },
@@ -636,6 +641,7 @@ export const sampleDays = {
         timezone: 'Pacific/Honolulu',
         location: { origin: 'Andaz Maui', destination: 'Twin Falls' },
         notes: 'Stop at Ho\'okipa Beach for sea turtle spotting. Twin Falls is the first waterfall stop.',
+        coverImage: 'https://images.unsplash.com/photo-1616193653378-a9414ff47462?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 1,
       },
@@ -845,6 +851,7 @@ export const sampleDays = {
         location: { destination: 'Haleakala Summit, 10,023 ft' },
         confirmationNumber: 'NPS-HALE-2026',
         notes: 'Arrive 30 min early for parking. "House of the Sun" — one of the most spiritual experiences in Hawaii.',
+        coverImage: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 1,
       },
@@ -980,6 +987,7 @@ export const sampleDays = {
         location: { origin: 'Kahului Airport (OGG)', destination: 'Chicago O\'Hare (ORD)' },
         confirmationNumber: 'UA-7K2M9X',
         notes: '~8 hour flight. Meal service. Download entertainment beforehand.',
+        coverImage: 'https://images.unsplash.com/photo-1540339832862-474599807836?auto=format&fit=crop&w=600&q=80',
         status: 'upcoming',
         sortOrder: 4,
       },
@@ -1013,8 +1021,4 @@ export const sampleDays = {
       },
     ],
   },
-}
-
-export function getTotalEventCount() {
-  return Object.values(sampleDays).reduce((sum, day) => sum + day.events.length, 0)
 }

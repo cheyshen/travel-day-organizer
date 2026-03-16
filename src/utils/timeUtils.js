@@ -7,8 +7,32 @@ import { EVENT_TYPES, EVENT_STATUSES } from '../data/eventTypes'
 
 export function formatTime(isoString) {
   if (!isoString) return ''
+  // Extract time directly from ISO string to preserve the event's timezone
+  // e.g. "2026-03-14T12:00:00-10:00" → 12:00 PM (Hawaii time, not browser local)
+  const match = isoString.match(/T(\d{2}):(\d{2})/)
+  if (match) {
+    let hour = parseInt(match[1], 10)
+    const min = match[2]
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    if (hour === 0) hour = 12
+    else if (hour > 12) hour -= 12
+    return `${hour}:${min} ${ampm}`
+  }
   const d = new Date(isoString)
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+export function formatHourLabel(isoString) {
+  if (!isoString) return ''
+  const match = isoString.match(/T(\d{2}):(\d{2})/)
+  if (match) {
+    let hour = parseInt(match[1], 10)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    if (hour === 0) hour = 12
+    else if (hour > 12) hour -= 12
+    return `${hour} ${ampm}`
+  }
+  return ''
 }
 
 export function formatTimeRange(startIso, endIso) {
@@ -40,7 +64,7 @@ export function getStatusColor(status) {
 
 export function getStatusBg(status) {
   const s = EVENT_STATUSES[status]
-  return s ? s.color : colors.surfaceMuted
+  return s ? s.color : colors.borderLight
 }
 
 export function getStatusLabel(status) {
@@ -60,7 +84,7 @@ export function getEventColor(typeId) {
 
 export function getEventBgColor(typeId) {
   const t = EVENT_TYPES[typeId]
-  return t ? t.bgColor : colors.surfaceMuted
+  return t ? t.bgColor : colors.borderLight
 }
 
 export function getNowPosition(events) {

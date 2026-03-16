@@ -1,8 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion'
 import { TripProvider, useTripContext } from './context/TripContext'
-import { colors } from './colors'
-import { tokens } from './styles'
+import { glossyBg } from './styles'
 import Navigation from './components/Navigation'
 import HeroView from './views/HeroView'
 import CalendarView from './views/CalendarView'
@@ -28,11 +27,34 @@ function TravelInner() {
   // Nav "Add" opens EventEditor as overlay on current view
   const [isAddingFromNav, setIsAddingFromNav] = useState(false)
 
+  const heroScrollRef = useRef(0)
+  const prevViewRef = useRef(activeView)
+
   const navigate = useCallback((view, date) => {
+    // Save hero scroll position before leaving
+    if (activeView === 'hero' && view !== 'hero') {
+      heroScrollRef.current = window.scrollY
+    }
     if (date) dispatch({ type: 'SET_SELECTED_DATE', payload: date })
     dispatch({ type: 'SET_ACTIVE_VIEW', payload: view })
-    window.scrollTo(0, 0)
-  }, [dispatch])
+    if (view !== 'hero') {
+      window.scrollTo(0, 0)
+    }
+  }, [dispatch, activeView])
+
+  // Restore hero scroll position when returning to hero view
+  useEffect(() => {
+    const cameBack = activeView === 'hero' && prevViewRef.current !== 'hero'
+    prevViewRef.current = activeView
+    if (cameBack && heroScrollRef.current > 0) {
+      const target = heroScrollRef.current
+      // Wait for AnimatePresence exit (150ms) + enter (250ms) + DOM settle
+      const timer = setTimeout(() => {
+        window.scrollTo(0, target)
+      }, 450)
+      return () => clearTimeout(timer)
+    }
+  }, [activeView])
 
   const handleNavAdd = useCallback(() => {
     setIsAddingFromNav(true)
@@ -60,12 +82,13 @@ function TravelInner() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: colors.background,
+      backgroundColor: glossyBg,
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-      maxWidth: tokens.maxWidth,
+      maxWidth: 480,
       margin: '0 auto',
       position: 'relative',
       paddingBottom: 80,
+      overflowX: 'hidden',
     }}>
       <AnimatePresence mode="wait">
         {activeView === 'hero' && (

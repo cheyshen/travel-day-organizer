@@ -1,7 +1,7 @@
 import {
   Plane, Car, Building2, Palmtree, UtensilsCrossed,
-  Coffee, Circle, Ship, Sunrise, Camera, Waves,
-  Mountain, ShoppingBag, Music
+  Clock, Circle, Ship, Camera, Waves,
+  Mountain, ShoppingBag, PartyPopper, Sunrise
 } from 'lucide-react'
 import { colors } from '../colors'
 
@@ -21,8 +21,8 @@ export const EVENT_TYPES = {
     id: 'ground_transport',
     label: 'Transport',
     icon: Car,
-    color: colors.ocean,
-    bgColor: colors.oceanLight,
+    color: colors.violet,
+    bgColor: colors.violetLight,
   },
   hotel: {
     id: 'hotel',
@@ -48,16 +48,16 @@ export const EVENT_TYPES = {
   buffer: {
     id: 'buffer',
     label: 'Buffer',
-    icon: Coffee,
-    color: colors.textSecondary,
-    bgColor: colors.surfaceMuted,
+    icon: Clock,
+    color: colors.tan,
+    bgColor: colors.tanLight,
   },
   boat: {
     id: 'boat',
-    label: 'Boat Tour',
+    label: 'Boat',
     icon: Ship,
-    color: colors.lagoon,
-    bgColor: colors.tealLight,
+    color: colors.navy,
+    bgColor: colors.navyLight,
   },
   sunrise: {
     id: 'sunrise',
@@ -70,8 +70,8 @@ export const EVENT_TYPES = {
     id: 'sightseeing',
     label: 'Sightseeing',
     icon: Camera,
-    color: colors.lavender,
-    bgColor: colors.lavenderLight,
+    color: colors.amber,
+    bgColor: colors.amberLight,
   },
   beach: {
     id: 'beach',
@@ -96,8 +96,8 @@ export const EVENT_TYPES = {
   },
   entertainment: {
     id: 'entertainment',
-    label: 'Entertainment',
-    icon: Music,
+    label: 'Fun',
+    icon: PartyPopper,
     color: colors.purple,
     bgColor: colors.purpleLight,
   },
@@ -106,22 +106,15 @@ export const EVENT_TYPES = {
     label: 'Custom',
     icon: Circle,
     color: colors.textSecondary,
-    bgColor: colors.surfaceMuted,
+    bgColor: colors.borderLight,
   },
 }
 
 export const EVENT_STATUSES = {
-  upcoming: { label: 'Upcoming', color: colors.surfaceMuted, textColor: colors.textSecondary },
-  active: { label: 'In Progress', color: colors.oceanLight, textColor: colors.ocean },
+  upcoming: { label: 'Upcoming', color: colors.borderLight, textColor: colors.textSecondary },
   done: { label: 'Done', color: colors.successLight, textColor: colors.success },
-  delayed: { label: 'Delayed', color: colors.warningLight, textColor: colors.warning },
-  cancelled: { label: 'Cancelled', color: colors.dangerLight, textColor: colors.danger },
 }
 
 export function getEventType(typeId) {
   return EVENT_TYPES[typeId] || EVENT_TYPES.custom
-}
-
-export function getEventStatus(statusId) {
-  return EVENT_STATUSES[statusId] || EVENT_STATUSES.upcoming
 }

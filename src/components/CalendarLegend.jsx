@@ -35,7 +35,7 @@ export default function CalendarLegend({ destinations, days, activeFilter, onFil
               display: 'flex',
               alignItems: 'center',
               gap: spacing.sm,
-              padding: `${spacing.sm}px ${spacing.lg}px`,
+              padding: `${spacing.md}px ${spacing.xl}px`,
               borderRadius: radius.pill,
               border: isActive
                 ? `2px solid ${dest.color}`
@@ -48,24 +48,23 @@ export default function CalendarLegend({ destinations, days, activeFilter, onFil
           >
             {/* Shape indicator */}
             <span style={{
-              width: 10,
-              height: 10,
+              width: 12,
+              height: 12,
               borderRadius: isKauai ? '50%' : 2,
               backgroundColor: dest.color,
               display: 'inline-block',
               flexShrink: 0,
             }} />
             <span style={{
-              ...typography.helper,
-              fontWeight: 600,
-              color: isActive ? dest.color : warmPalette.textDark,
+              ...typography.sectionHeader,
+              fontSize: 15,
+              color: warmPalette.textDark,
             }}>
               {dest.name}
             </span>
             <span style={{
-              ...typography.caption,
-              fontSize: 10,
-              color: isActive ? dest.color : warmPalette.textLight,
+              ...typography.bodyMedium,
+              color: warmPalette.textMedium,
             }}>
               {count}d
             </span>

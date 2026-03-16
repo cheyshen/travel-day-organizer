@@ -1,7 +1,7 @@
 import { Check, Pencil, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
+import { typography, spacing, radius, warmPalette, glass } from '../styles'
 import { getChecklistCategory } from '../data/statusCategories'
 
 // =============================================================================
@@ -10,7 +10,6 @@ import { getChecklistCategory } from '../data/statusCategories'
 
 export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
   const category = getChecklistCategory(item.category)
-  const CatIcon = category.icon
 
   return (
     <motion.div
@@ -25,7 +24,6 @@ export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
         padding: `${spacing.md}px`,
         ...glass.card,
         borderRadius: radius.md,
-        borderLeft: `4px solid ${category.color}`,
       }}
     >
       <button
@@ -46,17 +44,17 @@ export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
         }}
       >
         <div style={{
-          width: 24,
-          height: 24,
+          width: 22,
+          height: 22,
           borderRadius: 6,
-          border: item.completed ? 'none' : `2px solid ${colors.border}`,
-          backgroundColor: item.completed ? colors.success : 'transparent',
+          border: item.completed ? 'none' : `3px solid ${category.color}40`,
+          backgroundColor: item.completed ? category.color : 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           transition: 'all 0.15s ease',
         }}>
-          {item.completed && <Check size={14} color="#fff" strokeWidth={3} />}
+          {item.completed && <Check size={13} color={colors.textOnAccent} strokeWidth={3} />}
         </div>
       </button>
 
@@ -72,12 +70,6 @@ export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
         }}>
           {item.title}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs, marginTop: 2 }}>
-          <CatIcon size={10} color={category.color} strokeWidth={2} />
-          <span style={{ ...typography.caption, color: warmPalette.textLight }}>
-            {category.label}
-          </span>
-        </div>
       </div>
 
       <div style={{ display: 'flex', gap: spacing.xs, flexShrink: 0 }}>
@@ -87,7 +79,7 @@ export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
           style={{
             width: 40,
             height: 40,
-            borderRadius: 10,
+            borderRadius: radius.iconSquare,
             border: 'none',
             backgroundColor: 'rgba(255, 255, 255, 0.5)',
             cursor: 'pointer',
@@ -104,7 +96,7 @@ export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
           style={{
             width: 40,
             height: 40,
-            borderRadius: 10,
+            borderRadius: radius.iconSquare,
             border: 'none',
             backgroundColor: colors.dangerLight,
             cursor: 'pointer',

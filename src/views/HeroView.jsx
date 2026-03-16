@@ -1,24 +1,149 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { CalendarDays, Sun, CloudSun, Cloud, CloudRain, Clock, ArrowRight, MapPin, ChevronRight, Plane } from 'lucide-react'
+import { CalendarDays, Sun, CloudSun, Cloud, CloudRain, Clock, ArrowRight, MapPin, Plane, Ship, Mountain, Waves, Camera } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
-import { fontStack, typography, glass as sharedGlass, shadows, warmPalette, radius, glossyBg } from '../styles'
+import { fontStack, typography, spacing, glass as sharedGlass, shadows, warmPalette, radius, glossyBg, scrimGradient } from '../styles'
 import { colors } from '../colors'
-import { formatShortDate, getTripDays, formatDayOfWeek, formatDayNumber, getDayIndex, isTodayDate, formatTripDate } from '../utils/dateUtils'
+import { formatShortDate, getTripDays, formatDayOfWeek, formatDayNumber, getDayIndex, isTodayDate } from '../utils/dateUtils'
 import { formatTime, getEventIcon, getEventColor, getEventBgColor } from '../utils/timeUtils'
+import { Sunrise } from 'lucide-react'
 
 // =============================================================================
 // HERO VIEW — Glassmorphic Editorial Design
 // =============================================================================
 
 // Real stock photography (Unsplash)
-const HERO_BG = 'https://images.unsplash.com/photo-1559494007-9f5847c49d94?auto=format&fit=crop&w=1200&q=80'
+const HERO_BG = '/hero-bg.png'
 const KAUAI_PHOTO = 'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?auto=format&fit=crop&w=600&q=80'
 const MAUI_PHOTO = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80'
+
+const HIGHLIGHTS = [
+  {
+    title: 'Na Pali Coast Boat Tour',
+    description: '5-hour catamaran cruise along Kauai\'s dramatic coastline with snorkeling and dolphins.',
+    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80',
+    day: 4,
+    date: '2026-03-17',
+    destination: 'Kauai',
+    time: '8:00 AM – 1:00 PM',
+    icon: Ship,
+    eventId: 'e-0403',
+  },
+  {
+    title: 'Haleakala Sunrise',
+    description: 'Watch the sunrise from 10,023 feet above Maui\'s dormant volcano crater.',
+    image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=80',
+    day: 8,
+    date: '2026-03-21',
+    destination: 'Maui',
+    time: '5:30 AM – 7:30 AM',
+    icon: Sunrise,
+    eventId: 'e-0802',
+  },
+  {
+    title: 'Waimea Canyon Drive',
+    description: 'Scenic drive through the "Grand Canyon of the Pacific" with stunning lookout points.',
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
+    day: 3,
+    date: '2026-03-16',
+    destination: 'Kauai',
+    time: '9:00 AM – 2:00 PM',
+    icon: Mountain,
+    eventId: 'e-0303',
+  },
+  {
+    title: 'Poipu Beach Snorkeling',
+    description: 'Crystal-clear waters with sea turtles and tropical fish at Kauai\'s sunny south shore.',
+    image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?auto=format&fit=crop&w=600&q=80',
+    day: 2,
+    date: '2026-03-15',
+    destination: 'Kauai',
+    time: '2:00 PM – 5:00 PM',
+    icon: Waves,
+    eventId: 'e-0205',
+  },
+  {
+    title: 'Road to Hana',
+    description: 'Legendary coastal highway through bamboo forests, waterfalls, and black sand beaches.',
+    image: 'https://images.unsplash.com/photo-1616193653378-a9414ff47462?auto=format&fit=crop&w=600&q=80',
+    day: 6,
+    date: '2026-03-19',
+    destination: 'Maui',
+    time: '6:30 AM – 5:00 PM',
+    icon: Mountain,
+    eventId: 'e-0602',
+  },
+]
 
 // --- Design tokens (from shared styles) ---
 const palette = warmPalette
 const glass = sharedGlass
+
+// --- Inline editable text ---
+function InlineEdit({ value, onSave, style }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const inputRef = useRef(null)
+
+  useEffect(() => { setDraft(value) }, [value])
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [editing])
+
+  const commit = () => {
+    const trimmed = draft.trim()
+    if (trimmed && trimmed !== value) onSave(trimmed)
+    else setDraft(value)
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') { setDraft(value); setEditing(false) }
+        }}
+        style={{
+          ...style,
+          border: 'none',
+          borderBottom: `2px solid ${palette.accent}`,
+          outline: 'none',
+          background: 'transparent',
+          padding: '0 0 2px',
+          margin: 0,
+          width: '100%',
+        }}
+        onClick={e => e.stopPropagation()}
+      />
+    )
+  }
+
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={e => { e.stopPropagation(); setEditing(true) }}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setEditing(true) } }}
+      style={{
+        ...style,
+        cursor: 'text',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+      }}
+    >
+      {value}
+    </span>
+  )
+}
 
 // --- Flight milestone helpers ---
 
@@ -136,14 +261,67 @@ function getSimulatedWeather(dateStr, destId) {
 }
 
 function WeatherIcon({ condition, size = 16, color }) {
-  const c = color || palette.textMedium
   switch (condition) {
-    case 'sunny': return <Sun size={size} color={c} strokeWidth={1.5} />
-    case 'partly-cloudy': return <CloudSun size={size} color={c} strokeWidth={1.5} />
-    case 'cloudy': return <Cloud size={size} color={c} strokeWidth={1.5} />
-    case 'rain': return <CloudRain size={size} color={c} strokeWidth={1.5} />
-    default: return <Sun size={size} color={c} strokeWidth={1.5} />
+    case 'sunny': return <Sun size={size} color={color || colors.sunset} strokeWidth={1.5} />
+    case 'partly-cloudy': return <CloudSun size={size} color={color || colors.amber} strokeWidth={1.5} />
+    case 'cloudy': return <Cloud size={size} color={color || colors.textMuted} strokeWidth={1.5} />
+    case 'rain': return <CloudRain size={size} color={color || colors.info} strokeWidth={1.5} />
+    default: return <Sun size={size} color={color || colors.sunset} strokeWidth={1.5} />
   }
+}
+
+function mapWeatherCode(code) {
+  if (code <= 1) return 'sunny'
+  if (code <= 3) return 'partly-cloudy'
+  if (code <= 67) return 'cloudy'
+  return 'rain'
+}
+
+async function fetchWeatherForZip(zipCode, tripStart, tripEnd) {
+  const geoRes = await fetch(
+    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(zipCode)}&count=1&language=en&format=json`
+  )
+  const geoData = await geoRes.json()
+  if (!geoData.results?.length) throw new Error('Location not found')
+  const { latitude, longitude, name } = geoData.results[0]
+
+  // Fetch maximum 16-day forecast
+  const wxRes = await fetch(
+    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&temperature_unit=fahrenheit&timezone=auto&forecast_days=16`
+  )
+  const wxData = await wxRes.json()
+  if (wxData.error) throw new Error(wxData.reason || 'Weather fetch failed')
+
+  // Only keep forecast entries that overlap with trip dates
+  const result = {}
+  const tripDays = new Set()
+  const d = new Date(tripStart + 'T00:00:00')
+  const end = new Date(tripEnd + 'T00:00:00')
+  while (d <= end) {
+    tripDays.add(d.toISOString().slice(0, 10))
+    d.setDate(d.getDate() + 1)
+  }
+
+  let forecastEnd = null
+  wxData.daily.time.forEach((date, i) => {
+    const hi = wxData.daily.temperature_2m_max[i]
+    const lo = wxData.daily.temperature_2m_min[i]
+    const code = wxData.daily.weathercode[i]
+    if (hi == null || lo == null) return // skip null entries
+    forecastEnd = date
+    if (tripDays.has(date)) {
+      result[date] = {
+        high: Math.round(hi),
+        low: Math.round(lo),
+        code,
+        condition: mapWeatherCode(code),
+      }
+    }
+  })
+
+  const matched = Object.keys(result).length
+  const total = tripDays.size
+  return { data: result, locationName: name, matched, total, forecastEnd }
 }
 
 // --- Trip countdown helpers ---
@@ -197,13 +375,96 @@ export default function HeroView({ onNavigate }) {
   const tripDates = getTripDays(trip.startDate, trip.endDate)
   const [heroLoaded, setHeroLoaded] = useState(false)
   const [now, setNow] = useState(Date.now())
+  const fileInputRef = useRef(null)
+  const [zipInput, setZipInput] = useState(state.weatherZipCode || '')
+  const [weatherLoading, setWeatherLoading] = useState(false)
+  const [weatherError, setWeatherError] = useState('')
+  const [weatherInfo, setWeatherInfo] = useState('')
+
+  // Fetch weather on mount if zip code was previously saved
+  useEffect(() => {
+    if (state.weatherZipCode && Object.keys(state.weatherData).length === 0) {
+      setWeatherLoading(true)
+      fetchWeatherForZip(state.weatherZipCode, trip.startDate, trip.endDate)
+        .then(({ data, matched, total, locationName }) => {
+          dispatch({ type: 'SET_WEATHER_DATA', payload: data })
+          if (matched === 0) {
+            setWeatherInfo(`Forecasts for ${locationName} aren't available yet for your trip dates. Real weather will appear once the trip is within 16 days.`)
+          } else if (matched < total) {
+            setWeatherInfo(`Showing forecast for ${matched} of ${total} trip days from ${locationName}`)
+          } else {
+            setWeatherInfo(`${locationName} forecast loaded`)
+          }
+        })
+        .catch(() => {})
+        .finally(() => setWeatherLoading(false))
+    }
+  }, []) // eslint-disable-line
+
+  const handleWeatherSubmit = useCallback(async () => {
+    const zip = zipInput.trim()
+    if (!zip) return
+    setWeatherError('')
+    setWeatherInfo('')
+    setWeatherLoading(true)
+    try {
+      const { data, matched, total, locationName } = await fetchWeatherForZip(zip, trip.startDate, trip.endDate)
+      dispatch({ type: 'SET_WEATHER_ZIP', payload: zip })
+      dispatch({ type: 'SET_WEATHER_DATA', payload: data })
+      if (matched === 0) {
+        setWeatherInfo(`Forecasts for ${locationName} aren't available yet for your trip dates. Real weather will appear once the trip is within 16 days.`)
+      } else if (matched < total) {
+        setWeatherInfo(`Showing forecast for ${matched} of ${total} trip days from ${locationName}`)
+      } else {
+        setWeatherInfo(`${locationName} forecast loaded`)
+      }
+    } catch {
+      setWeatherError('Could not find weather for that location')
+    } finally {
+      setWeatherLoading(false)
+    }
+  }, [zipInput, dispatch, trip.startDate, trip.endDate])
+
+  // Helper: get weather for a date (real data or simulated fallback)
+  const getWeather = useCallback((date, destId) => {
+    const real = state.weatherData[date]
+    if (real) return { temp: real.high, condition: real.condition, isReal: true }
+    return { ...getSimulatedWeather(date, destId), isReal: false }
+  }, [state.weatherData])
+
+  // Resolve hero image: custom upload > default
+  const heroSrc = state.heroImage || HERO_BG
+
+  // Compress and store uploaded image
+  const handleHeroUpload = useCallback((e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const maxW = 1200
+        const scale = Math.min(1, maxW / img.width)
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+        dispatch({ type: 'SET_HERO_IMAGE', payload: dataUrl })
+      }
+      img.src = reader.result
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }, [dispatch])
 
   // Preload hero image
   useEffect(() => {
     const img = new Image()
-    img.src = HERO_BG
+    img.src = heroSrc
     img.onload = () => setHeroLoaded(true)
-  }, [])
+  }, [heroSrc])
 
   // Live countdown — update every 60s
   useEffect(() => {
@@ -306,7 +567,7 @@ export default function HeroView({ onNavigate }) {
           style={{
             position: 'absolute',
             inset: -4,
-            backgroundImage: `url(${HERO_BG})`,
+            backgroundImage: `url(${heroSrc})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center 40%',
           }}
@@ -316,18 +577,10 @@ export default function HeroView({ onNavigate }) {
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: `
-            linear-gradient(180deg,
-              rgba(28, 25, 23, 0.3) 0%,
-              rgba(28, 25, 23, 0.2) 30%,
-              rgba(28, 25, 23, 0.25) 50%,
-              rgba(28, 25, 23, 0.6) 80%,
-              rgba(28, 25, 23, 0.9) 100%
-            )
-          `,
+          background: scrimGradient,
         }} />
 
-        {/* Top bar — glass pill with trip status */}
+        {/* Top bar — camera upload only */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -335,56 +588,34 @@ export default function HeroView({ onNavigate }) {
           style={{
             position: 'absolute',
             top: 16,
-            left: 16,
             right: 16,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
             zIndex: 3,
           }}
         >
-          <div style={{
-            ...glass.frosted,
-            borderRadius: 40,
-            padding: '8px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}>
-            <Sun size={14} color="#FFF" strokeWidth={2} />
-            <span style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#FFF',
-              letterSpacing: '0.04em',
-            }}>
-              {tripDates.length} DAYS
-            </span>
-          </div>
-
-          <div style={{
-            ...glass.frosted,
-            borderRadius: 40,
-            padding: '8px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}>
-            <div style={{
-              width: 6,
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: '#4ADE80',
-            }} />
-            <span style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: 'rgba(255,255,255,0.9)',
-              letterSpacing: '0.03em',
-            }}>
-              Upcoming
-            </span>
-          </div>
+          {/* Camera upload button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Change cover photo"
+            style={{
+              ...glass.frosted,
+              borderRadius: '50%',
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <Camera size={14} color={colors.textOnDark} strokeWidth={2} />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleHeroUpload}
+            style={{ display: 'none' }}
+          />
         </motion.div>
 
       </div>
@@ -393,21 +624,50 @@ export default function HeroView({ onNavigate }) {
       {/* CONTENT PANEL — Surface overlapping hero                        */}
       {/* ================================================================ */}
       <div style={{
-        ...glass.panel,
+        background: glossyBg,
         borderRadius: '24px 24px 0 0',
         marginTop: -28,
         position: 'relative',
         zIndex: 2,
-        padding: '20px 20px 20px',
+        padding: '20px 20px 100px',
       }}>
         {/* Pull indicator */}
         <div style={{
           width: 32,
           height: 4,
           borderRadius: 2,
-          backgroundColor: '#D6D3CE',
+          backgroundColor: colors.dragHandle,
           margin: '0 auto 16px',
         }} />
+
+        {/* --- Destination Cards — Photo + Glass overlay --- */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          style={{
+            display: 'flex',
+            gap: 14,
+            marginBottom: 20,
+          }}
+        >
+          {trip.destinations.map((dest, i) => (
+            <DestCard
+              key={dest.id}
+              destination={dest}
+              photo={state.destImages?.[dest.id] || (i === 0 ? KAUAI_PHOTO : MAUI_PHOTO)}
+              dayCount={getDestDayCount(dest.id)}
+              delay={0.35 + i * 0.1}
+              onTap={() => {
+                const firstDay = Object.values(days).find(d => d.destinationId === dest.id)
+                if (firstDay) onNavigate('day', firstDay.date)
+              }}
+              onPhotoChange={(dataUrl) => {
+                dispatch({ type: 'SET_DEST_IMAGE', payload: { destId: dest.id, dataUrl } })
+              }}
+            />
+          ))}
+        </motion.div>
 
         {/* --- Next Up Card — Temporal orientation --- */}
         {nextUp && (() => {
@@ -439,41 +699,6 @@ export default function HeroView({ onNavigate }) {
               transition={{ delay: 0.55, duration: 0.5 }}
               style={{ marginBottom: 20 }}
             >
-              {/* Header row */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 10,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Clock size={14} color={palette.accent} strokeWidth={2} />
-                  <span style={{
-                    ...typography.caption,
-                    color: palette.textMedium,
-                  }}>
-                    NEXT UP
-                  </span>
-                  <span style={{
-                    ...typography.caption,
-                    fontSize: 10,
-                    backgroundColor: palette.accentSoft,
-                    color: palette.accent,
-                    padding: '2px 8px',
-                    borderRadius: 20,
-                    fontWeight: 600,
-                  }}>
-                    {countdownText}
-                  </span>
-                </div>
-                <span style={{
-                  ...typography.helper,
-                  color: palette.textLight,
-                }}>
-                  Day {nextDayNum} of {tripDates.length}
-                </span>
-              </div>
-
               {/* Primary card */}
               <motion.div
                 role="button"
@@ -504,36 +729,40 @@ export default function HeroView({ onNavigate }) {
               >
                 {/* Left: Icon + text */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Icon pill */}
+                  {/* Icon + Title row */}
                   <div style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: eventBgColor,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 8,
-                  }}>
-                    <EventIcon size={16} color={eventColor} strokeWidth={2} />
-                  </div>
-
-                  {/* Title */}
-                  <div style={{
-                    ...typography.sectionHeader,
-                    color: palette.textDark,
-                    fontFamily: fontStack,
+                    gap: 8,
                     marginBottom: 4,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
                   }}>
-                    {nextUp.event.title}
+                    <div style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: radius.iconSquare,
+                      backgroundColor: eventBgColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <EventIcon size={16} color={eventColor} strokeWidth={2} />
+                    </div>
+                    <span style={{
+                      ...typography.sectionHeader,
+                      color: palette.textDark,
+                      fontFamily: fontStack,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                      {nextUp.event.title}
+                    </span>
                   </div>
 
                   {/* Time line */}
                   <div style={{
-                    ...typography.helper,
+                    ...typography.body,
                     color: palette.textMedium,
                     marginBottom: locationStr ? 4 : 0,
                   }}>
@@ -543,13 +772,13 @@ export default function HeroView({ onNavigate }) {
                   {/* Location */}
                   {locationStr && (
                     <div style={{
-                      ...typography.helper,
+                      ...typography.body,
                       color: palette.textLight,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,
                     }}>
-                      <MapPin size={12} color={palette.textLight} strokeWidth={1.5} />
+                      <MapPin size={13} color={palette.textLight} strokeWidth={1.5} />
                       <span style={{
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -561,33 +790,6 @@ export default function HeroView({ onNavigate }) {
                   )}
                 </div>
 
-                {/* Right: Time */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end',
-                  flexShrink: 0,
-                  paddingRight: 16,
-                }}>
-                  <span style={{
-                    ...typography.bodyMedium,
-                    fontWeight: 700,
-                    color: palette.textDark,
-                    fontFamily: fontStack,
-                  }}>
-                    {formatTime(nextUp.event.startTime)}
-                  </span>
-                </div>
-
-                {/* Chevron */}
-                <div style={{
-                  position: 'absolute',
-                  right: 12,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                }}>
-                  <ChevronRight size={16} color={palette.textLight} strokeWidth={1.5} />
-                </div>
               </motion.div>
             </motion.div>
           )
@@ -647,25 +849,40 @@ export default function HeroView({ onNavigate }) {
                 marginBottom: 2,
               }}>
                 <div style={{
-                  ...typography.sectionHeader,
-                  fontSize: 16,
-                  color: palette.textDark,
-                  fontFamily: fontStack,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                   flex: 1,
                   minWidth: 0,
                   marginRight: 8,
                 }}>
-                  {fl.title}
+                  <div style={{
+                    width: 32, height: 32, borderRadius: radius.iconSquare,
+                    backgroundColor: 'rgba(43,122,158,0.12)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <Plane size={16} color="#2B7A9E" strokeWidth={2} />
+                  </div>
+                  <InlineEdit
+                    value={fl.title}
+                    onSave={(v) => dispatch({ type: 'UPDATE_EVENT', payload: { date: nextFlight.dateStr, eventId: fl.id, updates: { title: v } } })}
+                    style={{
+                      ...typography.sectionHeader,
+                      color: palette.textDark,
+                      fontFamily: fontStack,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  />
                 </div>
                 <div style={{
                   backgroundColor: statusBg,
                   color: statusColor,
                   padding: '3px 10px',
                   borderRadius: radius.pill,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 600,
                   letterSpacing: '0.02em',
                   whiteSpace: 'nowrap',
@@ -677,8 +894,8 @@ export default function HeroView({ onNavigate }) {
 
               {/* Date/time line */}
               <div style={{
-                ...typography.helper,
-                color: palette.textLight,
+                ...typography.body,
+                color: palette.textMedium,
                 marginBottom: 14,
               }}>
                 {dateLabel} · {timeLabel}
@@ -694,7 +911,7 @@ export default function HeroView({ onNavigate }) {
               }}>
                 <span style={{
                   ...typography.bodyMedium,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: palette.textDark,
                   fontSize: 15,
                   fontFamily: fontStack,
@@ -714,7 +931,7 @@ export default function HeroView({ onNavigate }) {
                 </div>
                 <span style={{
                   ...typography.bodyMedium,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: palette.textDark,
                   fontSize: 15,
                   fontFamily: fontStack,
@@ -726,7 +943,7 @@ export default function HeroView({ onNavigate }) {
               {/* Divider */}
               <div style={{
                 height: 1,
-                backgroundColor: '#F0EFEA',
+                backgroundColor: colors.borderLight,
                 marginBottom: 14,
               }} />
 
@@ -773,19 +990,36 @@ export default function HeroView({ onNavigate }) {
                 marginBottom: 2,
               }}>
                 <div style={{
-                  ...typography.sectionHeader,
-                  fontSize: 16,
-                  color: palette.textDark,
-                  fontFamily: fontStack,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  flex: 1,
+                  minWidth: 0,
                 }}>
-                  {trip.name || 'Your Trip'}
+                  <div style={{
+                    width: 32, height: 32, borderRadius: radius.iconSquare,
+                    backgroundColor: warmPalette.goldSoft,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <CalendarDays size={16} color={colors.sand} strokeWidth={2} />
+                  </div>
+                  <InlineEdit
+                    value={trip.name || 'Your Trip'}
+                    onSave={(v) => dispatch({ type: 'UPDATE_TRIP', payload: { name: v } })}
+                    style={{
+                      ...typography.sectionHeader,
+                      color: palette.textDark,
+                      fontFamily: fontStack,
+                    }}
+                  />
                 </div>
                 <div style={{
                   backgroundColor: palette.accentSoft,
-                  color: palette.accent,
+                  color: palette.textDark,
                   padding: '3px 10px',
                   borderRadius: radius.pill,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
@@ -796,8 +1030,8 @@ export default function HeroView({ onNavigate }) {
 
               {/* Date range */}
               <div style={{
-                ...typography.helper,
-                color: palette.textLight,
+                ...typography.body,
+                color: palette.textMedium,
                 marginBottom: 8,
               }}>
                 {formatShortDate(trip.startDate)} — {formatShortDate(trip.endDate)}
@@ -812,7 +1046,7 @@ export default function HeroView({ onNavigate }) {
               }}>
                 <MapPin size={14} color={palette.accent} strokeWidth={1.5} />
                 <span style={{
-                  fontSize: 13,
+                  ...typography.body,
                   fontWeight: 500,
                   color: palette.textMedium,
                 }}>
@@ -823,7 +1057,7 @@ export default function HeroView({ onNavigate }) {
               {/* Divider */}
               <div style={{
                 height: 1,
-                backgroundColor: '#F0EFEA',
+                backgroundColor: colors.borderLight,
                 marginBottom: 14,
               }} />
 
@@ -839,49 +1073,28 @@ export default function HeroView({ onNavigate }) {
           )
         })()}
 
-        {/* --- Destination Cards — Photo + Glass overlay --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-          style={{
-            display: 'flex',
-            gap: 14,
-            marginBottom: 24,
-          }}
-        >
-          {trip.destinations.map((dest, i) => (
-            <DestCard
-              key={dest.id}
-              destination={dest}
-              photo={i === 0 ? KAUAI_PHOTO : MAUI_PHOTO}
-              dayCount={getDestDayCount(dest.id)}
-              delay={0.75 + i * 0.1}
-              onTap={() => {
-                const firstDay = Object.values(days).find(d => d.destinationId === dest.id)
-                if (firstDay) onNavigate('day', firstDay.date)
-              }}
-            />
-          ))}
-        </motion.div>
-
-        {/* --- Quick Access Days --- */}
+        {/* --- Your Schedule --- */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.0 }}
+          style={{
+            ...glass.card,
+            borderRadius: radius.lg,
+            padding: spacing.lg,
+          }}
         >
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: 14,
+            marginBottom: spacing.md,
           }}>
             <span style={{
-              ...typography.caption,
-              color: palette.textMedium,
+              ...typography.sectionHeader,
+              color: palette.textDark,
             }}>
-              Daily Overview
+              Your Schedule
             </span>
             <span style={{
               ...typography.helper,
@@ -891,11 +1104,78 @@ export default function HeroView({ onNavigate }) {
             </span>
           </div>
 
+          {/* Weather zip code input */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 14,
+          }}>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Zip code for weather"
+              value={zipInput}
+              onChange={e => setZipInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleWeatherSubmit() }}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: radius.iconSquare,
+                border: `1px solid ${weatherError ? '#C0392B' : '#E2E0DB'}`,
+                backgroundColor: colors.surface,
+                fontSize: 14,
+                fontFamily: fontStack,
+                color: palette.textDark,
+                outline: 'none',
+              }}
+            />
+            <button
+              onClick={handleWeatherSubmit}
+              disabled={weatherLoading || !zipInput.trim()}
+              style={{
+                padding: '8px 14px',
+                borderRadius: radius.iconSquare,
+                border: 'none',
+                backgroundColor: weatherLoading || !zipInput.trim() ? palette.warmGray : colors.ocean,
+                color: weatherLoading || !zipInput.trim() ? palette.textMedium : colors.textOnAccent,
+                fontSize: typography.helper.fontSize,
+                fontWeight: 600,
+                fontFamily: fontStack,
+                cursor: weatherLoading || !zipInput.trim() ? 'default' : 'pointer',
+                opacity: weatherLoading || !zipInput.trim() ? 0.5 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {weatherLoading ? 'Loading…' : state.weatherZipCode ? 'Update' : 'Get Weather'}
+            </button>
+          </div>
+          {weatherError && (
+            <div style={{
+              ...typography.helper,
+              color: '#C0392B',
+              marginBottom: 10,
+              marginTop: -8,
+            }}>
+              {weatherError}
+            </div>
+          )}
+          {weatherInfo && !weatherError && (
+            <div style={{
+              ...typography.helper,
+              color: palette.textMedium,
+              marginBottom: 10,
+              marginTop: -8,
+            }}>
+              {weatherInfo}
+            </div>
+          )}
+
           <div style={{
             display: 'flex',
             gap: 10,
             overflowX: 'auto',
-            paddingBottom: 8,
+            paddingBottom: 4,
             WebkitOverflowScrolling: 'touch',
             scrollbarWidth: 'none',
             marginLeft: -4,
@@ -903,7 +1183,7 @@ export default function HeroView({ onNavigate }) {
           }}>
             {tripDates.map((date, i) => {
               const dest = getDestForDate(date)
-              const weather = getSimulatedWeather(date, dest?.id)
+              const weather = getWeather(date, dest?.id)
 
               return (
                 <motion.button
@@ -918,7 +1198,7 @@ export default function HeroView({ onNavigate }) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     padding: '10px 12px 8px',
-                    ...glass.subtle,
+                    backgroundColor: 'rgba(0,0,0,0.03)',
                     borderRadius: 14,
                     border: 'none',
                     cursor: 'pointer',
@@ -926,20 +1206,21 @@ export default function HeroView({ onNavigate }) {
                     flexShrink: 0,
                     fontFamily: fontStack,
                     position: 'relative',
+                    touchAction: 'pan-x',
                   }}
                 >
                   <span style={{
-                    fontSize: 9,
+                    fontSize: typography.caption.fontSize,
                     fontWeight: 600,
                     color: palette.textLight,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.06em',
                     marginBottom: 3,
                   }}>
                     {formatDayOfWeek(date)}
                   </span>
                   <span style={{
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: 700,
                     color: palette.textDark,
                     lineHeight: '24px',
@@ -950,7 +1231,7 @@ export default function HeroView({ onNavigate }) {
                     <WeatherIcon condition={weather.condition} size={16} />
                   </div>
                   <span style={{
-                    fontSize: 10,
+                    fontSize: typography.caption.fontSize,
                     color: palette.textMedium,
                     marginTop: 2,
                     fontWeight: 500,
@@ -963,7 +1244,7 @@ export default function HeroView({ onNavigate }) {
           </div>
         </motion.div>
 
-        {/* --- Featured Highlight — Editorial touch --- */}
+        {/* --- Trip Highlights — Scrollable editorial cards --- */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -971,92 +1252,168 @@ export default function HeroView({ onNavigate }) {
           style={{
             marginTop: 24,
             ...glass.card,
-            borderRadius: 20,
-            overflow: 'hidden',
+            borderRadius: radius.lg,
+            padding: spacing.lg,
           }}
         >
           <div style={{
-            height: 140,
-            backgroundImage: `url(https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80)`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 14,
           }}>
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, transparent 20%, rgba(28,25,23,0.8) 100%)',
-            }} />
-            <div style={{
-              position: 'absolute',
-              bottom: 12,
-              left: 16,
-              right: 16,
-              display: 'flex',
-              alignItems: 'flex-end',
-              justifyContent: 'space-between',
+            <span style={{
+              ...typography.sectionHeader,
+              color: palette.textDark,
             }}>
-              <div>
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.75)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                }}>
-                  Highlight
-                </span>
-                <h3 style={{
-                  fontFamily: fontStack,
-                  fontSize: 23,
-                  fontWeight: 600,
-                  color: '#FFF',
-                  margin: '2px 0 0',
-                }}>
-                  Na Pali Coast Boat Tour
-                </h3>
-              </div>
-              <div style={{
-                ...glass.frosted,
-                borderRadius: 20,
-                padding: '6px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}>
-                <Clock size={11} color="#FFF" />
-                <span style={{ fontSize: 10, color: '#FFF', fontWeight: 500 }}>Day 4</span>
-              </div>
-            </div>
+              Trip Highlights
+            </span>
+            <span style={{
+              ...typography.helper,
+              color: palette.textLight,
+            }}>
+              {HIGHLIGHTS.length} highlights
+            </span>
           </div>
-          <div style={{ padding: '14px 16px 16px' }}>
-            <p style={{
-              ...typography.body,
-              fontFamily: fontStack,
-              color: palette.textMedium,
-              margin: 0,
-            }}>
-              5-hour catamaran cruise along Kauai's most dramatic coastline. Snorkeling, lunch, and dolphin spotting included.
-            </p>
-            <button
-              onClick={() => onNavigate('day', '2026-03-17')}
-              style={{
-                marginTop: 14,
-                background: 'none',
-                border: 'none',
-                color: palette.accent,
-                fontSize: 16,
-                fontWeight: 600,
-                cursor: 'pointer',
-                padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontFamily: fontStack,
-              }}
-            >
-              View Day 4 <ArrowRight size={16} strokeWidth={2.5} />
-            </button>
+
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+          }}>
+            {HIGHLIGHTS.map((hl, i) => {
+              const HlIcon = hl.icon
+              return (
+                <motion.div
+                  key={hl.date}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.25 + i * 0.08 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    dispatch({ type: 'SET_SELECTED_EVENT', payload: hl.eventId })
+                    onNavigate('eventDetail', hl.date)
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      dispatch({ type: 'SET_SELECTED_EVENT', payload: hl.eventId })
+                      onNavigate('eventDetail', hl.date)
+                    }
+                  }}
+                  style={{
+                    ...glass.card,
+                    borderRadius: radius.lg,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    width: '100%',
+                  }}
+                >
+                  {/* Image area */}
+                  <div style={{
+                    height: 130,
+                    backgroundImage: `url(${hl.image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    position: 'relative',
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(180deg, transparent 30%, rgba(28,25,23,0.75) 100%)',
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 10,
+                      left: 12,
+                      right: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <HlIcon size={14} color={colors.textOnDark} strokeWidth={2} />
+                        <span style={{
+                          fontSize: typography.caption.fontSize,
+                          fontWeight: 600,
+                          color: colors.textOnDark,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
+                        }}>
+                          Highlight
+                        </span>
+                      </div>
+                      <div style={{
+                        ...glass.frosted,
+                        borderRadius: radius.pill,
+                        padding: '4px 8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <Clock size={11} color={colors.textOnDark} />
+                        <span style={{ fontSize: typography.caption.fontSize, color: colors.textOnDark, fontWeight: 500 }}>Day {hl.day}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content area */}
+                  <div style={{ padding: '14px 16px 16px' }}>
+                    <h3 style={{
+                      ...typography.sectionHeader,
+                      fontFamily: fontStack,
+                      color: palette.textDark,
+                      margin: '0 0 8px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                      {hl.title}
+                    </h3>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginBottom: 8,
+                    }}>
+                      <MapPin size={13} color={palette.textMedium} strokeWidth={2} />
+                      <span style={{
+                        fontSize: typography.helper.fontSize,
+                        fontWeight: 500,
+                        color: palette.textMedium,
+                        fontFamily: fontStack,
+                      }}>
+                        {hl.destination}
+                      </span>
+                      <span style={{ fontSize: typography.helper.fontSize, color: palette.textLight }}>·</span>
+                      <Clock size={13} color={palette.textMedium} strokeWidth={2} />
+                      <span style={{
+                        fontSize: typography.helper.fontSize,
+                        fontWeight: 500,
+                        color: palette.textMedium,
+                        fontFamily: fontStack,
+                      }}>
+                        {hl.time}
+                      </span>
+                    </div>
+                    <p style={{
+                      ...typography.body,
+                      fontFamily: fontStack,
+                      color: palette.textMedium,
+                      margin: 0,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}>
+                      {hl.description}
+                    </p>
+                  </div>
+                </motion.div>
+              )
+            })}
           </div>
         </motion.div>
       </div>
@@ -1094,7 +1451,7 @@ function FlightMilestoneRow({ milestone, isLast }) {
               height: dotSize,
               borderRadius: '50%',
               backgroundColor: dotColor,
-              boxShadow: '0 0 6px rgba(14, 116, 144, 0.4)',
+              boxShadow: shadows.accentGlowStrong,
               flexShrink: 0,
             }}
           />
@@ -1134,7 +1491,7 @@ function FlightMilestoneRow({ milestone, isLast }) {
           justifyContent: 'space-between',
         }}>
           <span style={{
-            fontSize: 13,
+            fontSize: typography.helper.fontSize,
             fontWeight: isCurrent ? 700 : 400,
             color: isCurrent ? palette.textDark : palette.textLight,
             fontFamily: fontStack,
@@ -1142,9 +1499,9 @@ function FlightMilestoneRow({ milestone, isLast }) {
             {milestone.label}
           </span>
           <span style={{
-            fontSize: 10,
+            fontSize: typography.caption.fontSize,
             fontWeight: 600,
-            color: isCurrent ? palette.accent : palette.textLight,
+            color: isCurrent ? palette.textDark : palette.textLight,
             textTransform: 'uppercase',
             letterSpacing: '0.03em',
             flexShrink: 0,
@@ -1155,7 +1512,7 @@ function FlightMilestoneRow({ milestone, isLast }) {
         </div>
         {isCurrent && milestone.detail && (
           <span style={{
-            fontSize: 11,
+            fontSize: typography.caption.fontSize,
             color: palette.textMedium,
           }}>
             {milestone.detail}
@@ -1167,10 +1524,11 @@ function FlightMilestoneRow({ milestone, isLast }) {
 }
 
 // --- Destination Card — Photo + Glass info overlay ---
-function DestCard({ destination, photo, dayCount, delay, onTap }) {
+function DestCard({ destination, photo, dayCount, delay, onTap, onPhotoChange }) {
   const [imgLoaded, setImgLoaded] = useState(false)
+  const destFileRef = useRef(null)
   const isKauai = destination.id === 'dest-kauai'
-  const accentColor = isKauai ? palette.accent : palette.gold
+  const accentColor = isKauai ? palette.accent : colors.sand
 
   useEffect(() => {
     const img = new Image()
@@ -1178,29 +1536,52 @@ function DestCard({ destination, photo, dayCount, delay, onTap }) {
     img.onload = () => setImgLoaded(true)
   }, [photo])
 
+  const handlePhotoUpload = useCallback((e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const maxW = 600
+        const scale = Math.min(1, maxW / img.width)
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+        onPhotoChange(dataUrl)
+      }
+      img.src = reader.result
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }, [onPhotoChange])
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
-      whileHover={{ y: -3 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={onTap}
       style={{
         flex: 1,
         borderRadius: 20,
         overflow: 'hidden',
-        cursor: 'pointer',
         ...glass.card,
         position: 'relative',
       }}
     >
-      {/* Photo */}
-      <div style={{
-        height: 50,
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
+      {/* Photo zone — tap to change photo */}
+      <div
+        onClick={() => destFileRef.current?.click()}
+        style={{
+          height: 50,
+          position: 'relative',
+          overflow: 'hidden',
+          cursor: 'pointer',
+        }}
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: imgLoaded ? 1 : 0 }}
@@ -1219,15 +1600,41 @@ function DestCard({ destination, photo, dayCount, delay, onTap }) {
             inset: 0,
             background: isKauai
               ? 'linear-gradient(135deg, #0A8F8F22, #0A8F8F44)'
-              : 'linear-gradient(135deg, #C4A26522, #C4A26544)',
+              : `linear-gradient(135deg, ${colors.sand}22, ${colors.sand}44)`,
           }} />
         )}
+        {/* Subtle camera hint */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.15)',
+          opacity: 0,
+          transition: 'opacity 0.2s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+        >
+          <Camera size={16} color={colors.textOnDark} strokeWidth={2} />
+        </div>
+        <input
+          ref={destFileRef}
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoUpload}
+          style={{ display: 'none' }}
+        />
       </div>
 
-      {/* Info */}
-      <div style={{ padding: '12px 16px 14px' }}>
+      {/* Info zone — tap to navigate to schedule */}
+      <div
+        onClick={onTap}
+        style={{ padding: '12px 16px 14px', cursor: 'pointer' }}
+      >
         <h3 style={{
-          fontSize: 17,
+          fontSize: 18,
           fontWeight: 700,
           color: palette.textDark,
           margin: 0,
@@ -1236,10 +1643,9 @@ function DestCard({ destination, photo, dayCount, delay, onTap }) {
           {destination.name}
         </h3>
         <p style={{
-          fontSize: 12,
+          ...typography.body,
           color: palette.textMedium,
           margin: '2px 0 0',
-          lineHeight: '16px',
         }}>
           {formatShortDate(destination.startDate)} — {formatShortDate(destination.endDate)}
         </p>
@@ -1259,20 +1665,20 @@ function DestCard({ destination, photo, dayCount, delay, onTap }) {
             gap: 4,
           }}>
             <CalendarDays size={14} color={palette.textLight} strokeWidth={1.5} />
-            <span style={{ fontSize: 13, color: palette.textMedium, fontWeight: 500 }}>
+            <span style={{ fontSize: typography.helper.fontSize, color: palette.textMedium, fontWeight: 500 }}>
               {dayCount} days
             </span>
           </div>
           <div style={{
             width: 28,
             height: 28,
-            borderRadius: 10,
+            borderRadius: radius.iconSquare,
             background: accentColor,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <ArrowRight size={14} color="#FFF" strokeWidth={2.5} />
+            <ArrowRight size={14} color={colors.textOnDark} strokeWidth={2.5} />
           </div>
         </div>
       </div>

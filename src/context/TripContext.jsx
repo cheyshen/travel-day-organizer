@@ -7,6 +7,7 @@ import { sampleChecklist } from '../data/sampleChecklist'
 // =============================================================================
 
 const STORAGE_KEY = 'travel-trip-state'
+const DATA_VERSION = 5 // Bump to invalidate cached localStorage
 
 const TripContext = createContext(null)
 
@@ -20,13 +21,16 @@ function getInitialState() {
     selectedEventId: null,
     checklistItems: sampleChecklist,
     documents: [],
+    destImages: {},
+    weatherZipCode: '',
+    weatherData: {},
   }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved) {
       const parsed = JSON.parse(saved)
-      if (parsed.trip?.id === sampleTrip.id) {
+      if (parsed.trip?.id === sampleTrip.id && parsed._dataVersion === DATA_VERSION) {
         // Merge defaults for any new fields missing from old localStorage
         return { ...defaults, ...parsed }
       }
@@ -43,7 +47,7 @@ function tripReducer(state, action) {
       return { ...state, selectedDate: action.payload }
 
     case 'SET_ACTIVE_VIEW':
-      return { ...state, activeView: action.payload }
+      return { ...state, previousView: state.activeView, activeView: action.payload }
 
     case 'SET_SELECTED_EVENT':
       return { ...state, selectedEventId: action.payload }
@@ -52,7 +56,9 @@ function tripReducer(state, action) {
       const { date, event } = action.payload
       const day = state.days[date]
       if (!day) return state
-      const events = [...day.events, event].sort((a, b) => a.sortOrder - b.sortOrder)
+      const events = [...day.events, event].sort((a, b) =>
+        (a.startTime || '').localeCompare(b.startTime || '')
+      )
       return {
         ...state,
         days: { ...state.days, [date]: { ...day, events } },
@@ -182,6 +188,26 @@ function tripReducer(state, action) {
         documents: state.documents.filter(doc => doc.id !== action.payload),
       }
 
+    case 'UPDATE_TRIP':
+      return {
+        ...state,
+        trip: { ...state.trip, ...action.payload },
+      }
+
+    case 'SET_HERO_IMAGE':
+      return { ...state, heroImage: action.payload }
+
+    case 'SET_DEST_IMAGE': {
+      const { destId, dataUrl } = action.payload
+      return { ...state, destImages: { ...state.destImages, [destId]: dataUrl } }
+    }
+
+    case 'SET_WEATHER_ZIP':
+      return { ...state, weatherZipCode: action.payload }
+
+    case 'SET_WEATHER_DATA':
+      return { ...state, weatherData: action.payload }
+
     case 'RESET':
       localStorage.removeItem(STORAGE_KEY)
       return {
@@ -209,7 +235,7 @@ export function TripProvider({ children }) {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, _dataVersion: DATA_VERSION }))
       } catch (e) { /* storage full */ }
     }, 500)
     return () => clearTimeout(saveTimer.current)
