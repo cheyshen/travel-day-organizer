@@ -66,11 +66,17 @@ State-based view switching with bottom tab navigation (Trip, Calendar, Add, Day,
 
 The app is designed mobile-first (max 480px) with a tropical glassmorphism aesthetic.
 
-<p align="center">
-  <img src="docs/hero-view.png" alt="Trip Overview" width="230" />
-  <img src="docs/calendar-view.png" alt="Calendar View" width="230" />
-  <img src="docs/day-view.png" alt="Day Timeline" width="230" />
-  <img src="docs/status-view.png" alt="Status & Checklists" width="230" />
-</p>
-
-**Trip Overview** · **Calendar** · **Day Timeline** · **Checklists**
+<table>
+  <tr>
+    <td valign="top"><img src="docs/hero-view.png" alt="Trip Overview" width="230" /></td>
+    <td valign="top"><img src="docs/calendar-view.png" alt="Calendar View" width="230" /></td>
+    <td valign="top"><img src="docs/day-view.png" alt="Day Timeline" width="230" /></td>
+    <td valign="top"><img src="docs/status-view.png" alt="Status & Checklists" width="230" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Trip Overview</b></td>
+    <td align="center"><b>Calendar</b></td>
+    <td align="center"><b>Day Timeline</b></td>
+    <td align="center"><b>Checklists</b></td>
+  </tr>
+</table>
