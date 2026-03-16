@@ -4,7 +4,11 @@ A mobile-first trip planning app for managing multi-day, multi-destination itine
 
 
 
-https://github.com/user-attachments/assets/45266148-11cf-4252-a12a-985e90a6358f
+
+
+https://github.com/user-attachments/assets/baff91a1-b53b-4f1d-b4c8-b8fcacba22d6
+
+
 
 
 
