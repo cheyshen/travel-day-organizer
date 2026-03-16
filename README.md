@@ -2,6 +2,12 @@
 
 A mobile-first trip planning app for managing multi-day, multi-destination itineraries. Built for a Hawaii trip across Kauai and Maui with hour-by-hour timelines, flight tracking, weather, and packing checklists.
 
+
+
+https://github.com/user-attachments/assets/45266148-11cf-4252-a12a-985e90a6358f
+
+
+
 ## Features
 
 - **Trip Overview** — Destination cards, flight status with milestone tracking, trip countdown, weather forecast
