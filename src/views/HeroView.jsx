@@ -145,6 +145,18 @@ function InlineEdit({ value, onSave, style }) {
   )
 }
 
+// --- Highlight navigation helper ---
+// The HIGHLIGHTS list references events by their stable `eventId`, but the
+// trip's calendar dates shift forward after the trip ends (so the demo stays
+// evergreen). The hardcoded `hl.date` is therefore stale. Look up the event's
+// current date by ID across the days dict so highlight cards always open.
+function findEventDate(days, eventId) {
+  for (const [date, day] of Object.entries(days)) {
+    if (day?.events?.some(e => e.id === eventId)) return date
+  }
+  return null
+}
+
 // --- Flight milestone helpers ---
 
 function seededGate(eventId) {
@@ -1291,16 +1303,18 @@ export default function HeroView({ onNavigate }) {
                   transition={{ delay: 1.25 + i * 0.08 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
+                    const currentDate = findEventDate(days, hl.eventId) || hl.date
                     dispatch({ type: 'SET_SELECTED_EVENT', payload: hl.eventId })
-                    onNavigate('eventDetail', hl.date)
+                    onNavigate('eventDetail', currentDate)
                   }}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
+                      const currentDate = findEventDate(days, hl.eventId) || hl.date
                       dispatch({ type: 'SET_SELECTED_EVENT', payload: hl.eventId })
-                      onNavigate('eventDetail', hl.date)
+                      onNavigate('eventDetail', currentDate)
                     }
                   }}
                   style={{
