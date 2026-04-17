@@ -1,99 +1,17 @@
 import { createContext, useContext, useReducer, useEffect, useRef } from 'react'
 import { sampleTrip, sampleDays } from '../data/sampleTrip'
 import { sampleChecklist } from '../data/sampleChecklist'
+import { getTodayStr, isTripOver, computeShiftDays, buildShiftedData } from './tripShift'
 
 // =============================================================================
 // TRIP CONTEXT — State management with localStorage persistence
+// Date-shifting helpers live in ./tripShift.js so they can be unit-tested.
 // =============================================================================
 
 const STORAGE_KEY = 'travel-trip-state'
 const DATA_VERSION = 5 // Bump to invalidate cached localStorage
 
 const TripContext = createContext(null)
-
-// =============================================================================
-// DATE SHIFTING — When the trip is over, shift all dates forward so the trip
-// always starts in the near future. Preserves the same day-of-week alignment.
-// =============================================================================
-
-function getTodayStr() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-function isTripOver() {
-  return getTodayStr() > sampleTrip.endDate
-}
-
-/** Add `days` to a YYYY-MM-DD string, return new YYYY-MM-DD */
-function addDaysToDate(dateStr, days) {
-  const d = new Date(dateStr + 'T00:00:00')
-  d.setDate(d.getDate() + days)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-/** Shift ISO datetime (e.g. 2026-03-14T06:50:00-05:00) by N days, preserve time+tz */
-function shiftISODateTime(isoStr, days) {
-  if (!isoStr || !isoStr.includes('T')) return isoStr
-  const datepart = isoStr.slice(0, 10) // YYYY-MM-DD
-  const rest = isoStr.slice(10)         // T06:50:00-05:00
-  return addDaysToDate(datepart, days) + rest
-}
-
-/**
- * Compute how many days to shift the trip so it starts in the near future.
- * Finds the next occurrence of the same weekday as the original start date,
- * at least 3 days from today.
- */
-function computeShiftDays() {
-  const today = new Date(getTodayStr() + 'T00:00:00')
-  const origStart = new Date(sampleTrip.startDate + 'T00:00:00')
-  const origDow = origStart.getDay() // day-of-week (0=Sun)
-
-  // Start searching from 3 days ahead
-  const candidate = new Date(today)
-  candidate.setDate(candidate.getDate() + 3)
-  // Advance to matching day-of-week
-  while (candidate.getDay() !== origDow) {
-    candidate.setDate(candidate.getDate() + 1)
-  }
-
-  const diffMs = candidate.getTime() - origStart.getTime()
-  return Math.round(diffMs / (1000 * 60 * 60 * 24))
-}
-
-/** Deep-clone the sample trip data with all dates shifted forward */
-function buildShiftedData(shiftDays) {
-  // Shift trip-level dates
-  const trip = {
-    ...sampleTrip,
-    startDate: addDaysToDate(sampleTrip.startDate, shiftDays),
-    endDate: addDaysToDate(sampleTrip.endDate, shiftDays),
-    destinations: sampleTrip.destinations.map(dest => ({
-      ...dest,
-      startDate: addDaysToDate(dest.startDate, shiftDays),
-      endDate: addDaysToDate(dest.endDate, shiftDays),
-    })),
-  }
-
-  // Shift day keys and all event datetimes
-  const days = {}
-  for (const [dateKey, day] of Object.entries(sampleDays)) {
-    const newDateKey = addDaysToDate(dateKey, shiftDays)
-    days[newDateKey] = {
-      ...day,
-      date: newDateKey,
-      events: day.events.map(event => ({
-        ...event,
-        startTime: shiftISODateTime(event.startTime, shiftDays),
-        endTime: shiftISODateTime(event.endTime, shiftDays),
-        status: 'upcoming',
-      })),
-    }
-  }
-
-  return { trip, days }
-}
 
 // Initial state
 function getInitialState() {
@@ -127,10 +45,10 @@ function getInitialState() {
   } catch (e) { /* ignore */ }
 
   // No valid saved data, or saved trip ended — compute fresh data
-  const shouldShift = isTripOver()
+  const shouldShift = isTripOver(today, sampleTrip)
 
   const { trip, days } = shouldShift
-    ? buildShiftedData(computeShiftDays())
+    ? buildShiftedData(computeShiftDays(today, sampleTrip.startDate), sampleTrip, sampleDays)
     : { trip: sampleTrip, days: sampleDays }
 
   const defaults = {
