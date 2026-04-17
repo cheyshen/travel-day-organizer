@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useRef, useCallback, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronRight, X } from 'lucide-react'
 import { colors } from '../colors'
@@ -20,6 +20,11 @@ export default function CalendarTooltip({
   onClose,
 }) {
   const tooltipRef = useRef(null)
+  // Actual rendered height — measured after first paint so the "above/below"
+  // decision uses real size instead of a stale 200px estimate. Tall tooltips
+  // (days with many event types) used to overflow into the destination
+  // legend below the calendar grid.
+  const [measuredHeight, setMeasuredHeight] = useState(null)
 
   // Close on Escape
   useEffect(() => {
@@ -30,6 +35,14 @@ export default function CalendarTooltip({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  // Measure actual tooltip height synchronously before paint to avoid flicker.
+  useLayoutEffect(() => {
+    if (tooltipRef.current) {
+      const h = tooltipRef.current.getBoundingClientRect().height
+      if (h && h !== measuredHeight) setMeasuredHeight(h)
+    }
+  })
+
   // Position + responsive width calculation
   const getLayout = useCallback(() => {
     if (!anchorRect || !containerRef?.current) return { top: 0, left: 0, width: 280 }
@@ -37,7 +50,9 @@ export default function CalendarTooltip({
     const container = containerRef.current.getBoundingClientRect()
     // Responsive: 75% of container width, clamped 260–340px
     const tooltipWidth = Math.min(340, Math.max(260, container.width * 0.75))
-    const tooltipEstHeight = 200
+    // First render: use a conservative upper-bound so "above" is preferred
+    // for cells near the bottom. Subsequent renders use the measured height.
+    const tooltipHeight = measuredHeight ?? 320
 
     // Horizontal: center on cell, clamp to container edges
     let left = anchorRect.left - container.left + anchorRect.width / 2 - tooltipWidth / 2
@@ -46,14 +61,14 @@ export default function CalendarTooltip({
     // Vertical: prefer below, fall back to above if not enough room
     const spaceBelow = container.bottom - anchorRect.bottom
     let top
-    if (spaceBelow >= tooltipEstHeight + 8) {
+    if (spaceBelow >= tooltipHeight + 8) {
       top = anchorRect.bottom - container.top + 8
     } else {
-      top = anchorRect.top - container.top - tooltipEstHeight - 8
+      top = anchorRect.top - container.top - tooltipHeight - 8
     }
 
     return { top, left, width: tooltipWidth }
-  }, [anchorRect, containerRef])
+  }, [anchorRect, containerRef, measuredHeight])
 
   if (!date || !anchorRect || !day) return null
 
