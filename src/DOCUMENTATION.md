@@ -4,7 +4,7 @@
 
 **Live URL:** `http://192.168.1.198`
 **Deployment:** Standalone K8s namespace `travel`
-**Current Version:** v0.0.145
+**Current Version:** v0.0.148
 **Production URL:** `https://travel.cheyshen.com/`
 
 ---
@@ -48,7 +48,7 @@ The app was built as a **viewer/organizer** for a pre-planned trip, not a trip b
 ## Key Features
 
 - **Multi-Day, Multi-Destination Support:** Plan across multiple islands or regions with dedicated destination tracking (Kauai & Maui in the demo)
-- **9-Day Hawaii Itinerary:** Pre-loaded sample trip: **March 14–22, 2026** — a realistic Kauai & Maui vacation
+- **9-Day Hawaii Itinerary:** Pre-loaded sample trip (Kauai & Maui). Dates auto-shift forward when the trip ends, so the demo always shows a future vacation.
 - **Five Primary Views:**
   - **Hero View:** Trip overview with key details and call-to-action navigation
   - **Calendar View:** Month-at-a-glance visualization showing trip dates and destinations
@@ -58,6 +58,7 @@ The app was built as a **viewer/organizer** for a pre-planned trip, not a trip b
 - **Event Management:** Create, read, update, delete (CRUD) operations for all event types
 - **Rich Event Types:** 14 specialized event categories including flights, hotels, dining, activities, ground transport, boat tours, hiking, sunrise viewing, and more
 - **LocalStorage Persistence:** All changes automatically save to browser storage, enabling offline access and data retention across sessions
+- **Auto-Reset After Trip:** When the trip end date passes, the app automatically shifts all dates forward to the next matching weekday, resets event statuses to "upcoming," and unchecks all checklist items — keeping the demo evergreen
 - **Timezone Awareness:** Handles multiple timezones (Chicago Central / Hawaii-Aleutian) with proper time conversion
 - **Confirmation Numbers & Details:** Track booking references, locations, special notes, and status for each event
 - **Accommodation Tracking:** Full hotel details including addresses and confirmation numbers
@@ -198,7 +199,7 @@ Hero View ──────┬─→ Calendar View
 4. **Next Up Card** — Shows next upcoming event with icon + title on the same horizontal row (matching Flight/Countdown card layout), time (`body` 15px), location (`body` 15px, MapPin 13px). No header label or day counter. Taps navigate to event detail.
 5. **Flight Status Card** — Shows next upcoming flight with route visualization (ORD ——✈—— LIH), status badge (On Time / Delayed, 12px), and **simulated milestone log** — a mini vertical timeline of 6 milestones (check-in, gate, boarding, doors, departed/in-flight, landed) with sliding window showing 3 at a time. Milestones: green filled dot (done), teal pulsing dot with glow (current), hollow circle (upcoming). Vertical connector lines between dots. Relative timestamps update every 60s. Skipped if flight is same as Next Up event. Title uses full `sectionHeader` (18px), date/time use `body` (15px).
 6. **Trip Countdown Card** — Pre-trip card showing days until departure with location route (Kauai → Maui). Uses same milestone log visual pattern with 6 countdown milestones (trip booked, 30 days out, 3 weeks out, 2 weeks out, 1 week out, trip begins). Sliding window of 3 centered on current. Hidden once trip has started. Title uses full `sectionHeader` (18px), date range uses `body` (15px), badge 12px, location uses `body` (15px).
-7. **Daily Overview** — Horizontal scroll of day chips using `glass.card` (white cards) with `touchAction: 'pan-x'` for reliable horizontal scrolling. Shows: day-of-week abbreviation, date number, **weather icon** (sun/cloud-sun/cloud/rain), and **temperature**. Weather data comes from **Open-Meteo API** when a zip code is entered (real forecast for dates within 16-day window), falling back to **deterministic simulation** (75–85°F, Hawaii-realistic) for dates beyond forecast range. Includes a zip code input field with info message indicating forecast availability. Tapping a chip navigates to that day's timeline.
+7. **Weather Forecast** — Horizontal scroll of day chips using `glass.card` (white cards) with `touchAction: 'pan-x'` for reliable horizontal scrolling. Shows: day-of-week abbreviation, date number, **weather icon** (sun/cloud-sun/cloud/rain), and **temperature**. Weather data comes from **Open-Meteo API** when a zip code is entered (real forecast for dates within 16-day window), falling back to **deterministic simulation** (75–85°F, Hawaii-realistic) for dates beyond forecast range. Includes a zip code input field with info message indicating forecast availability. Tapping a chip navigates to that day's timeline.
 8. **Featured Highlights** — 5 editorial cards (Na Pali Coast Boat Tour, Haleakala Sunrise, Waimea Canyon Drive, Poipu Beach Snorkeling, Road to Hana) with cover photo, title (`sectionHeader` 18px), meta info (13px), description (`body` 15px), destination badge, and "View Day X" CTA (15px). Card content area padded at 14px 16px. Card gap 16px. Tapping navigates to EventDetailView for that event. Defined in the `HIGHLIGHTS` array at the top of HeroView with `eventId`, `date`, `day`, and `time` fields that must match the actual sampleTrip data. Each highlight's curated photo URL is also set as `coverImage` on the corresponding event in `sampleTrip.js`, ensuring visual continuity across highlight card → timeline card → event detail page.
 
 **Sub-Components:**
@@ -1262,13 +1263,30 @@ TripProvider (root wrapper)
 - **Data versioning:** A `DATA_VERSION` constant (currently 5) is saved alongside state as `_dataVersion`. When sample data changes (new fields, updated URLs), bump this to invalidate stale cached data.
 - **Graceful fallback:** Falls back to sampleTrip if corrupted or version mismatch
 
+### Auto-Reset & Date Shifting
+
+When the trip's end date has passed (`today > sampleTrip.endDate`), the app automatically:
+
+1. Clears localStorage (removes stale trip data)
+2. Computes a date shift: finds the next occurrence of the original start day-of-week (Saturday), at least 3 days from today
+3. Shifts **all** dates forward by that offset:
+   - Trip-level `startDate` / `endDate`
+   - Destination `startDate` / `endDate`
+   - Day keys in `sampleDays` (e.g., `'2026-03-14'` → `'2026-03-28'`)
+   - Every event's `startTime` and `endTime` (ISO 8601 with timezone offsets preserved)
+4. Resets all event statuses to `'upcoming'`
+5. Unchecks all checklist items (`completed: false, completedAt: null`)
+
+**Implementation:** `isTripOver()`, `computeShiftDays()`, `shiftISODateTime()`, and `buildShiftedData()` helper functions in `TripContext.jsx`. The shift preserves day-of-week alignment so the itinerary always starts on the same weekday as originally designed.
+
 ### Hydration Strategy
 
-1. Build defaults object with all fields (including `checklistItems` and `documents`)
-2. Read from localStorage
-3. Validate trip ID matches sample trip AND `_dataVersion` matches current `DATA_VERSION`
-4. Merge `{ ...defaults, ...parsed }` to backfill any new fields missing from old localStorage data
-5. Fall back to full defaults if empty/invalid/version mismatch
+1. Check if trip is over (`isTripOver()`) — if yes, clear localStorage and return shifted defaults
+2. Build defaults object with all fields (including `checklistItems` and `documents`)
+3. Read from localStorage
+4. Validate trip ID matches sample trip AND `_dataVersion` matches current `DATA_VERSION`
+5. Merge `{ ...defaults, ...parsed }` to backfill any new fields missing from old localStorage data
+6. Fall back to full defaults if empty/invalid/version mismatch
 
 ## Sample Data Overview
 
@@ -1472,7 +1490,7 @@ travel/
 │   ├── styles.js               (129 lines)   Typography, spacing, shadows, glass tokens, scrimGradient
 │   │
 │   ├── context/
-│   │   └── TripContext.jsx     (~254 lines)   Reducer (22 actions) + localStorage
+│   │   └── TripContext.jsx     (~320 lines)   Reducer (22 actions) + localStorage + auto-reset date shifting
 │   │
 │   ├── views/                  (5 files)
 │   │   ├── HeroView.jsx        (~1678 lines)  Trip landing page + DestCard component
@@ -1642,6 +1660,22 @@ Broke the single "Hero cards" subsection into 3 standalone design system section
 - **Trip Countdown card** — Pre-trip countdown with destination route and milestone log. Spec table covers container, icon, trip name, countdown badge, date range, destination route, and milestone pattern.
 
 Each section now explains the live-updating behavior and sliding-window milestone pattern, not just visual specs.
+
+### v0.0.148 — Rename "Your Schedule" to "Weather Forecast"
+
+Renamed the hero view card heading from "Your Schedule" to "Weather Forecast" — better describes the section's content (zip code input + day chips with weather icons/temps). Updated design system and documentation references.
+
+**Changes:**
+- `HeroView.jsx` — Section header text changed from "Your Schedule" to "Weather Forecast"
+- `TravelDesignSystemV2.jsx` — Day chips description updated to reference "Weather Forecast" card
+- `DOCUMENTATION.md` — All "Daily Overview" references updated to "Weather Forecast", version bumped
+
+### v0.0.147 — Auto-Reset Trip Dates After Vacation Ends
+
+When the trip end date has passed, the app now automatically shifts all dates forward to the next matching weekday (preserving day-of-week alignment), resets all event statuses to "upcoming," and unchecks all checklist items. This keeps the demo evergreen — the trip always appears in the near future.
+
+**Changes:**
+- `TripContext.jsx` — Added `isTripOver()`, `computeShiftDays()`, `shiftISODateTime()`, `addDaysToDate()`, and `buildShiftedData()` helper functions. `getInitialState()` now checks if the trip is over and returns date-shifted defaults instead of stale sample data. ISO 8601 datetime strings (with timezone offsets) are shifted correctly by replacing only the date portion.
 
 ### v0.0.145 — ESLint Integration & Chronological Event Sorting
 
@@ -1892,7 +1926,7 @@ Fixed 26 stale/incorrect references in DOCUMENTATION.md (removed dead tokens, fi
 - **Destination strip other-island link sizing:** Font size increased from 13px to 15px, icon-text gap from 3px to 5px, MapPin size from 11px to 13px — now consistent with the active destination pill styling.
 - **Next Up card icon alignment:** Restructured icon + title from vertical stack (icon above, `marginBottom: 8`) to horizontal flex row (`display: flex, alignItems: center, gap: 8`) matching the Flight Status and Trip Countdown card layouts. Icon has `flexShrink: 0`.
 - **TripHeader gradient matched to HeroView:** Replaced pure-black gradient (`rgba(0,0,0)` at 25%→50%→65%) with HeroView's warm brown gradient (`rgba(28,25,23)` at 30%→20%→25%→60%→90%`). Calendar/Status page headers now match the Trip tab's warm tone.
-- **Real weather API integration (Open-Meteo):** Added zip code input field in the Daily Overview section. On submit, geocodes the zip code via Open-Meteo's geocoding API, then fetches a 16-day weather forecast (temperature high/low in °F + WMO weather code). Data is stored in TripContext (`weatherZipCode`, `weatherData`) and persisted to localStorage. Day chips use real forecast data when available, falling back to `getSimulatedWeather()` for dates outside the forecast window. New helper functions: `mapWeatherCode()`, `fetchWeatherForZip()`. New reducer actions: `SET_WEATHER_ZIP`, `SET_WEATHER_DATA`.
+- **Real weather API integration (Open-Meteo):** Added zip code input field in the Weather Forecast section. On submit, geocodes the zip code via Open-Meteo's geocoding API, then fetches a 16-day weather forecast (temperature high/low in °F + WMO weather code). Data is stored in TripContext (`weatherZipCode`, `weatherData`) and persisted to localStorage. Day chips use real forecast data when available, falling back to `getSimulatedWeather()` for dates outside the forecast window. New helper functions: `mapWeatherCode()`, `fetchWeatherForZip()`. New reducer actions: `SET_WEATHER_ZIP`, `SET_WEATHER_DATA`.
 
 ### v0.0.95 — Destination Strip Tap Target Improvement
 - **Destination strip padding increased:** Banner vertical padding increased from `spacing.sm + 2` (10px) to `spacing.md + 2` (14px) for easier tapping on mobile.
@@ -1998,8 +2032,8 @@ Fixed 26 stale/incorrect references in DOCUMENTATION.md (removed dead tokens, fi
 ### v0.0.63 — Buffer Card Distinction
 - **Buffer card styling:** Replaced `glass.subtle` with solid `#EDE8DF` background and `1px solid rgba(0,0,0,0.04)` border for clear visual distinction from white event cards.
 
-### v0.0.62 — Calendar Readability + Daily Overview + Done State
-- **White daily overview cards:** Day chips in Hero "Daily Overview" changed from `glass.subtle` to `glass.card` (white) for consistency with other cards.
+### v0.0.62 — Calendar Readability + Weather Forecast + Done State
+- **White daily overview cards:** Day chips in Hero "Weather Forecast" changed from `glass.subtle` to `glass.card` (white) for consistency with other cards.
 - **Swipe fix:** Added `touchAction: 'pan-x'` to daily overview day buttons to prevent Framer Motion from eating horizontal scroll gestures.
 - **Bigger calendar legend:** CalendarLegend button padding increased (8/16px → 12/24px), shape indicators 10→12px, name text 15→16px, count text 13→15px.
 - **Bigger month summary:** MonthSummary text changed from `helper` (13px) to `body` (15px), dots 8→10px.
@@ -2053,7 +2087,7 @@ Fixed 26 stale/incorrect references in DOCUMENTATION.md (removed dead tokens, fi
 
 ### v0.0.47 — Card Contrast + Visual Hierarchy + Design System Docs
 - **Glass token contrast overhaul:** `glass.card` 65%→82%, `glass.panel` 55%→72%, `glass.subtle` 50%→65%, `glass.tooltip` 78%→90%, `glass.badge` 45%→60%. All borders switched from white alpha to dark alpha for visible separation on warm bg.
-- **HeroView token cleanup:** Flight status colors use `colors.warningLight`/`colors.success` (were hardcoded). Daily Overview header uses `typography.caption`. Milestone row uses `colors.success`/`colors.border`.
+- **HeroView token cleanup:** Flight status colors use `colors.warningLight`/`colors.success` (were hardcoded). Weather Forecast header uses `typography.caption`. Milestone row uses `colors.success`/`colors.border`.
 - **CalendarView:** Weekday headers use `typography.caption` (was 10px, now 11px minimum).
 - **DayTimelineView:** Hour labels use `typography.caption`, dashed border uses `colors.border`.
 - **EventDetailView:** Success icon uses `colors.success` token, added `colors` import.
@@ -2159,7 +2193,7 @@ Fixed 26 stale/incorrect references in DOCUMENTATION.md (removed dead tokens, fi
 
 ### v0.0.37 — Trip Countdown, Weather, Compact Destination Cards
 - **Trip Countdown Card (new):** Pre-trip card on HeroView showing days until departure, destination route (Kauai → Maui), and milestone log with 6 countdown milestones (trip booked → trip begins). Uses same `FlightMilestoneRow` component and sliding-window pattern as the flight card. Hidden once trip starts.
-- **Simulated Weather in Daily Overview:** Day chips in the horizontal scroll strip now show weather icons (Sun, CloudSun, Cloud, CloudRain from Lucide) and temperature (75–85°F). Weather is deterministically seeded from date + destination ID for consistency. Replaces the old destination color bar + event count.
+- **Simulated Weather in Weather Forecast:** Day chips in the horizontal scroll strip now show weather icons (Sun, CloudSun, Cloud, CloudRain from Lucide) and temperature (75–85°F). Weather is deterministically seeded from date + destination ID for consistency. Replaces the old destination color bar + event count.
 - **Compact Destination Cards:** Photo height reduced from 140px → 50px (-90px). Info section padding tightened (16px → 12px top, 20px → 14px bottom). Title reduced from 20px → 17px. Date text reduced to 12px. Overall card ~90px shorter.
 - **New helper functions:** `getSimulatedWeather()`, `WeatherIcon` component, `formatCountdownTime()`, `getTripCountdownMilestones()`.
 - **New Lucide imports:** CloudSun, Cloud, CloudRain added to HeroView.
