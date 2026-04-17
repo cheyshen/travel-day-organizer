@@ -1094,7 +1094,7 @@ export default function HeroView({ onNavigate }) {
               ...typography.sectionHeader,
               color: palette.textDark,
             }}>
-              Your Schedule
+              Weather Forecast
             </span>
             <span style={{
               ...typography.helper,
