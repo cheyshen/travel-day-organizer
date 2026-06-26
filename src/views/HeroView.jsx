@@ -890,6 +890,7 @@ export default function HeroView({ onNavigate }) {
               }}
               style={{
                 ...glass.card,
+                boxShadow: shadows.sm,
                 borderRadius: radius.lg,
                 padding: '16px',
                 marginBottom: 20,
@@ -902,7 +903,7 @@ export default function HeroView({ onNavigate }) {
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                marginBottom: 2,
+                marginBottom: 8,
               }}>
                 <div style={{
                   display: 'flex',
@@ -1032,6 +1033,7 @@ export default function HeroView({ onNavigate }) {
               transition={{ delay: 0.75, duration: 0.5 }}
               style={{
                 ...glass.card,
+                boxShadow: shadows.sm,
                 borderRadius: radius.lg,
                 padding: '16px',
                 marginBottom: 20,
@@ -1043,7 +1045,7 @@ export default function HeroView({ onNavigate }) {
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                marginBottom: 2,
+                marginBottom: 8,
               }}>
                 <div style={{
                   display: 'flex',
@@ -1136,6 +1138,7 @@ export default function HeroView({ onNavigate }) {
           transition={{ delay: 1.0 }}
           style={{
             ...glass.card,
+            boxShadow: shadows.sm,
             borderRadius: radius.lg,
             padding: spacing.lg,
           }}
@@ -1308,6 +1311,7 @@ export default function HeroView({ onNavigate }) {
           style={{
             marginTop: 24,
             ...glass.card,
+            boxShadow: shadows.sm,
             borderRadius: radius.lg,
             padding: spacing.lg,
           }}
@@ -1627,6 +1631,7 @@ function DestCard({ destination, photo, dayCount, delay, onTap, onPhotoChange })
         borderRadius: 20,
         overflow: 'hidden',
         ...glass.card,
+        boxShadow: shadows.sm,
         position: 'relative',
       }}
     >
