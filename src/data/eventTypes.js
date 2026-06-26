@@ -110,11 +110,6 @@ export const EVENT_TYPES = {
   },
 }
 
-export const EVENT_STATUSES = {
-  upcoming: { label: 'Upcoming', color: colors.borderLight, textColor: colors.textSecondary },
-  done: { label: 'Done', color: colors.successLight, textColor: colors.success },
-}
-
 export function getEventType(typeId) {
   return EVENT_TYPES[typeId] || EVENT_TYPES.custom
 }

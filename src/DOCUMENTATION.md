@@ -1647,9 +1647,55 @@ deploy.sh travel "commit message"  # Deploy to cluster
 
 ---
 
-*Updated March 2026 (v0.0.145). Standalone deployment. This document covers the complete Travel app architecture, design system (glassmorphism + clean shadows, no neumorphism), component library, interaction patterns, accessibility compliance, and technical implementation — including custom hero photo upload, body scroll lock on overlays, redesigned destination strip navigation, the Status tab with checklist management and document uploads, the redesigned Calendar view with month navigation, tooltip, and interactive legend, the image card timeline with cover photos, the event detail view, design system font compliance, real weather API via Open-Meteo, buffer card duration titles, highlight scroll restoration, the design system token cleanup (v0.0.106–v0.0.114), the warm-white/pure-white card convention, timezone-safe time display (v0.0.128), ESLint build integration with chronological event sorting (v0.0.145), and standalone design system sections for Next Up / Flight Status / Trip Countdown cards (ui-test v0.0.290).*
+*Updated March 2026 (v0.0.145). Standalone deployment. This document covers the complete Travel app architecture, design system (glassmorphism + clean shadows, no neumorphism), component library, interaction patterns, accessibility compliance, and technical implementation — including custom hero photo upload, body scroll lock on overlays, redesigned destination strip navigation, the Status tab with checklist management and document uploads, the redesigned Calendar view with month navigation, tooltip, and interactive legend, the image card timeline with cover photos, the event detail view, design system font compliance, real weather API via Open-Meteo, buffer card duration titles, highlight scroll restoration, the design system token cleanup (v0.0.106–v0.0.114), the warm-white/pure-white card convention, timezone-safe time display (v0.0.128), ESLint build integration with chronological event sorting (v0.0.145), standalone design system sections for Next Up / Flight Status / Trip Countdown cards (ui-test v0.0.290), and the color palette subheading accuracy pass with widened section descriptions (ui-test v0.0.356–v0.0.357).*
 
 ## Changelog
+
+### v0.0.154 — Removed the event "done" / "complete" feature and the tight-buffer alert
+
+A design-system audit (`docs/ds-audit-2026-06-18.md`) surfaced "warning/done" states that never appear with the seeded data. On review these were cut from the product entirely — they were conditional states the app no longer wants.
+
+**Removed — the entire "mark event done" feature:**
+- `EVENT_STATUSES` (eventTypes.js) and the `getStatusColor` / `getStatusBg` / `getStatusLabel` helpers (timeUtils.js).
+- The `SET_EVENT_STATUS` reducer action (TripContext.jsx).
+- The Status toggle row in `EventDetailView`, the status toggle in `EventEditor` (+ the `status` field it saved and the `onStatusToggle` prop), and the timeline `handleStatusToggle` in `DayTimelineView`.
+- The done-state visuals in `TimeBlock` (the `opacity: 0.45` + `grayscale(0.6)` dimming and the inline green "Done" badge).
+- The day-completion state (`allDone` + the `EmptyState type="complete"` "That's your day" screen). `EmptyState` is now empty-only.
+- The Next Up / Next Flight `status === 'done' || 'cancelled'` skip checks in `HeroView`.
+- Dead code: deleted the unused `StatusBadge.jsx` component; the phantom `'cancelled'` status (never set anywhere) is gone with the skip checks.
+
+**Removed — the tight-buffer alert:** `TimeBlock`'s `isTight` variant (warning background, dashed amber left border, recolored text/icon, and the "Tight" pill that triggered at ≤20 min). Buffers now always render in the neutral style.
+
+Note: the inert `status: 'upcoming'` field remains in the seeded sample data and the trip-shift reset (harmless, unread) — left untouched to avoid destabilizing the trip-shift regression test. The HeroView flight/countdown *milestone* `status` is unrelated and unchanged.
+
+### v0.0.153 — Hero header page title
+
+Added a dominant page title to the front page hero, which previously had **no title at all** (the trip name only appeared tucked inside the Trip Countdown card). With nothing larger than the 18px section headers, the page read as "blended" — no anchor for the eye.
+
+- **Hero height 110px → 200px** to seat the title.
+- **`trip.name` rendered as an `<h1>`** over the existing hero photo (bottom-left), using the restored `typography.hero` token (42px / 700 / -0.02em) — the design system's documented "Page titles only" size, which had been removed as dead code in v0.0.110 and is now back in `styles.js`.
+- **Meta line** above the title — date range + day count (e.g. `MAR 14 – MAR 22 · 9 DAYS`), auto-computed from trip dates, in the `caption` style.
+- Title legibility comes from the existing `scrimGradient` plus a soft text-shadow.
+- **Header-only change.** Destination cards, Next Up, Flight Status, Trip Countdown, Weather Forecast, Trip Highlights, and all logic/data are untouched. Hero photo source is unchanged.
+
+**Files:** `styles.js` (restored `typography.hero`), `HeroView.jsx` (hero height + title overlay).
+
+### Design System Update (ui-test v0.0.356–v0.0.357) — Color Palette Accuracy + Wider Section Descriptions
+
+**v0.0.356 — Color palette subheading accuracy fix (2026-06-05).** The section description claimed "39 tokens from colors.js, 6 destination colors from sampleTrip.js, and 4 warm palette tokens from styles.js". An audit against source found three inaccuracies:
+
+- `colors.js` has **43** tokens, not 39 — the page omits the `warning`/`warningLight` and `danger`/`dangerLight` pairs, which are actively used in the app (TimeBlock tight-buffer warnings, delete confirmations in EventEditor/ChecklistItemRow/DocumentCard, DocumentUploader file-size errors, HeroView delayed flight badge)
+- Only **4** of the 6 destination colors come from `sampleTrip.js` (`color` + `accentLight` per island) — the 2 destination strip tints (`#BAE5E0` Kauai, `#EDDBAF` Maui) are hardcoded in `DayTimelineView.jsx`
+- `glossyBg` is a standalone `styles.js` export, not part of the `warmPalette` object (which has 7 tokens, 4 of them aliases of colors.js values)
+
+All 49 displayed swatch hex values were verified correct against source — only the counts and source attribution were wrong. Fix was text-only (swatches unchanged). New description: *"39 of the 43 tokens in colors.js (warning/danger pairs omitted), 6 destination colors from sampleTrip.js and DayTimelineView, and 4 warm background tokens from styles.js. Click any swatch to copy its value."*
+
+**v0.0.357 — Section descriptions widened (2026-06-05).** `SectionWrap` description `maxWidth` increased from 640px to 800px so section subheadings span more of the screen — the color palette description now wraps to 2 lines instead of 3. Applies to all section descriptions on the page (shared component).
+
+**Changes:**
+- `TravelDesignSystemV2.jsx` (ui-test) — Color palette section `description` prop rewritten; `SectionWrap` description `maxWidth: 640` → `800`
+
+Both versions deployed to local (192.168.1.192/travel-design-system-v2) and prod (travel-ds.cheyshen.com), bundles verified.
 
 ### Design System V2 Update (ui-test v0.0.290)
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronRight, CheckCircle2, Pencil } from 'lucide-react'
+import { ChevronRight, Pencil } from 'lucide-react'
 import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
 import { colors } from '../colors'
 import { formatTime, getEventColor, getEventIcon } from '../utils/timeUtils'
@@ -26,8 +26,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
   // Buffer events stay minimal — compact card, no image
   if (isBuffer) {
     const minutes = event.bufferMinutes || 0
-    const isTight = minutes > 0 && minutes <= 20
-    const bufferTextColor = isTight ? colors.warning : warmPalette.textMedium
+    const bufferTextColor = warmPalette.textMedium
 
     const timeRange = event.startTime && event.endTime
       ? `${formatTime(event.startTime)} – ${formatTime(event.endTime)}`
@@ -41,9 +40,9 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
         onClick={() => onTap(event)}
         style={{
           borderRadius: radius.md,
-          backgroundColor: isTight ? colors.warningLight : colors.surface,
-          border: `1px solid ${isTight ? colors.warning + '30' : 'rgba(0,0,0,0.04)'}`,
-          borderLeft: isTight ? `3px dashed ${colors.warning}` : '1px solid rgba(0,0,0,0.04)',
+          backgroundColor: colors.surface,
+          border: '1px solid rgba(0,0,0,0.04)',
+          borderLeft: '1px solid rgba(0,0,0,0.04)',
           padding: `${spacing.lg}px`,
           cursor: 'pointer',
           display: 'flex',
@@ -61,22 +60,10 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
           {timeRange}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-          <Icon size={18} color={isTight ? colors.warning : accentColor} strokeWidth={2.5} />
-          <p style={{ ...typography.sectionHeader, fontSize: 15, color: isTight ? colors.warning : warmPalette.textDark, margin: 0, flex: 1 }}>
+          <Icon size={18} color={accentColor} strokeWidth={2.5} />
+          <p style={{ ...typography.sectionHeader, fontSize: 15, color: warmPalette.textDark, margin: 0, flex: 1 }}>
             {minutes > 0 ? `~${minutes} min buffer` : event.title}
           </p>
-          {isTight && (
-            <span style={{
-              ...typography.caption,
-              color: colors.warning,
-              backgroundColor: 'rgba(217,123,43,0.12)',
-              padding: `2px ${spacing.sm}px`,
-              borderRadius: radius.sm,
-              flexShrink: 0,
-            }}>
-              Tight
-            </span>
-          )}
         </div>
         {(event.bufferLabel || (minutes > 0 && event.title)) && !event.subtitle && (
           <p style={{ ...typography.body, color: bufferTextColor, margin: 0 }}>
@@ -98,7 +85,6 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
         overflow: 'hidden',
         ...glass.card,
         cursor: 'pointer',
-        ...(event.status === 'done' && { opacity: 0.45, filter: 'grayscale(0.6)' }),
         position: 'relative',
       }}
       role="button"
@@ -220,30 +206,6 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
             </p>
           )}
         </div>
-
-        {/* Done badge inline */}
-        {event.status === 'done' && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            backgroundColor: 'rgba(39,129,91,0.12)',
-            padding: '3px 10px',
-            borderRadius: radius.pill,
-            flexShrink: 0,
-            marginRight: 4,
-          }}>
-            <CheckCircle2 size={14} color="#27815B" strokeWidth={2} />
-            <span style={{
-              fontSize: typography.caption.fontSize,
-              fontWeight: 600,
-              color: '#27815B',
-              letterSpacing: '0.02em',
-            }}>
-              Done
-            </span>
-          </div>
-        )}
 
         {/* Details button */}
         {onDetail && (

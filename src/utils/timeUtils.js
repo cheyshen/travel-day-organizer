@@ -1,5 +1,5 @@
 import { colors } from '../colors'
-import { EVENT_TYPES, EVENT_STATUSES } from '../data/eventTypes'
+import { EVENT_TYPES } from '../data/eventTypes'
 
 // =============================================================================
 // TIME UTILITIES — Formatting, status, icons
@@ -55,21 +55,6 @@ export function formatDuration(minutes) {
   const hrs = Math.floor(minutes / 60)
   const mins = minutes % 60
   return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`
-}
-
-export function getStatusColor(status) {
-  const s = EVENT_STATUSES[status]
-  return s ? s.textColor : colors.textSecondary
-}
-
-export function getStatusBg(status) {
-  const s = EVENT_STATUSES[status]
-  return s ? s.color : colors.borderLight
-}
-
-export function getStatusLabel(status) {
-  const s = EVENT_STATUSES[status]
-  return s ? s.label : 'Upcoming'
 }
 
 export function getEventIcon(typeId) {

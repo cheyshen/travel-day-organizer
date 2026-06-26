@@ -96,18 +96,6 @@ export default function DayTimelineView({ onNavigate }) {
     handleEditorClose()
   }
 
-  function handleStatusToggle(eventId) {
-    const event = events.find(e => e.id === eventId)
-    if (!event) return
-    const newStatus = event.status === 'done' ? 'upcoming' : 'done'
-    dispatch({
-      type: 'SET_EVENT_STATUS',
-      payload: { date: selectedDate, eventId, status: newStatus },
-    })
-  }
-
-  const allDone = events.length > 0 && events.every(e => e.status === 'done')
-
   return (
     <div style={{ background: glossyBg, minHeight: '100vh' }}>
       {/* Sticky header — glassmorphic */}
@@ -315,7 +303,6 @@ export default function DayTimelineView({ onNavigate }) {
                         isNext={nextUpcoming?.id === event.id}
                         onTap={handleEventTap}
                         onDetail={handleEventDetail}
-                        onToggleStatus={handleStatusToggle}
                       />
                     </div>
                   </div>
@@ -363,9 +350,6 @@ export default function DayTimelineView({ onNavigate }) {
           </div>
         )}
 
-        {/* Day complete */}
-        {allDone && <EmptyState type="complete" />}
-
         {/* Bottom padding so content isn't hidden behind nav */}
         <div style={{ height: 80 }} />
       </div>
@@ -381,7 +365,6 @@ export default function DayTimelineView({ onNavigate }) {
             onSave={handleEventSave}
             onDelete={handleEventDelete}
             onClose={handleEditorClose}
-            onStatusToggle={editingEvent ? () => handleStatusToggle(editingEvent.id) : null}
           />
         )}
       </AnimatePresence>

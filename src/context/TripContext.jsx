@@ -130,22 +130,6 @@ function tripReducer(state, action) {
       }
     }
 
-    case 'SET_EVENT_STATUS': {
-      const { date, eventId, status } = action.payload
-      const day = state.days[date]
-      if (!day) return state
-      return {
-        ...state,
-        days: {
-          ...state.days,
-          [date]: {
-            ...day,
-            events: day.events.map(e => e.id === eventId ? { ...e, status } : e),
-          },
-        },
-      }
-    }
-
     case 'REORDER_EVENTS': {
       const { date, events } = action.payload
       const day = state.days[date]

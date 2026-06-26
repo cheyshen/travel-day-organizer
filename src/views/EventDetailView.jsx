@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Clock, MapPin, Hash, FileText, Edit3, CheckCircle, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Clock, MapPin, Hash, FileText, Edit3 } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { typography, spacing, radius, warmPalette, glass, glossyBg } from '../styles'
 import { colors } from '../colors'
-import { formatTime, formatTimeRange, getDurationMinutes, formatDuration, getEventIcon, getEventColor, getEventBgColor, getStatusLabel, getStatusColor, getStatusBg } from '../utils/timeUtils'
+import { formatTime, formatTimeRange, getDurationMinutes, formatDuration, getEventIcon, getEventColor, getEventBgColor } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
 import { getCoverImage, getCoverGradient } from '../data/coverImages'
 import EventEditor from '../components/EventEditor'
@@ -76,14 +76,6 @@ export default function EventDetailView({ onNavigate }) {
 
   function handleEditorClose() {
     setIsEditing(false)
-  }
-
-  function handleStatusToggle() {
-    const newStatus = event.status === 'done' ? 'upcoming' : 'done'
-    dispatch({
-      type: 'SET_EVENT_STATUS',
-      payload: { date: selectedDate, eventId: event.id, status: newStatus },
-    })
   }
 
   return (
@@ -317,42 +309,6 @@ export default function EventDetailView({ onNavigate }) {
           </div>
         )}
 
-        {/* Status */}
-        <div style={{
-          ...glass.card,
-          borderRadius: radius.md,
-          padding: spacing.lg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-            {event.status === 'done'
-              ? <CheckCircle size={18} color={colors.success} strokeWidth={2.5} />
-              : <AlertTriangle size={18} color={warmPalette.textLight} strokeWidth={2} />
-            }
-            <span style={{ ...typography.bodyMedium, color: warmPalette.textDark }}>
-              Status
-            </span>
-          </div>
-
-          <button
-            onClick={handleStatusToggle}
-            style={{
-              padding: '3px 10px',
-              borderRadius: radius.pill,
-              border: 'none',
-              backgroundColor: getStatusBg(event.status),
-              color: getStatusColor(event.status),
-              cursor: 'pointer',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: '0.02em',
-            }}
-          >
-            {getStatusLabel(event.status)}
-          </button>
-        </div>
       </div>
 
       {/* Bottom padding */}
@@ -368,7 +324,6 @@ export default function EventDetailView({ onNavigate }) {
             onSave={handleEditorSave}
             onDelete={handleEditorDelete}
             onClose={handleEditorClose}
-            onStatusToggle={handleStatusToggle}
           />
         )}
       </AnimatePresence>

@@ -34,7 +34,7 @@ function compressImage(dataUrl, maxDim = 800, quality = 0.6) {
   })
 }
 
-export default function EventEditor({ event, isNew, date, onSave, onDelete, onClose, onStatusToggle }) {
+export default function EventEditor({ event, isNew, date, onSave, onDelete, onClose }) {
   // Lock body scroll while overlay is open — prevent horizontal wobble
   useEffect(() => {
     const scrollY = window.scrollY
@@ -67,7 +67,6 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
     location: event?.location ? (typeof event.location === 'string' ? event.location : (event.location.destination || event.location.origin || '')) : '',
     confirmationNumber: event?.confirmationNumber || '',
     notes: event?.notes || '',
-    status: event?.status || 'upcoming',
     bufferMinutes: event?.bufferMinutes || 30,
     bufferLabel: event?.bufferLabel || '',
     coverImage: event?.coverImage || null,
@@ -79,14 +78,6 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
 
   function update(field, value) {
     setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-  function handleStatusToggle() {
-    if (onStatusToggle) onStatusToggle()
-    setFormData(prev => ({
-      ...prev,
-      status: prev.status === 'done' ? 'upcoming' : 'done',
-    }))
   }
 
   function handleSave() {
@@ -105,7 +96,6 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
         : null,
       confirmationNumber: formData.confirmationNumber.trim() || null,
       notes: formData.notes.trim() || null,
-      status: formData.status,
       coverImage: formData.coverImage || null,
     }
 

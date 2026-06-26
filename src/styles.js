@@ -7,6 +7,7 @@ import { colors } from './colors'
 export const fontStack = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
 export const typography = {
+  hero: { fontSize: 42, fontWeight: 700, lineHeight: '44px', letterSpacing: '-0.02em' },
   title: { fontSize: 28, fontWeight: 700, lineHeight: '34px' },
   sectionHeader: { fontSize: 18, fontWeight: 600, lineHeight: '24px' },
   body: { fontSize: 15, fontWeight: 400, lineHeight: '22px' },

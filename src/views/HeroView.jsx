@@ -492,7 +492,6 @@ export default function HeroView({ onNavigate }) {
       const sorted = [...day.events].sort((a, b) => a.sortOrder - b.sortOrder)
       for (const event of sorted) {
         if (event.type === 'buffer') continue
-        if (event.status === 'done' || event.status === 'cancelled') continue
         const startMs = new Date(event.startTime).getTime()
         const endMs = event.endTime ? new Date(event.endTime).getTime() : startMs
         // Currently in progress or upcoming
@@ -519,7 +518,6 @@ export default function HeroView({ onNavigate }) {
       const sorted = [...day.events].sort((a, b) => a.sortOrder - b.sortOrder)
       for (const event of sorted) {
         if (event.type !== 'flight') continue
-        if (event.status === 'done' || event.status === 'cancelled') continue
         const endMs = event.endTime ? new Date(event.endTime).getTime() : new Date(event.startTime).getTime()
         if (endMs > now) {
           return { event, dateStr, day }
@@ -568,7 +566,7 @@ export default function HeroView({ onNavigate }) {
       {/* ================================================================ */}
       <div style={{
         position: 'relative',
-        height: 110,
+        height: 200,
         overflow: 'hidden',
       }}>
         {/* Background photo */}
@@ -591,6 +589,42 @@ export default function HeroView({ onNavigate }) {
           inset: 0,
           background: scrimGradient,
         }} />
+
+        {/* Title masthead — trip name + dates over the photo */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          style={{
+            position: 'absolute',
+            left: 20,
+            right: 20,
+            bottom: 40,
+            zIndex: 3,
+          }}
+        >
+          <div style={{
+            ...typography.caption,
+            color: colors.textOnDark,
+            opacity: 0.9,
+            marginBottom: 6,
+          }}>
+            {`${formatShortDate(trip.startDate)} – ${formatShortDate(trip.endDate)} · ${tripDates.length} days`}
+          </div>
+          <h1 style={{
+            ...typography.hero,
+            color: colors.textOnDark,
+            fontFamily: fontStack,
+            margin: 0,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textShadow: '0 1px 12px rgba(0,0,0,0.3)',
+          }}>
+            {trip.name}
+          </h1>
+        </motion.div>
 
         {/* Top bar — camera upload only */}
         <motion.div
