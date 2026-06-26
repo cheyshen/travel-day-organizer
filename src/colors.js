@@ -57,31 +57,3 @@ export const colors = {
   borderLight: '#F0EFEA',
   dragHandle: '#D6D3CE',
 }
-
-// =============================================================================
-// EVENT-TYPE PALETTE — one harmonious family (locked S/L, hue-grouped).
-// Edit colors here; everything flows through getEventColor / getEventBgColor.
-// Transit=blues, Outdoors=greens, Stay&sights=amber, Food&fun=pinks; Buffer +
-// Custom are intentionally neutral. Keys MUST match EVENT_TYPES ids.
-// =============================================================================
-export const eventPalette = {
-  // Transit · blues
-  flight:           { color: '#2B7CB6', tile: '#E3EFF7' },
-  boat:             { color: '#2B52B6', tile: '#E3E9F7' },
-  ground_transport: { color: '#322BB6', tile: '#E4E3F7' },
-  // Outdoors · greens / teal
-  beach:            { color: '#27A1A5', tile: '#E3F6F7' },
-  activity:         { color: '#259D6F', tile: '#E3F7EF' },
-  hiking:           { color: '#2C9644', tile: '#E3F7E8' },
-  // Stay & sights · amber
-  hotel:            { color: '#B47F22', tile: '#F7EEDE' },
-  sunrise:          { color: '#C56026', tile: '#F7E7DE' },
-  sightseeing:      { color: '#AD911F', tile: '#F7F2DE' },
-  // Food & fun · pink / coral
-  dining:           { color: '#C43145', tile: '#F8E2E5' },
-  shopping:         { color: '#C4317A', tile: '#F8E2ED' },
-  entertainment:    { color: '#BA3BAF', tile: '#F7E3F5' },
-  // Neutral · low-emphasis
-  buffer:           { color: '#918578', tile: '#EDEBE8' },
-  custom:           { color: '#757575', tile: '#EBEBEB' },
-}

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "lint": "eslint src/",
-    "test": "node src/context/tripShift.test.mjs && node src/data/eventPalette.test.mjs",
+    "test": "node src/context/tripShift.test.mjs",
     "build": "eslint src/ && npm run test && vite build",
     "preview": "vite preview"
   },
