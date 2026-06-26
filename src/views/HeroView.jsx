@@ -743,7 +743,7 @@ export default function HeroView({ onNavigate }) {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.5 }}
-              style={{ marginBottom: 20 }}
+              style={{ marginBottom: spacing.xl }}
             >
               {/* Primary card */}
               <motion.div
@@ -763,6 +763,7 @@ export default function HeroView({ onNavigate }) {
                 }}
                 style={{
                   ...glass.card,
+                  boxShadow: shadows.float,
                   borderRadius: radius.lg,
                   padding: 16,
                   cursor: 'pointer',
@@ -775,16 +776,25 @@ export default function HeroView({ onNavigate }) {
               >
                 {/* Left: Icon + text */}
                 <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Eyebrow — neutral, signposts the anchor */}
+                  <div style={{
+                    ...typography.caption,
+                    color: palette.textLight,
+                    marginBottom: 10,
+                  }}>
+                    Next up
+                  </div>
+
                   {/* Icon + Title row */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
-                    marginBottom: 4,
+                    gap: 10,
+                    marginBottom: 8,
                   }}>
                     <div style={{
-                      width: 32,
-                      height: 32,
+                      width: 40,
+                      height: 40,
                       borderRadius: radius.iconSquare,
                       backgroundColor: eventBgColor,
                       display: 'flex',
@@ -792,10 +802,10 @@ export default function HeroView({ onNavigate }) {
                       justifyContent: 'center',
                       flexShrink: 0,
                     }}>
-                      <EventIcon size={16} color={eventColor} strokeWidth={2} />
+                      <EventIcon size={20} color={eventColor} strokeWidth={2} />
                     </div>
                     <span style={{
-                      ...typography.sectionHeader,
+                      ...typography.title,
                       color: palette.textDark,
                       fontFamily: fontStack,
                       whiteSpace: 'nowrap',
@@ -810,7 +820,7 @@ export default function HeroView({ onNavigate }) {
                   <div style={{
                     ...typography.body,
                     color: palette.textMedium,
-                    marginBottom: locationStr ? 4 : 0,
+                    marginBottom: locationStr ? 7 : 0,
                   }}>
                     {dayLabel} · {formatTime(nextUp.event.startTime)}
                   </div>

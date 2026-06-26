@@ -41,6 +41,7 @@ export const shadows = {
   glass: '0 2px 8px rgba(0,0,0,0.06)',
   accentGlow: '0 2px 8px rgba(14, 116, 144, 0.25)',
   accentGlowStrong: '0 4px 16px rgba(14, 116, 144, 0.4)',
+  float: '0 12px 28px rgba(0,0,0,0.16)',
 }
 
 export const tokens = {
