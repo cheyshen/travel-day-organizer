@@ -6,6 +6,7 @@ import { typography, spacing, radius, tokens, warmPalette, glass } from '../styl
 import { generateId } from '../utils/timeUtils'
 import { EVENT_TYPES } from '../data/eventTypes'
 import { getCoverImage } from '../data/coverImages'
+import AnimatedEventIcon from './AnimatedEventIcon'
 
 // =============================================================================
 // EVENT EDITOR — Add/Edit/Delete event modal (bottom sheet)
@@ -74,6 +75,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
 
   const [showDelete, setShowDelete] = useState(false)
   const [photoError, setPhotoError] = useState(null)
+  const [iconPlays, setIconPlays] = useState({})
   const fileInputRef = useRef(null)
 
   function update(field, value) {
@@ -200,30 +202,38 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
             marginBottom: spacing.lg,
           }}>
             {typeOptions.map(opt => {
-              const Icon = opt.icon
               const isSelected = formData.type === opt.id
               return (
                 <button
                   key={opt.id}
-                  onClick={() => update('type', opt.id)}
+                  onClick={() => {
+                    update('type', opt.id)
+                    setIconPlays(p => ({ ...p, [opt.id]: (p[opt.id] || 0) + 1 }))
+                  }}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 3,
-                    padding: `${spacing.md}px ${spacing.sm + 5}px`,
-                    backgroundColor: isSelected ? opt.bgColor : warmPalette.warmGray,
-                    border: isSelected ? `2px solid ${opt.color}` : '2px solid transparent',
+                    gap: 8,
+                    padding: `${spacing.md}px ${spacing.sm}px`,
+                    backgroundColor: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
+                    border: 'none',
                     borderRadius: radius.md,
                     cursor: 'pointer',
-                    minHeight: 64,
+                    minHeight: 72,
                   }}
                 >
-                  <Icon size={22} color={isSelected ? opt.color : warmPalette.textMedium} strokeWidth={2} />
+                  <AnimatedEventIcon
+                    type={opt.id}
+                    tile={44}
+                    icon={22}
+                    radius={13}
+                    playSignal={iconPlays[opt.id] || 0}
+                  />
                   <span style={{
                     fontSize: typography.caption.fontSize,
-                    fontWeight: isSelected ? 600 : 500,
+                    fontWeight: isSelected ? 700 : 500,
                     color: isSelected ? warmPalette.textDark : warmPalette.textMedium,
                     lineHeight: '1.1',
                   }}>

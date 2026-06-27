@@ -235,7 +235,7 @@ export default function CalendarTooltip({
           }}
         >
           View Day
-          <ChevronRight size={16} color={warmPalette.accent} />
+          <ChevronRight size={16} color={warmPalette.textLight} strokeWidth={2} />
         </button>
       </motion.div>
     </>

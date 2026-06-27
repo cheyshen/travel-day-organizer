@@ -132,7 +132,7 @@ export default function DayTimelineView({ onNavigate }) {
               flexShrink: 0,
             }}
           >
-            <ChevronLeft size={20} color={warmPalette.textDark} />
+            <ChevronLeft size={20} color={warmPalette.textLight} strokeWidth={2} />
           </button>
 
           {/* Centered day info — flex:1 between equal-width arrow buttons */}
@@ -166,7 +166,7 @@ export default function DayTimelineView({ onNavigate }) {
               flexShrink: 0,
             }}
           >
-            <ChevronRight size={20} color={warmPalette.textDark} />
+            <ChevronRight size={20} color={warmPalette.textLight} strokeWidth={2} />
           </button>
         </div>
 
@@ -238,7 +238,7 @@ export default function DayTimelineView({ onNavigate }) {
                     }}>
                       {d.name}
                     </span>
-                    <ChevronRight size={12} color={warmPalette.textMedium} strokeWidth={2} />
+                    <ChevronRight size={12} color={warmPalette.textLight} strokeWidth={2} />
                   </button>
                 </span>
               )

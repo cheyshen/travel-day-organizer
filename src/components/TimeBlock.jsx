@@ -233,7 +233,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
             aria-label={`View details for ${event.title}`}
           >
             Details
-            <ChevronRight size={16} color={warmPalette.textMedium} strokeWidth={2.5} />
+            <ChevronRight size={16} color={warmPalette.textLight} strokeWidth={2} />
           </button>
         )}
       </div>

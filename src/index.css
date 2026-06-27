@@ -16,3 +16,43 @@
     min-height: 100vh;
   }
 }
+
+/* ==========================================================================
+   Event-type icon motions — each type animates to match what it is.
+   Applied via the AnimatedEventIcon component (class ev-<motion> on a span).
+   ========================================================================== */
+.evm { display: inline-flex; line-height: 0; }
+
+.ev-flight { animation: kf-flight .75s cubic-bezier(.42,0,.3,1); }
+.ev-car    { animation: kf-car .7s; }
+.ev-boat   { transform-origin: 50% 90%; animation: kf-boat .9s; }
+.ev-palm   { transform-origin: 50% 100%; animation: kf-palm .85s; }
+.ev-waves  { animation: kf-waves .82s; }
+.ev-hike   { animation: kf-hike .72s cubic-bezier(.34,1.1,.62,1); }
+.ev-sun    { animation: kf-sun .8s cubic-bezier(.34,1.05,.62,1); }
+.ev-camera { animation: kf-camera .6s cubic-bezier(.4,0,.25,1); }
+.ev-dining { animation: kf-dining .72s; }
+.ev-bag    { transform-origin: 50% 6%; animation: kf-bag .92s; }
+.ev-hotel  { animation: kf-hotel .72s cubic-bezier(.34,1.15,.62,1); }
+.ev-party  { animation: kf-party .74s cubic-bezier(.34,1.15,.62,1); }
+.ev-clock  { animation: kf-clock .9s cubic-bezier(.42,0,.3,1); }
+.ev-pulse  { animation: kf-pulse .7s cubic-bezier(.37,0,.63,1); }
+
+@keyframes kf-flight {0%{transform:translate(0,0) rotate(0)}14%{transform:translate(-2px,2px) rotate(6deg)}56%{transform:translate(11px,-17px) rotate(-24deg)}82%{transform:translate(2px,-2px) rotate(-3deg)}100%{transform:translate(0,0) rotate(0)}}
+@keyframes kf-car {0%{transform:translateX(0);animation-timing-function:cubic-bezier(.37,0,.63,1)}28%{transform:translate(-9px,1px);animation-timing-function:cubic-bezier(.37,0,.63,1)}60%{transform:translate(11px,-1px);animation-timing-function:cubic-bezier(.37,0,.63,1)}84%{transform:translate(-2px,0);animation-timing-function:cubic-bezier(.37,0,.63,1)}100%{transform:translateX(0)}}
+@keyframes kf-boat {0%{transform:rotate(0);animation-timing-function:cubic-bezier(.37,0,.63,1)}18%{transform:rotate(-17deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}42%{transform:rotate(13deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}64%{transform:rotate(-8deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}82%{transform:rotate(4deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}93%{transform:rotate(-1.5deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}100%{transform:rotate(0)}}
+@keyframes kf-palm {0%{transform:rotate(0);animation-timing-function:cubic-bezier(.37,0,.63,1)}26%{transform:rotate(16deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}54%{transform:rotate(-10deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}76%{transform:rotate(5deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}92%{transform:rotate(-2deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}100%{transform:rotate(0)}}
+@keyframes kf-waves {0%{transform:translateX(0) skewX(0);animation-timing-function:cubic-bezier(.37,0,.63,1)}20%{transform:translateX(-5px) skewX(9deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}44%{transform:translateX(5px) skewX(-9deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}66%{transform:translateX(-3px) skewX(5deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}84%{transform:translateX(2px) skewX(-2deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}100%{transform:translateX(0) skewX(0)}}
+@keyframes kf-hike {0%{transform:translateY(0) scale(1)}24%{transform:translateY(-9px)}44%{transform:translateY(-3px)}64%{transform:translateY(-13px) scale(1.06)}84%{transform:translateY(-2px) scale(1)}100%{transform:translateY(0) scale(1)}}
+@keyframes kf-sun {0%{transform:translateY(7px) scale(.86)}48%{transform:translateY(-10px) scale(1.15)}78%{transform:translateY(-1px) scale(1.01)}100%{transform:translateY(0) scale(1)}}
+@keyframes kf-camera {0%{transform:scale(1);opacity:1}20%{transform:scale(.8)}38%{transform:scale(1.1);opacity:.4}60%{transform:scale(.98);opacity:1}100%{transform:scale(1)}}
+@keyframes kf-dining {0%{transform:rotate(0);animation-timing-function:cubic-bezier(.37,0,.63,1)}18%{transform:rotate(-11deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}40%{transform:rotate(10deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}62%{transform:rotate(-6deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}82%{transform:rotate(3deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}100%{transform:rotate(0)}}
+@keyframes kf-bag {0%{transform:rotate(0);animation-timing-function:cubic-bezier(.37,0,.63,1)}22%{transform:rotate(-21deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}48%{transform:rotate(14deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}70%{transform:rotate(-8deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}86%{transform:rotate(4deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}95%{transform:rotate(-1.5deg);animation-timing-function:cubic-bezier(.37,0,.63,1)}100%{transform:rotate(0)}}
+@keyframes kf-hotel {0%{transform:translateY(-13px)}46%{transform:translateY(4px)}72%{transform:translateY(-2px)}90%{transform:translateY(1px)}100%{transform:translateY(0)}}
+@keyframes kf-party {0%{transform:scale(1) rotate(0)}28%{transform:scale(1.34) rotate(-19deg)}58%{transform:scale(.91) rotate(12deg)}82%{transform:scale(1.04) rotate(-3deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes kf-clock {0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@keyframes kf-pulse {0%{transform:scale(1)}30%{transform:scale(1.18)}52%{transform:scale(1)}76%{transform:scale(1.09)}100%{transform:scale(1)}}
+
+@media (prefers-reduced-motion: reduce) {
+  .evm[class*="ev-"] { animation: none !important; }
+}

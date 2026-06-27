@@ -61,8 +61,18 @@ export const warmPalette = {
   goldSoft: 'rgba(184, 150, 62, 0.12)',
 }
 
-// Glossy page background — warm sand tone
-export const glossyBg = '#F0EDE8'
+// Glossy page background — very light baby blue
+export const glossyBg = '#EAF3FC'
+
+// Page background — very light baby blue
+export const pageGradient = '#EAF3FC'
+
+// Clean opaque card surface — modern, replaces the muddy glass on the Trip tab
+export const cleanCard = {
+  background: '#FFFFFF',
+  border: '1px solid rgba(0,0,0,0.05)',
+  boxShadow: '0 6px 18px rgba(40,50,70,0.08)',
+}
 
 export const glass = {
   frosted: {

@@ -210,7 +210,7 @@ export default function CalendarView({ onNavigate }) {
               padding: 0,
             }}
           >
-            <ChevronLeft size={22} color={warmPalette.textMedium} />
+            <ChevronLeft size={22} color={warmPalette.textLight} strokeWidth={2} />
           </motion.button>
 
           <div style={{ textAlign: 'center' }}>
@@ -250,7 +250,7 @@ export default function CalendarView({ onNavigate }) {
               padding: 0,
             }}
           >
-            <ChevronRight size={22} color={warmPalette.textMedium} />
+            <ChevronRight size={22} color={warmPalette.textLight} strokeWidth={2} />
           </motion.button>
         </div>
 
