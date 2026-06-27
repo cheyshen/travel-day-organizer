@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { CalendarDays, Sun, CloudSun, Cloud, CloudRain, Clock, ChevronRight, MapPin, Plane, Ship, Mountain, Waves, Camera } from 'lucide-react'
+import { Sun, CloudSun, Cloud, CloudRain, Clock, ChevronRight, MapPin, Plane, Ship, Mountain, Waves, Camera } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { fontStack, typography, spacing, glass as sharedGlass, shadows, warmPalette, radius, scrimGradient, pageGradient, cleanCard } from '../styles'
 import { colors } from '../colors'
@@ -337,50 +337,6 @@ async function fetchWeatherForZip(zipCode, tripStart, tripEnd) {
   return { data: result, locationName: name, matched, total, forecastEnd }
 }
 
-// --- Trip countdown helpers ---
-
-function formatCountdownTime(triggerMs, nowMs) {
-  const diff = triggerMs - nowMs
-  if (Math.abs(diff) < 60000) return 'Now'
-
-  const absDiff = Math.abs(diff)
-  const days = Math.floor(absDiff / DAY_MS)
-  const hours = Math.floor((absDiff % DAY_MS) / 3600000)
-
-  const prefix = diff > 0 ? 'in ' : ''
-  const suffix = diff < 0 ? ' ago' : ''
-
-  if (days > 0) return `${prefix}${days}d${suffix}`
-  if (hours > 0) return `${prefix}${hours}h${suffix}`
-  const mins = Math.floor(absDiff / 60000)
-  return `${prefix}${mins}m${suffix}`
-}
-
-function getTripCountdownMilestones(startDate, nowMs) {
-  const startMs = new Date(startDate).getTime()
-
-  const milestones = [
-    { id: 'booked', triggerMs: startMs - 45 * DAY_MS, label: 'Trip booked', detail: 'Itinerary confirmed' },
-    { id: '30days', triggerMs: startMs - 30 * DAY_MS, label: '30 days out', detail: 'Start planning activities' },
-    { id: '3weeks', triggerMs: startMs - 21 * DAY_MS, label: '3 weeks out', detail: 'Book restaurants & tours' },
-    { id: '2weeks', triggerMs: startMs - 14 * DAY_MS, label: '2 weeks out', detail: 'Start packing list' },
-    { id: '1week', triggerMs: startMs - 7 * DAY_MS, label: '1 week out', detail: 'Final preparations' },
-    { id: 'depart', triggerMs: startMs, label: 'Trip begins', detail: 'Aloha!' },
-  ]
-
-  milestones.forEach((m, i) => {
-    const nextTrigger = milestones[i + 1]?.triggerMs
-    if (nowMs >= m.triggerMs) {
-      m.status = (nextTrigger && nowMs >= nextTrigger) ? 'done' : 'current'
-    } else {
-      m.status = 'upcoming'
-    }
-    m.relativeTime = formatCountdownTime(m.triggerMs, nowMs)
-  })
-
-  return milestones
-}
-
 // --- Main Component ---
 export default function HeroView({ onNavigate }) {
   const { state, dispatch } = useTripContext()
@@ -538,17 +494,6 @@ export default function HeroView({ onNavigate }) {
     return getVisibleMilestones(flightMilestones)
   }, [flightMilestones])
 
-  // Trip countdown milestone state
-  const countdownMilestones = useMemo(() => {
-    const tripStartMs = new Date(trip.startDate).getTime()
-    if (now >= tripStartMs) return []
-    return getTripCountdownMilestones(trip.startDate, now)
-  }, [trip.startDate, now])
-
-  const visibleCountdownMilestones = useMemo(() => {
-    return getVisibleMilestones(countdownMilestones)
-  }, [countdownMilestones])
-
   function getDestDayCount(destId) {
     return Object.values(days).filter(d => d.destinationId === destId).length
   }
@@ -558,6 +503,9 @@ export default function HeroView({ onNavigate }) {
     if (!day) return null
     return trip.destinations.find(d => d.id === day.destinationId)
   }
+
+  // Days until the trip starts — drives the masthead countdown pill (pre-trip only)
+  const daysToGo = Math.ceil((new Date(trip.startDate).getTime() - now) / DAY_MS)
 
   return (
     <div style={{ background: pageGradient, minHeight: '100vh' }}>
@@ -591,6 +539,33 @@ export default function HeroView({ onNavigate }) {
           background: scrimGradient,
         }} />
 
+        {/* Countdown pill — small, text-only, readable on any photo (pre-trip only) */}
+        {daysToGo > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.6 }}
+            style={{
+              position: 'absolute',
+              top: 16,
+              left: 20,
+              zIndex: 3,
+              background: 'rgba(0,0,0,0.34)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              color: colors.textOnDark,
+              fontFamily: fontStack,
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.2px',
+              padding: '6px 12px',
+              borderRadius: radius.pill,
+            }}
+          >
+            {daysToGo === 1 ? '1 day to go' : `${daysToGo} days to go`}
+          </motion.div>
+        )}
+
         {/* Title masthead — trip name + dates over the photo */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -604,14 +579,6 @@ export default function HeroView({ onNavigate }) {
             zIndex: 3,
           }}
         >
-          <div style={{
-            ...typography.caption,
-            color: colors.textOnDark,
-            opacity: 0.9,
-            marginBottom: 6,
-          }}>
-            {`${formatShortDate(trip.startDate)} – ${formatShortDate(trip.endDate)} · ${tripDates.length} days`}
-          </div>
           <h1 style={{
             ...typography.hero,
             color: colors.textOnDark,
@@ -743,8 +710,16 @@ export default function HeroView({ onNavigate }) {
             countdownText = mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`
           }
 
-          // Day label for the time column
-          const dayLabel = isNextToday ? 'Today' : `Day ${nextDayNum}`
+          // "How soon" chip — calendar-day aware
+          const evMid = new Date(`${nextUp.dateStr}T00:00:00`).getTime()
+          const todayMid = new Date(now)
+          todayMid.setHours(0, 0, 0, 0)
+          const daysUntil = Math.round((evMid - todayMid.getTime()) / DAY_MS)
+          let soonLabel
+          if (isNow) soonLabel = 'Now'
+          else if (daysUntil <= 0) soonLabel = `in ${countdownText}`
+          else if (daysUntil === 1) soonLabel = 'Tomorrow'
+          else soonLabel = `in ${daysUntil}d`
 
           return (
             <motion.div
@@ -772,65 +747,60 @@ export default function HeroView({ onNavigate }) {
                 style={{
                   ...cleanCard,
                   borderRadius: radius.lg,
-                  padding: 24,
+                  padding: 16,
                   cursor: 'pointer',
-                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 13,
                   fontFamily: fontStack,
                 }}
               >
-                {/* Corner icon */}
-                <div style={{ position: 'absolute', top: 20, right: 20 }}>
-                  <AnimatedEventIcon
-                    type={nextUp.event.type}
-                    tile={38}
-                    icon={20}
-                    radius={11}
-                    playOnMount
-                  />
-                </div>
+                {/* Event icon */}
+                <AnimatedEventIcon
+                  type={nextUp.event.type}
+                  tile={42}
+                  icon={21}
+                  radius={11}
+                  playOnMount
+                />
 
-                {/* Title */}
-                <div style={{
-                  ...typography.sectionHeader,
-                  color: palette.textDark,
-                  fontFamily: fontStack,
-                  paddingRight: 52,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>
-                  {nextUp.event.title}
-                </div>
-
-                {/* Time line */}
-                <div style={{
-                  ...typography.body,
-                  color: palette.textMedium,
-                  marginTop: 10,
-                  marginBottom: locationStr ? 8 : 0,
-                }}>
-                  {dayLabel} · {formatTime(nextUp.event.startTime)}
-                </div>
-
-                {/* Location */}
-                {locationStr && (
+                {/* Title + time · location */}
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    ...typography.body,
-                    color: palette.textLight,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
+                    ...typography.sectionHeader,
+                    color: palette.textDark,
+                    fontFamily: fontStack,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}>
-                    <MapPin size={13} color={palette.textLight} strokeWidth={1.5} />
-                    <span style={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}>
-                      {locationStr}
-                    </span>
+                    {nextUp.event.title}
                   </div>
-                )}
+                  <div style={{
+                    ...typography.helper,
+                    color: palette.textMedium,
+                    marginTop: 3,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
+                    {formatTime(nextUp.event.startTime)}{locationStr ? ` · ${locationStr}` : ''}
+                  </div>
+                </div>
+
+                {/* "How soon" chip */}
+                <div style={{
+                  flexShrink: 0,
+                  backgroundColor: palette.accentSoft,
+                  color: palette.accent,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: '5px 11px',
+                  borderRadius: radius.pill,
+                  whiteSpace: 'nowrap',
+                }}>
+                  {soonLabel}
+                </div>
 
               </motion.div>
             </motion.div>
@@ -953,7 +923,7 @@ export default function HeroView({ onNavigate }) {
                   maxWidth: 120,
                 }}>
                   <div style={{ flex: 1, height: 1, backgroundColor: palette.textLight, opacity: 0.4 }} />
-                  <Plane size={14} color={palette.textMedium} strokeWidth={2} />
+                  <Plane size={14} color={palette.textMedium} strokeWidth={2} style={{ transform: 'rotate(45deg)' }} />
                   <div style={{ flex: 1, height: 1, backgroundColor: palette.textLight, opacity: 0.4 }} />
                 </div>
                 <span style={{
@@ -993,110 +963,6 @@ export default function HeroView({ onNavigate }) {
         <div style={{ ...typography.heading, color: palette.textDark, margin: '10px 2px 12px' }}>
           Your trip
         </div>
-
-        {/* --- Trip Countdown Card — Days until departure with milestones --- */}
-        {visibleCountdownMilestones.length > 0 && (() => {
-          const tripStartMs = new Date(trip.startDate).getTime()
-          const daysAway = Math.ceil((tripStartMs - now) / DAY_MS)
-          const destNames = trip.destinations.map(d => d.name).join(' \u2192 ')
-
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.75, duration: 0.5 }}
-              style={{
-                ...cleanCard,
-                borderRadius: radius.lg,
-                padding: '26px',
-                marginBottom: 20,
-                position: 'relative',
-                fontFamily: fontStack,
-              }}
-            >
-              {/* Corner icon */}
-              <div style={{
-                position: 'absolute', top: 20, right: 20,
-                width: 38, height: 38, borderRadius: 11,
-                background: '#C99A2E',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <CalendarDays size={20} color="#FFFFFF" strokeWidth={2} />
-              </div>
-
-              {/* Eyebrow + countdown badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, paddingRight: 52 }}>
-                <span style={{ ...typography.caption, color: palette.textMedium }}>Countdown</span>
-                <div style={{
-                  backgroundColor: 'rgba(0,0,0,0.06)',
-                  color: palette.textDark,
-                  padding: '2px 8px',
-                  borderRadius: radius.pill,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                }}>
-                  {daysAway}d away
-                </div>
-              </div>
-
-              {/* Title */}
-              <div style={{ marginBottom: 12, paddingRight: 52 }}>
-                <InlineEdit
-                  value={trip.name || 'Your Trip'}
-                  onSave={(v) => dispatch({ type: 'UPDATE_TRIP', payload: { name: v } })}
-                  style={{
-                    ...typography.sectionHeader,
-                    color: palette.textDark,
-                    fontFamily: fontStack,
-                  }}
-                />
-              </div>
-
-              {/* Date range */}
-              <div style={{
-                ...typography.body,
-                color: palette.textMedium,
-                marginBottom: 8,
-              }}>
-                {formatShortDate(trip.startDate)} — {formatShortDate(trip.endDate)}
-              </div>
-
-              {/* Location */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                marginBottom: 14,
-              }}>
-                <MapPin size={14} color={palette.accent} strokeWidth={1.5} />
-                <span style={{
-                  ...typography.body,
-                  fontWeight: 500,
-                  color: palette.textMedium,
-                }}>
-                  {destNames}
-                </span>
-              </div>
-
-              {/* Divider */}
-              <div style={{
-                height: 1,
-                backgroundColor: colors.borderLight,
-                marginBottom: 14,
-              }} />
-
-              {/* Countdown milestones */}
-              {visibleCountdownMilestones.map((m, i) => (
-                <FlightMilestoneRow
-                  key={m.id}
-                  milestone={m}
-                  isLast={i === visibleCountdownMilestones.length - 1}
-                />
-              ))}
-            </motion.div>
-          )
-        })()}
 
         {/* --- Your Schedule --- */}
         <motion.div
