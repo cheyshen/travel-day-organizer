@@ -1,7 +1,7 @@
 import { Eye, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { colors } from '../colors'
-import { typography, spacing, radius, warmPalette, glass } from '../styles'
+import { typography, spacing, radius, warmPalette, glass, cleanCard } from '../styles'
 import { getDocumentCategory } from '../data/statusCategories'
 
 // =============================================================================
@@ -26,7 +26,7 @@ export default function DocumentCard({ doc, onPreview, onDelete }) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       style={{
-        ...glass.card,
+        ...cleanCard,
         borderRadius: radius.md,
         overflow: 'hidden',
       }}

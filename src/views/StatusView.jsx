@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Plus, Upload, ClipboardList, FolderOpen } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { colors } from '../colors'
-import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass, glossyBg, cleanCard } from '../styles'
 import { CHECKLIST_CATEGORIES } from '../data/statusCategories'
 import ChecklistItemRow from '../components/ChecklistItemRow'
 import ChecklistEditor from '../components/ChecklistEditor'
@@ -240,7 +240,7 @@ export default function StatusView() {
           <div style={{
             textAlign: 'center',
             padding: spacing.xxl,
-            ...glass.subtle,
+            ...cleanCard,
             borderRadius: radius.xl,
           }}>
             <ClipboardList size={32} strokeWidth={1} color={warmPalette.textLight} style={{ marginBottom: spacing.sm }} />
@@ -301,7 +301,7 @@ export default function StatusView() {
           <div style={{
             textAlign: 'center',
             padding: spacing.xxl,
-            ...glass.subtle,
+            ...cleanCard,
             borderRadius: radius.xl,
             display: 'flex',
             flexDirection: 'column',

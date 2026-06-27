@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Clock, MapPin, Hash, FileText, Edit3 } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
-import { typography, spacing, radius, warmPalette, glass, glossyBg } from '../styles'
+import { typography, spacing, radius, warmPalette, glass, glossyBg, cleanCard } from '../styles'
 import { colors } from '../colors'
 import { formatTime, formatTimeRange, getDurationMinutes, formatDuration, getEventIcon, getEventColor, getEventBgColor } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
@@ -175,7 +175,7 @@ export default function EventDetailView({ onNavigate }) {
       {/* Hero card — type icon + title */}
       <div style={{
         margin: `0 ${spacing.lg}px ${spacing.lg}px`,
-        ...glass.card,
+        ...cleanCard,
         borderRadius: `0 0 ${radius.lg}px ${radius.lg}px`,
         borderTop: 'none',
         padding: `${spacing.xl}px ${spacing.lg}px`,
@@ -281,7 +281,7 @@ export default function EventDetailView({ onNavigate }) {
         {/* Notes */}
         {event.notes && (
           <div style={{
-            ...glass.card,
+            ...cleanCard,
             borderRadius: radius.md,
             padding: spacing.lg,
           }}>
@@ -338,7 +338,7 @@ function InfoRow({ icon: RowIcon, label, value, secondary, accentColor, mono }) 
 
   return (
     <div style={{
-      ...glass.card,
+      ...cleanCard,
       borderRadius: radius.md,
       padding: spacing.lg,
       display: 'flex',

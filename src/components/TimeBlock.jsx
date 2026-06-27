@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronRight, Pencil } from 'lucide-react'
-import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
+import { typography, spacing, radius, shadows, warmPalette, glass, cleanCard } from '../styles'
 import { colors } from '../colors'
 import { formatTime, getEventColor, getEventIcon } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
@@ -83,7 +83,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
       style={{
         borderRadius: radius.lg,
         overflow: 'hidden',
-        ...glass.card,
+        ...cleanCard,
         cursor: 'pointer',
         position: 'relative',
       }}

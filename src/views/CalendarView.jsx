@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Camera } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { colors } from '../colors'
-import { typography, spacing, radius, warmPalette, glass, glossyBg } from '../styles'
+import { typography, spacing, radius, warmPalette, glass, glossyBg, cleanCard } from '../styles'
 import { getCalendarGrid, getAdjacentMonth, formatMonthYearFromParts } from '../utils/dateUtils'
 import TripHeader from '../components/TripHeader'
 import DayCard from '../components/DayCard'
@@ -259,7 +259,7 @@ export default function CalendarView({ onNavigate }) {
           ref={gridContainerRef}
           style={{
             position: 'relative',
-            ...glass.card,
+            ...cleanCard,
             borderRadius: radius.xl,
             padding: spacing.md,
             marginTop: spacing.md,
