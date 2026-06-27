@@ -140,7 +140,7 @@ export default function DayTimelineView({ onNavigate }) {
             flex: 1,
             textAlign: 'center',
           }}>
-            <p style={{ ...typography.caption, fontSize: 12, color: warmPalette.textMedium, marginBottom: 2 }}>
+            <p style={{ ...typography.caption, color: warmPalette.textMedium, marginBottom: 2 }}>
               Day {dayNum} of {Object.keys(days).length}
             </p>
             <h2 style={{ ...typography.sectionHeader, color: warmPalette.textDark, margin: 0 }}>
@@ -193,7 +193,7 @@ export default function DayTimelineView({ onNavigate }) {
             }}>
               <MapPin size={13} color={dest.color} strokeWidth={2.5} />
               <span style={{
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 color: warmPalette.textDark,
               }}>
@@ -288,7 +288,7 @@ export default function DayTimelineView({ onNavigate }) {
                       {showHourLabel && (
                         <span style={{
                           ...typography.caption,
-                          fontSize: 12,
+                          fontSize: 13,
                           color: warmPalette.textMedium,
                         }}>
                           {startHour}

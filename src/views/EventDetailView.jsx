@@ -209,8 +209,6 @@ export default function EventDetailView({ onNavigate }) {
             ...typography.title,
             color: warmPalette.textDark,
             margin: 0,
-            fontSize: 22,
-            lineHeight: '28px',
           }}>
             {event.title}
           </h1>

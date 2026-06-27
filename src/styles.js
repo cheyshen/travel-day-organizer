@@ -8,12 +8,13 @@ export const fontStack = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 
 export const typography = {
   hero: { fontSize: 42, fontWeight: 700, lineHeight: '44px', letterSpacing: '-0.02em' },
-  title: { fontSize: 28, fontWeight: 700, lineHeight: '34px' },
+  title: { fontSize: 24, fontWeight: 700, lineHeight: '30px', letterSpacing: '-0.01em' },
+  heading: { fontSize: 20, fontWeight: 700, lineHeight: '26px', letterSpacing: '-0.01em' },
   sectionHeader: { fontSize: 18, fontWeight: 600, lineHeight: '24px' },
   body: { fontSize: 15, fontWeight: 400, lineHeight: '22px' },
   bodyMedium: { fontSize: 15, fontWeight: 500, lineHeight: '22px' },
   helper: { fontSize: 13, fontWeight: 400, lineHeight: '18px' },
-  caption: { fontSize: 11, fontWeight: 500, lineHeight: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  caption: { fontSize: 11, fontWeight: 600, lineHeight: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' },
 }
 
 export const spacing = {

@@ -718,7 +718,7 @@ export default function HeroView({ onNavigate }) {
         </motion.div>
 
         {nextUp && (
-          <div style={{ fontSize: 20, fontWeight: 700, color: palette.textDark, margin: '10px 2px 12px' }}>
+          <div style={{ ...typography.heading, color: palette.textDark, margin: '10px 2px 12px' }}>
             Up next
           </div>
         )}
@@ -897,7 +897,7 @@ export default function HeroView({ onNavigate }) {
                   color: statusColor,
                   padding: '2px 8px',
                   borderRadius: radius.pill,
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 600,
                   letterSpacing: '0.02em',
                   whiteSpace: 'nowrap',
@@ -990,7 +990,7 @@ export default function HeroView({ onNavigate }) {
           )
         })()}
 
-        <div style={{ fontSize: 20, fontWeight: 700, color: palette.textDark, margin: '10px 2px 12px' }}>
+        <div style={{ ...typography.heading, color: palette.textDark, margin: '10px 2px 12px' }}>
           Your trip
         </div>
 
@@ -1032,7 +1032,7 @@ export default function HeroView({ onNavigate }) {
                   color: palette.textDark,
                   padding: '2px 8px',
                   borderRadius: radius.pill,
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
                 }}>
@@ -1256,7 +1256,7 @@ export default function HeroView({ onNavigate }) {
                     <WeatherIcon condition={weather.condition} size={20} />
                   </div>
                   <span style={{
-                    fontSize: 14,
+                    fontSize: 15,
                     color: palette.textDark,
                     marginTop: 4,
                     fontWeight: 600,
@@ -1647,9 +1647,7 @@ function DestCard({ destination, photo, dayCount, delay, onTap, onPhotoChange })
       }}>
         <div style={{ minWidth: 0 }}>
           <h3 style={{
-            fontSize: 25,
-            fontWeight: 700,
-            letterSpacing: '-0.01em',
+            ...typography.title,
             color: '#FFFFFF',
             margin: 0,
             fontFamily: fontStack,

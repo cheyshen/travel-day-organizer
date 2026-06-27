@@ -316,13 +316,16 @@ These are the foundational principles. When in doubt about a design decision, re
 
 | Style | Size | Weight | Line Height | Use |
 |-------|------|--------|-------------|-----|
-| hero | 42px | 700 | 48px | Page titles only |
-| title | 28px | 700 | 34px | Section titles |
-| sectionHeader | 18px | 600 | 24px | Card headers, subsections |
+| hero | 42px | 700 | 44px | Page title (masthead) only |
+| title | 24px | 700 | 30px | Feature / overlay titles (destination cards, event detail) |
+| heading | 20px | 700 | 26px | Section headings (e.g. "Up next", "Your trip") |
+| sectionHeader | 18px | 600 | 24px | Card titles |
 | body | 15px | 400 | 22px | Primary content |
 | bodyMedium | 15px | 500 | 22px | Emphasized body text |
 | helper | 13px | 400 | 18px | Secondary info, metadata |
-| caption | 11px | 500 | 14px | Labels, tags (UPPERCASE) |
+| caption | 11px | 600 | 14px | Labels, tags, eyebrows (UPPERCASE) |
+
+> Inputs use 16px deliberately (prevents iOS auto-zoom on focus) — an intentional exception to the ramp.
 
 **Typography Rules:**
 - Never go below 11px (Apple HIG minimum; WCAG readability)
