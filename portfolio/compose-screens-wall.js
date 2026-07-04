@@ -18,12 +18,19 @@ const { openApp, tapSelector, tapByText, tapDayCell, sleep } = require('./captur
 const HERE = __dirname;
 const WALL_DIR = path.join(HERE, 'exports', 'wall');
 const SHOTS_DIR = path.join(WALL_DIR, 'screens');
-const BG = '#0E7490';
+const BG = process.env.WALL_BG || '#0E7490';
+const OUT_NAME = process.env.WALL_OUT || 'screens-wall.png';
 
 /* app states to capture — each starts from a fresh context on the Trip tab */
 const STATES = [
   { name: 'trip-hero', go: async () => {} },
-  { name: 'plan', go: async (p) => { await tapSelector(p, 'button[aria-label="Plan"]', { settle: 1200 }); } },
+  {
+    name: 'plan',
+    go: async (p) => {
+      await tapSelector(p, 'button[aria-label="Plan"]', { settle: 1200 });
+      await tapByText(p, 'Kauai', { settle: 900 }); // island filter segment selected
+    },
+  },
   {
     name: 'plan-popup',
     go: async (p) => {
@@ -37,6 +44,9 @@ const STATES = [
     go: async (p) => {
       await tapSelector(p, 'button[aria-label="Day"]', { settle: 1200 });
       await tapSelector(p, 'button[aria-label="Go to Maui"]', { settle: 1600 });
+      // scroll so the wall's visible fragment lands on later, more photogenic cards
+      await p.evaluate(() => window.__smoothScroll(520, 600));
+      await sleep(700);
     },
   },
   {
@@ -88,8 +98,10 @@ async function main() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) launchOpts.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
   const browser = await puppeteer.launch(launchOpts);
   const layoutOnly = process.argv.includes('--layout-only'); // reuse existing screen PNGs
+  const only = process.argv.slice(2).filter((a) => !a.startsWith('--')); // re-capture just these states
+  const states = layoutOnly ? [] : (only.length ? STATES.filter((s) => only.includes(s.name)) : STATES);
   try {
-    for (const state of layoutOnly ? [] : STATES) {
+    for (const state of states) {
       const { ctx, page } = await openApp(browser);
       await state.go(page);
       await sleep(400); // let ripples fade fully
@@ -104,9 +116,9 @@ async function main() {
     await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
     await page.goto('file://' + tmpHtml, { waitUntil: 'networkidle2', timeout: 30000 });
     await sleep(300);
-    await page.screenshot({ path: path.join(WALL_DIR, 'screens-wall.png') });
+    await page.screenshot({ path: path.join(WALL_DIR, OUT_NAME) });
     fs.rmSync(tmpHtml);
-    console.log(`✓ screens-wall.png (3840×2160) → ${WALL_DIR}`);
+    console.log(`✓ ${OUT_NAME} (3840×2160, bg ${BG}) → ${WALL_DIR}`);
   } finally {
     await browser.close();
   }
