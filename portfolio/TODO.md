@@ -32,9 +32,9 @@ screenshot each to its own high-res PNG (plus the icon grid as SVG) for portfoli
 Record 4 real-app interaction clips (add-event, calendar-day-jump, day-island-switch, checklist) → exports/flows/, and add an "In action" section to case-study.html.
 
 ### Steps
-- [ ] capture-flows.js harness + checklist flow
-- [ ] day-island-switch flow
-- [ ] calendar-day-jump flow
-- [ ] add-event flow
-- [ ] case-study.html "In action" section
-- [ ] Full re-run + review at http://192.168.1.122:8080/case-study.html
+- [x] capture-flows.js harness + checklist flow
+- [x] day-island-switch flow
+- [x] calendar-day-jump flow
+- [x] add-event flow
+- [x] case-study.html "In action" section
+- [x] Full re-run + review at http://192.168.1.122:8080/case-study.html
