@@ -1,0 +1,16 @@
+{
+  "name": "travel-portfolio-assets",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Portfolio asset generator for the Travel design system — renders real tokens/components to fixed capture frames and screenshots each to a high-res PNG (+ icon grid as SVG).",
+  "scripts": {
+    "capture": "node capture.js",
+    "capture-anim": "node capture-anim.js",
+    "capture-flows": "node capture-flows.js",
+    "capture:all": "node capture.js && node capture-anim.js"
+  },
+  "dependencies": {
+    "puppeteer": "23.11.1"
+  }
+}
