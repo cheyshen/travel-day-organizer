@@ -63,7 +63,9 @@ async function installHelpers(page) {
 async function tapElement(page, el, { settle = 700 } = {}) {
   const needsScroll = await el.evaluate((e) => {
     const r = e.getBoundingClientRect();
-    if (r.top < 70 || r.bottom > innerHeight - 90) {
+    // only scroll when the element is actually clipped — fixed bottom-nav /
+    // action-bar buttons sit near the viewport edge but are fully visible
+    if (r.top < 0 || r.bottom > innerHeight) {
       e.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return true;
     }
@@ -145,6 +147,21 @@ const FLOWS = [
       await tapByText(page, 'View Day', { settle: 1600 }); // tooltip CTA → day timeline
       await page.waitForFunction(
         () => /day 6 of 9/i.test(document.body.innerText), { timeout: 5000 }); // Jul 9 = Day 6
+    },
+  },
+  {
+    name: 'add-event',
+    run: async (page) => {
+      await tapSelector(page, 'button[aria-label="Day"]', { settle: 900 });        // today's timeline
+      await tapSelector(page, 'button[aria-label="Add event"]', { settle: 1000 }); // sheet springs up
+      await tapByText(page, 'Beach', { settle: 850 });  // sticker tilt-pop + confetti
+      await tapByText(page, 'Fun', { settle: 850 });
+      await tapSelector(page, 'input[placeholder="Event title"]', { settle: 300 });
+      await page.keyboard.type('Sunset Sail', { delay: 65 });
+      await sleep(400);
+      await tapByText(page, 'Add Event', { settle: 1200 }); // save → sheet closes
+      await page.waitForFunction(
+        () => document.body.innerText.includes('Sunset Sail'), { timeout: 5000 }); // event in timeline
     },
   },
 ];
