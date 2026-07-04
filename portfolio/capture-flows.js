@@ -113,12 +113,16 @@ async function tapDayCell(page, dayNum, opts) {
   await tapElement(page, el, opts);
 }
 
-/* ---- flows (each ~6–12s; every clip starts on the Trip tab and taps in) ---- */
+/* ---- flows ----
+ * `setup` runs BEFORE recording starts (navigate to the flow's surface),
+ * `run` is what gets recorded — each clip opens directly on its own screen. */
 const FLOWS = [
   {
     name: 'checklist',
-    run: async (page) => {
+    setup: async (page) => {
       await tapSelector(page, 'button[aria-label="Status"]', { settle: 1000 });
+    },
+    run: async (page) => {
       for (let i = 0; i < 4; i++) {
         // re-query each time: the first "Mark complete" is always the top-most unchecked item
         await tapSelector(page, 'button[aria-label="Mark complete"]', { settle: 650 });
@@ -127,8 +131,10 @@ const FLOWS = [
   },
   {
     name: 'day-island-switch',
-    run: async (page) => {
+    setup: async (page) => {
       await tapSelector(page, 'button[aria-label="Day"]', { settle: 1100 }); // Day 1 (today) — live Now marker
+    },
+    run: async (page) => {
       await page.evaluate(() => window.__smoothScroll(
         Math.min(900, document.documentElement.scrollHeight - innerHeight), 1800));
       await sleep(700);
@@ -141,8 +147,10 @@ const FLOWS = [
   },
   {
     name: 'calendar-day-jump',
-    run: async (page) => {
+    setup: async (page) => {
       await tapSelector(page, 'button[aria-label="Plan"]', { settle: 1100 });
+    },
+    run: async (page) => {
       await tapDayCell(page, 9, { settle: 1000 });         // July 9 — Maui day with events
       await tapByText(page, 'View Day', { settle: 1600 }); // tooltip CTA → day timeline
       await page.waitForFunction(
@@ -151,8 +159,10 @@ const FLOWS = [
   },
   {
     name: 'add-event',
-    run: async (page) => {
+    setup: async (page) => {
       await tapSelector(page, 'button[aria-label="Day"]', { settle: 900 });        // today's timeline
+    },
+    run: async (page) => {
       await tapSelector(page, 'button[aria-label="Add event"]', { settle: 1000 }); // sheet springs up
       await tapByText(page, 'Beach', { settle: 850 });  // sticker tilt-pop + confetti
       await tapByText(page, 'Fun', { settle: 850 });
@@ -211,6 +221,7 @@ async function main() {
     for (const flow of flows) {
       console.log(`▶ ${flow.name}`);
       const { ctx, page } = await openApp(browser);
+      if (flow.setup) { await flow.setup(page); await sleep(500); } // navigate off-camera
       const recorder = await page.screencast({ path: path.join(OUT_DIR, `_${flow.name}.webm`) });
       await sleep(600);  // head padding — reads as a still before the first tap
       await flow.run(page);
