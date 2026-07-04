@@ -26,7 +26,7 @@ function ff(args) { execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', '
 const PAGE = (srcs) => `<!doctype html><html><head><style>
   html, body { margin: 0; }
   body {
-    width: 1920px; height: 1080px; background: #F2F3F5; overflow: hidden;
+    width: 1920px; height: 1080px; background: #0E7490; overflow: hidden;
     display: flex; gap: 200px; align-items: center; justify-content: center;
   }
   .phone { border-radius: 44px; background: #14181F; padding: 10px;
