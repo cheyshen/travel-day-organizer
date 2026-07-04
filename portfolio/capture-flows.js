@@ -123,6 +123,20 @@ const FLOWS = [
       }
     },
   },
+  {
+    name: 'day-island-switch',
+    run: async (page) => {
+      await tapSelector(page, 'button[aria-label="Day"]', { settle: 1100 }); // Day 1 (today) — live Now marker
+      await page.evaluate(() => window.__smoothScroll(
+        Math.min(900, document.documentElement.scrollHeight - innerHeight), 1800));
+      await sleep(700);
+      await page.evaluate(() => window.__smoothScroll(0, 900));
+      await sleep(500);
+      await tapSelector(page, 'button[aria-label="Go to Maui"]', { settle: 1600 }); // warm → cool tint flip
+      await page.waitForFunction(
+        () => document.body.innerText.includes('July 8'), { timeout: 5000 }); // first Maui day rendered
+    },
+  },
 ];
 
 /* ---- capture + encode ---- */
