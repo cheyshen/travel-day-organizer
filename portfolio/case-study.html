@@ -33,11 +33,8 @@
   .phone.mid { width: 246px; }
   .phone img { width: 100%; border-radius: 28px; display: block; }
 
-  /* in-action flow videos */
-  .phone video { width: 100%; border-radius: 28px; display: block; background: #14181F; }
-  .flowgrid { display: flex; gap: 28px; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
-  .flowcell { display: flex; flex-direction: column; gap: 12px; align-items: center; }
-  .flowcap { font-size: 13px; font-weight: 600; color: #6B6B6B; text-align: center; max-width: 226px; }
+  /* in-action flow video */
+  .flowvideo { width: 100%; display: block; border-radius: 24px; }
 
   .screens { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
   .screen { text-align: center; }
@@ -150,14 +147,9 @@
     <!-- In action -->
     <section id="inaction">
       <h2>In action</h2>
-      <p class="lead">Recordings of the real product — every spring, page transition, and confetti burst captured live, with taps made visible.</p>
+      <p class="lead">Three flows recorded from the real product, side by side — jumping from the calendar into a day, browsing a day timeline across islands, and packing — with every tap made visible.</p>
       <div style="height:28px"></div>
-      <div class="flowgrid">
-        <div class="flowcell"><div class="phone"><video src="exports/flows/add-event.mp4" autoplay loop muted playsinline></video></div><div class="flowcap">Add an event — sticker picker + confetti</div></div>
-        <div class="flowcell"><div class="phone"><video src="exports/flows/calendar-day-jump.mp4" autoplay loop muted playsinline></video></div><div class="flowcap">Calendar → day timeline</div></div>
-        <div class="flowcell"><div class="phone"><video src="exports/flows/day-island-switch.mp4" autoplay loop muted playsinline></video></div><div class="flowcap">Day timeline, island to island</div></div>
-        <div class="flowcell"><div class="phone"><video src="exports/flows/checklist.mp4" autoplay loop muted playsinline></video></div><div class="flowcap">Packing checklist</div></div>
-      </div>
+      <video class="flowvideo" src="exports/flows/in-action-triptych.mp4" autoplay loop muted playsinline></video>
     </section>
 
     <!-- Components -->

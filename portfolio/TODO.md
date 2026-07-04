@@ -38,3 +38,4 @@ Record 4 real-app interaction clips (add-event, calendar-day-jump, day-island-sw
 - [x] add-event flow
 - [x] case-study.html "In action" section
 - [x] Full re-run + review at http://192.168.1.122:8080/case-study.html
+- [x] compose-triptych.js — calendar-day-jump + day-island-switch + checklist side by side in ONE video (in-action-triptych.mp4/gif); case-study #inaction now embeds it instead of the 4 separate phones
