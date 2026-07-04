@@ -137,6 +137,16 @@ const FLOWS = [
         () => document.body.innerText.includes('July 8'), { timeout: 5000 }); // first Maui day rendered
     },
   },
+  {
+    name: 'calendar-day-jump',
+    run: async (page) => {
+      await tapSelector(page, 'button[aria-label="Plan"]', { settle: 1100 });
+      await tapDayCell(page, 9, { settle: 1000 });         // July 9 — Maui day with events
+      await tapByText(page, 'View Day', { settle: 1600 }); // tooltip CTA → day timeline
+      await page.waitForFunction(
+        () => /day 6 of 9/i.test(document.body.innerText), { timeout: 5000 }); // Jul 9 = Day 6
+    },
+  },
 ];
 
 /* ---- capture + encode ---- */
