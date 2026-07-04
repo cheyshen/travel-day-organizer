@@ -252,4 +252,8 @@ async function main() {
   }
 }
 
-main().catch((err) => { console.error('\ncapture-flows failed:', err); process.exit(1); });
+if (require.main === module) {
+  main().catch((err) => { console.error('\ncapture-flows failed:', err); process.exit(1); });
+}
+
+module.exports = { openApp, installHelpers, tapElement, tapSelector, tapByText, tapDayCell, sleep, ff };

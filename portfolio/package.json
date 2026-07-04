@@ -9,6 +9,7 @@
     "capture-anim": "node capture-anim.js",
     "capture-flows": "node capture-flows.js",
     "compose-triptych": "node compose-triptych.js",
+    "compose-wall": "node compose-screens-wall.js",
     "capture:all": "node capture.js && node capture-anim.js"
   },
   "dependencies": {
