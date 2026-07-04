@@ -158,6 +158,21 @@ const FLOWS = [
     },
   },
   {
+    // stays inside the calendar (no View Day jump) — made for the triptych,
+    // where the middle phone already shows the Day timeline
+    name: 'calendar-browse',
+    setup: async (page) => {
+      await tapSelector(page, 'button[aria-label="Plan"]', { settle: 1100 });
+    },
+    run: async (page) => {
+      await tapDayCell(page, 5, { settle: 1300 });                            // Kauai day → popup
+      await tapSelector(page, 'button[aria-label="Close tooltip"]', { settle: 700 });
+      await tapDayCell(page, 9, { settle: 1300 });                            // Maui day → popup, hold
+      await page.waitForFunction(
+        () => document.body.innerText.includes('July 9'), { timeout: 5000 });
+    },
+  },
+  {
     name: 'add-event',
     setup: async (page) => {
       await tapSelector(page, 'button[aria-label="Day"]', { settle: 900 });        // today's timeline

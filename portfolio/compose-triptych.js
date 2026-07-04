@@ -17,7 +17,7 @@ const puppeteer = require('puppeteer');
 
 const HERE = __dirname;
 const FLOWS_DIR = path.join(HERE, 'exports', 'flows');
-const CLIPS = ['calendar-day-jump', 'day-island-switch', 'checklist']; // left → right
+const CLIPS = ['calendar-browse', 'day-island-switch', 'checklist']; // left → right
 const NAME = 'in-action-triptych';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -26,8 +26,8 @@ function ff(args) { execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', '
 const PAGE = (srcs) => `<!doctype html><html><head><style>
   html, body { margin: 0; }
   body {
-    width: 1366px; height: 944px; background: #F2F3F5; overflow: hidden;
-    display: flex; gap: 28px; align-items: center; justify-content: center;
+    width: 1560px; height: 960px; background: #F2F3F5; overflow: hidden;
+    display: flex; gap: 84px; align-items: center; justify-content: center;
   }
   .phone { border-radius: 44px; background: #14181F; padding: 10px;
            box-shadow: 0 24px 60px rgba(20,28,40,0.22); }
@@ -47,7 +47,7 @@ async function main() {
   const browser = await puppeteer.launch(launchOpts);
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1366, height: 944, deviceScaleFactor: 1 });
+    await page.setViewport({ width: 1560, height: 960, deviceScaleFactor: 1 });
     // page must itself be a file:// document — chrome's URL safety check blocks
     // file:// video subresources from about:blank (page.setContent) documents
     const srcs = CLIPS.map((c) => `exports/flows/${c}.mp4`);
