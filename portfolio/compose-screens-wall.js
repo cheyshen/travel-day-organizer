@@ -18,7 +18,7 @@ const { openApp, tapSelector, tapByText, tapDayCell, sleep } = require('./captur
 const HERE = __dirname;
 const WALL_DIR = path.join(HERE, 'exports', 'wall');
 const SHOTS_DIR = path.join(WALL_DIR, 'screens');
-const BG = process.env.WALL_BG || '#0E7490';
+const BG = process.env.WALL_BG || '#E0F1F8'; // colors.js infoLight (user's pick 2026-07-04)
 const OUT_NAME = process.env.WALL_OUT || 'screens-wall.png';
 
 /* app states to capture — each starts from a fresh context on the Trip tab */
@@ -75,7 +75,7 @@ const COLUMNS = [
   { screens: ['day-kauai', 'trip-hero'], offset: -520 },
   { screens: ['plan-popup', 'event-editor'], offset: -140 },
   { screens: ['day-maui', 'status'], offset: -420 },
-  { screens: ['plan', 'event-detail'], offset: -240 },
+  { screens: ['event-detail', 'plan'], offset: -240 },
 ];
 
 const PAGE = () => `<!doctype html><html><head><style>
