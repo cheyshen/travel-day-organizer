@@ -23,6 +23,9 @@
   body.wide .strip { transform: scale(1.5); }
   body.wide .rowc { gap: 120px; }
   body.wide .cline { height: 88px; }
+  /* square 2×2: equal-width cells so the two rows form aligned columns
+     (otherwise each independently-centered row drifts by cell width) */
+  body:not(.wide) .callout { width: 230px; }
   .callout { display: flex; flex-direction: column; align-items: center; }
   .clabel { font: 600 16px var(--font); color: rgba(255,255,255,.92); letter-spacing: .01em;
             white-space: nowrap; }
