@@ -39,8 +39,8 @@ function probeSize(file) {
   return { w, h };
 }
 
-async function captureLayout(browser, layout, anim) {
-  const name = `component-callouts-${layout}`;
+async function captureLayout(browser, layout, anim, translucent) {
+  const name = `component-callouts-${layout}${translucent ? '-translucent' : ''}`;
   const page = await browser.newPage();
   try {
     await page.setViewport({ width: 1960, height: 1200, deviceScaleFactor: 2 });
@@ -50,6 +50,9 @@ async function captureLayout(browser, layout, anim) {
     await page.evaluate(() => window.__stopAutoplay()); // freeze live loop → deterministic capture
     if (process.env.CALLOUT_BG) {
       await page.evaluate((bg) => document.getElementById('panel').style.background = bg, process.env.CALLOUT_BG);
+    } else if (translucent) {
+      // the real nav glass — panel alpha survives into APNG/WebM
+      await page.evaluate(() => document.getElementById('panel').style.background = 'rgba(20,28,40,0.88)');
     }
     await new Promise((r) => setTimeout(r, 300));
     const panel = await page.$('#panel');
@@ -78,6 +81,19 @@ async function captureLayout(browser, layout, anim) {
     }
     const rawGlob = path.join(fdir, 'f_%04d.png');
     const { w, h } = probeSize(path.join(fdir, 'f_0000.png'));
+
+    if (translucent) {
+      // alpha-capable formats only: APNG (<img>, all browsers) + WebM VP9
+      // with alpha (<video>, Chrome/Firefox — not Safari)
+      const apng = path.join(ANIM_DIR, `${name}.apng`);
+      ff(['-framerate', String(FPS), '-i', rawGlob, '-plays', '0', '-f', 'apng', apng]);
+      const webm = path.join(ANIM_DIR, `${name}.webm`);
+      ff(['-framerate', String(FPS), '-i', rawGlob, '-c:v', 'libvpx-vp9',
+          '-pix_fmt', 'yuva420p', '-b:v', '0', '-crf', '24', webm]);
+      fs.rmSync(fdir, { recursive: true, force: true });
+      console.log(`  ✓ ${name} (${frames} frames @ ${FPS}fps, TRUE ALPHA) → apng, webm in exports/anim/`);
+      return;
+    }
 
     // MP4/GIF can't hold alpha — flatten the translucent panel onto the
     // portfolio page grey so it composites exactly as it would on the page
@@ -109,6 +125,7 @@ async function captureLayout(browser, layout, anim) {
 
 async function main() {
   const anim = process.argv.includes('--anim');
+  const translucent = process.argv.includes('--translucent'); // alpha video variant
   const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const layouts = only.length ? LAYOUTS.filter((l) => only.includes(l)) : LAYOUTS;
   fs.mkdirSync(anim ? ANIM_DIR : OUT_DIR, { recursive: true });
@@ -117,7 +134,7 @@ async function main() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) launchOpts.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
   const browser = await puppeteer.launch(launchOpts);
   try {
-    for (const layout of layouts) await captureLayout(browser, layout, anim);
+    for (const layout of layouts) await captureLayout(browser, layout, anim, translucent);
   } finally {
     await browser.close();
   }

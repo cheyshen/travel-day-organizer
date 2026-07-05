@@ -27,8 +27,9 @@ to labels. **Two layouts**, both regenerated every run.
 |---|---|
 | Source | `component-callouts.html` (`?layout=wide` / `?layout=square`) |
 | Regenerate | `node capture-callouts.js` (statics) + `node capture-callouts.js --anim` (videos) — append `wide` or `square` to do one layout |
-| Static | `exports/component-callouts-wide.png` (3840×2000) · `exports/component-callouts-square.png` (2160×2160) — rounded 48px corners, transparent; **panel keeps its real nav-glass alpha** |
-| Video | `exports/anim/component-callouts-{wide,square}.{mp4,gif,apng}` — **full-bleed, no rounded corners**; MP4/GIF flattened onto page `#F9F9F9`, **APNG = true alpha** (translucent panel survives on any bg) |
+| Static | `exports/component-callouts-wide.png` (3840×2000) · `exports/component-callouts-square.png` (2160×2160) — rounded 48px corners transparent, panel solid `#141C28` |
+| Video (solid) | `exports/anim/component-callouts-{wide,square}.{mp4,gif,apng}` — full-bleed, panel baked solid `#141C28` |
+| Video (translucent) | `node capture-callouts.js --anim --translucent` → `exports/anim/component-callouts-{wide,square}-translucent.{apng,webm}` — panel at the real nav glass `rgba(20,28,40,.88)`, **true alpha**. WebM = `<video>` (Chrome/Firefox, not Safari); APNG = `<img>` (all browsers) |
 
 **Shows:** Event-type sticker (Sunrise), Island switcher (Kauai active), Live
 "Now" marker, Add event button. Wide = one row of 4 (desktop); square = 2×2
@@ -69,10 +70,11 @@ event title "Sunset Sail", swappable in `deleteConfirm()`).
 
 ### Conventions (decided 2026-07-05)
 
-- **Panel color:** `rgba(20,28,40,0.88)` = `#141C28E0` — the product bottom-nav
-  glass (`glass.nav` in styles.js), translucency included (changed from opaque
-  `#1F2937` 2026-07-05 to match the real nav). Override per run with
-  `CALLOUT_BG=` / `BOARD_BG=`. The board default is fully transparent.
+- **Panel color:** `#141C28` — the product bottom-nav base color (`glass.nav`
+  is `rgba(20,28,40,0.88)`). Default exports bake it SOLID (the .88 alpha
+  flattens lighter on the page grey); the `--translucent` variant keeps the
+  real alpha. Override per run with `CALLOUT_BG=` / `BOARD_BG=`. The board
+  default is fully transparent.
 - **Videos are full-bleed** (no rounded corners); rounded+transparent corners
   are only on the callouts static PNGs. The board static is full-bleed too.
 - **Portfolio page background is `#F9F9F9`** — used as the corner-flatten color
