@@ -10,10 +10,11 @@
   body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: transparent; }
 
   /* the exported artifact: card-level components arranged loosely on the dark
-     panel (no labels — the companion piece to the annotated callouts panel) */
-  #panel { width: 1920px; height: 1080px; background: var(--panel-bg, #1F2937); border-radius: 48px;
+     panel (no labels — the companion piece to the annotated callouts panel).
+     Full-bleed: no rounded corners (user request). */
+  #panel { width: 1920px; height: 1080px; background: var(--panel-bg, #1F2937);
            display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .board { display: flex; gap: 90px; align-items: center; transform: scale(1.35); }
+  .board { display: flex; gap: 84px; align-items: center; transform: scale(1.35); }
   .bcol { display: flex; flex-direction: column; gap: 36px; }
 
   /* card primitives (mirroring src tokens: cleanCard, radius, type ramp) */
@@ -34,6 +35,7 @@ const ICONS = {
   chev: '<path d="m9 18 6-6-6-6"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   arrow: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
 };
 function svg(name, size, color, sw) {
   const s = document.createElementNS(NS,'svg');
@@ -149,11 +151,69 @@ function detailsCard() {
   return c;
 }
 
-/* assemble — 3 staggered columns, reference-style loose grid ------------------ */
+/* trip-at-a-glance stat tiles (CalendarView) ---------------------------------- */
+function statTiles() {
+  const row = el('div'); Object.assign(row.style,{ display:'flex', gap:'12px', width:'320px' });
+  for (const [v, l] of [['9','Days'],['38','Events'],['2','Islands']]) {
+    const t = el('div','card'); Object.assign(t.style,{ flex:'1', borderRadius:'16px', padding:'14px 8px', textAlign:'center' });
+    t.appendChild(el('div',null,`<span style="font:700 24px/30px var(--font);color:#1A1A1A">${v}</span>`));
+    t.appendChild(el('div',null,`<span style="font:500 15px var(--font);color:#6B6B6B">${l}</span>`));
+    row.appendChild(t);
+  }
+  return row;
+}
+/* calendar day cells (DayCard variants: non-trip / Kauai selected / Kauai /
+   Maui — island tints + shape dots: Kauai circle, Maui square) --------------- */
+function calStrip() {
+  const wrap = el('div','card'); Object.assign(wrap.style,{ width:'300px', borderRadius:'16px',
+    padding:'10px', display:'flex', gap:'6px' });
+  const CELLS = [
+    { n:'3', bg:'rgba(237,234,229,.4)', w:400, color:'#6B6B6B' },
+    { n:'4', bg:'#F9F0E6', w:700, color:'#1A1A1A', border:'2.5px solid #0E7490', dot:{c:'#DB8F43',round:true} },
+    { n:'5', bg:'#F9F0E6', w:700, color:'#1A1A1A', dot:{c:'#DB8F43',round:true} },
+    { n:'8', bg:'#E7F4F8', w:700, color:'#1A1A1A', dot:{c:'#2AA5CB',round:false} },
+    { n:'9', bg:'#E7F4F8', w:700, color:'#1A1A1A', dot:{c:'#2AA5CB',round:false} },
+  ];
+  for (const cell of CELLS) {
+    const c = el('div'); Object.assign(c.style,{ flex:'1', aspectRatio:'1/1', borderRadius:'8px',
+      backgroundColor:cell.bg, border:cell.border||'none', position:'relative',
+      display:'flex', alignItems:'center', justifyContent:'center',
+      boxShadow:cell.bg==='rgba(237,234,229,.4)'?'none':'0 1px 3px rgba(0,0,0,.04)' });
+    c.appendChild(el('span',null,`<span style="font:${cell.w} 18px/20px var(--font);color:${cell.color}">${cell.n}</span>`));
+    if (cell.dot) {
+      const d = el('div'); Object.assign(d.style,{ position:'absolute', bottom:'3px', right:'3px',
+        width:'5px', height:'5px', borderRadius:cell.dot.round?'50%':'1px', backgroundColor:cell.dot.c, opacity:'.5' });
+      c.appendChild(d);
+    }
+    wrap.appendChild(c);
+  }
+  return wrap;
+}
+/* checklist header (StatusView): title + Add pill + progress bar -------------- */
+function progressCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:'320px', borderRadius:'16px', padding:'16px' });
+  const top = el('div'); Object.assign(top.style,{ display:'flex', alignItems:'center', justifyContent:'space-between' });
+  top.appendChild(el('span',null,'<span style="font:600 18px var(--font);color:#1A1A1A">Checklist</span>'));
+  const add = el('div'); Object.assign(add.style,{ height:'30px', padding:'0 14px', borderRadius:'9999px',
+    background:'#0E7490', color:'#fff', display:'inline-flex', alignItems:'center', gap:'4px',
+    font:'600 15px var(--font)', boxShadow:'0 2px 8px rgba(14,116,144,.25)' });
+  add.appendChild(svg('plus', 14, '#fff', 2.5)); add.append('Add');
+  top.appendChild(add); c.appendChild(top);
+  const bar = el('div'); Object.assign(bar.style,{ display:'flex', alignItems:'center', gap:'12px', marginTop:'14px' });
+  const track = el('div'); Object.assign(track.style,{ flex:'1', height:'6px', borderRadius:'3px',
+    background:'rgba(14,116,144,.12)', overflow:'hidden' });
+  const fill = el('div'); Object.assign(fill.style,{ width:'62.5%', height:'100%', borderRadius:'3px', background:'#0E7490' });
+  track.appendChild(fill); bar.appendChild(track);
+  bar.appendChild(el('span',null,'<span style="font:600 13px var(--font);color:#6B6B6B">5/8</span>'));
+  c.appendChild(bar);
+  return c;
+}
+
+/* assemble — 3 heavily staggered columns, reference-style loose grid ---------- */
 const COLS = [
-  { offset: -16, items: [destCard, detailsCard] },
-  { offset: 26,  items: [eventCard, bufferCard] },
-  { offset: -8,  items: [dayHeader, () => checklistRow(false), () => checklistRow(true)] },
+  { offset: -64, items: [destCard, detailsCard, statTiles] },
+  { offset: 84,  items: [eventCard, calStrip, bufferCard] },
+  { offset: -28, items: [dayHeader, progressCard, () => checklistRow(false), () => checklistRow(true)] },
 ];
 const board = document.getElementById('board');
 for (const col of COLS) {

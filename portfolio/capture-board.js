@@ -3,9 +3,9 @@
  * capture-board.js — Card-level component board (portfolio shot, static).
  *
  * The unlabeled companion to the callouts panel: destination card, event card,
- * buffer card, day header, details card, checklist row in both states,
- * arranged as staggered columns on the dark panel. Rounded corners export
- * transparent (omitBackground).
+ * buffer card, day header, details card, checklist row in both states, stat
+ * tiles, calendar day cells, checklist progress header — staggered columns on
+ * the dark panel. Full-bleed (no rounded corners, per user).
  *
  * Output: ./exports/component-board.png  (1920×1080 @2x = 3840×2160)
  * Run:    PUPPETEER_EXECUTABLE_PATH=... node capture-board.js
@@ -33,8 +33,8 @@ async function main() {
     }
     await new Promise((r) => setTimeout(r, 300));
     const panel = await page.$('#panel');
-    await panel.screenshot({ path: OUT, omitBackground: true });
-    console.log(`✓ component-board.png (3840×2160, transparent corners) → ${OUT}`);
+    await panel.screenshot({ path: OUT });
+    console.log(`✓ component-board.png (3840×2160, full-bleed) → ${OUT}`);
   } finally {
     await browser.close();
   }
