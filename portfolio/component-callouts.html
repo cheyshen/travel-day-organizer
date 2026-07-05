@@ -10,14 +10,19 @@
   body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: transparent;
          display: flex; align-items: flex-start; justify-content: flex-start; }
 
-  /* the exported artifact: a rounded dark panel, reference-style (square) */
+  /* the exported artifact: a rounded dark panel, reference-style. Two layouts
+     (?layout=): square 2×2 (default, mobile) / wide single row (desktop) */
   #panel { width: 1080px; height: 1080px; background: var(--panel-bg, #1F2937); border-radius: 48px;
            display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  body.wide #panel { width: 1920px; height: 1000px; }
 
-  /* product-proportioned components in a 2×2 grid, scaled up together so the
-     panel reads at case-study width (transform rasterizes at capture DPR) */
+  /* product-proportioned components, scaled up together so the panel reads
+     at case-study width (transform rasterizes at capture DPR) */
   .strip { display: flex; flex-direction: column; align-items: center; gap: 110px; transform: scale(1.6); }
   .rowc { display: flex; align-items: flex-end; gap: 110px; justify-content: center; }
+  body.wide .strip { transform: scale(1.5); }
+  body.wide .rowc { gap: 120px; }
+  body.wide .cline { height: 88px; }
   .callout { display: flex; flex-direction: column; align-items: center; }
   .clabel { font: 600 16px var(--font); color: rgba(255,255,255,.92); letter-spacing: .01em;
             white-space: nowrap; }
@@ -115,17 +120,19 @@ function addButton() {
   return p;
 }
 
-/* assemble — 2×2 for the square panel ----------------------------------------- */
-const CALLOUTS = [
-  [
-    { label: 'Event-type sticker', node: () => stickerTile('sunrise', 56) },
-    { label: 'Island switcher',    node: segmented },
-  ],
-  [
-    { label: 'Live “Now” marker',  node: nowIndicator },
-    { label: 'Primary action',     node: addButton },
-  ],
+/* assemble — 2×2 on the square panel, one row of 4 on the wide one ------------ */
+const LAYOUT = new URLSearchParams(location.search).get('layout') || 'square';
+if (LAYOUT === 'wide') document.body.classList.add('wide');
+
+const ITEMS = [
+  { label: 'Event-type sticker', node: () => stickerTile('sunrise', 56) },
+  { label: 'Island switcher',    node: segmented },
+  { label: 'Live “Now” marker',  node: nowIndicator },
+  { label: 'Primary action',     node: addButton },
 ];
+const CALLOUTS = LAYOUT === 'wide'
+  ? [ITEMS]
+  : [[ITEMS[0], ITEMS[1]], [ITEMS[2], ITEMS[3]]];
 
 const strip = document.getElementById('strip');
 for (const row of CALLOUTS) {
