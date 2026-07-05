@@ -50,16 +50,22 @@ columns, items centered per column. Static only.
 | Regenerate | `node capture-board.js` |
 | Static | `exports/component-board.png` (3840×2160) — **full-bleed, no rounded corners**; background is **transparent by default** (the page supplies the panel color) — bake one with `BOARD_BG=#1F2937` |
 
+**Fidelity:** every component renders at its true product width (390 viewport
+→ 358px content; document cards = 173px two-up grid) with values mirrored from
+source tokens (spacing/radius/type ramp/cleanCard). When product styling
+changes, update the matching builder.
+
 **Shows** (no overlap with the callouts panel), four columns: destination card
-(Kauai), details card, stat tiles (9/38/2), weather day-chip strip (simulated
-forecast, condition colors) · event card (Poipu Beach), calendar day-cell
-strip (non-trip / selected / Kauai / Maui variants), buffer card, trip
-highlight card (Haleakala Sunrise, Maui) · day header on Kauai tint, checklist
-progress header (+ Add pill, 5/8 bar), checklist row in both states (unchecked
-/ checked) · **feedback & safety states:** document card (boarding pass),
-uploader dropzone with its real inline error ("File too large (3.2 MB).
-Maximum is 2 MB."), inline delete confirmation (Cancel / Delete — sample event
-title "Sunset Sail", swappable in `deleteConfirm()`).
+(Kauai) · details card · stat tiles (9/38/2) · calendar day-cell strip
+(non-trip / selected / Kauai / Maui variants) ‖ event card (Poipu Beach) ·
+buffer card · trip highlight card (Haleakala Sunrise, Maui) ‖ day header on
+Kauai tint · **full Weather Forecast section** (header, zip input + Get
+Weather CTA, day chips w/ condition colors) · checklist row in both states
+(unchecked / checked) ‖ **status & feedback:** Checklist header (title 24/700,
+Add pill, 5/8 progress bar) · document card pair (boarding pass + hotel) ·
+uploader sheet fragment with its real inline error ("File too large (3.2 MB).
+Maximum is 2 MB.") · inline delete confirmation (Cancel / Delete — sample
+event title "Sunset Sail", swappable in `deleteConfirm()`).
 
 ### Conventions (decided 2026-07-05)
 
