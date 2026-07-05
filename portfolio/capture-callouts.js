@@ -62,6 +62,9 @@ async function main() {
       return;
     }
 
+    // video is full-bleed: no rounded corners (those stay on the static PNG)
+    await page.evaluate(() => document.getElementById('panel').style.borderRadius = '0');
+
     // ---- deterministic frame capture: t = i/frames so frame[frames] === frame[0] (clean loop) ----
     const loopMs = await page.evaluate(() => window.LOOP_MS);
     const frames = Math.round((loopMs / 1000) * FPS);
