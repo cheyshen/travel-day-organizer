@@ -10,18 +10,20 @@
   body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: transparent;
          display: flex; align-items: flex-start; justify-content: flex-start; }
 
-  /* the exported artifact: a rounded dark panel, reference-style */
-  #panel { width: 1920px; height: 1000px; background: var(--panel-bg, #1F2937); border-radius: 48px;
+  /* the exported artifact: a rounded dark panel, reference-style (square) */
+  #panel { width: 1080px; height: 1080px; background: var(--panel-bg, #1F2937); border-radius: 48px;
            display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
-  /* product-proportioned components, scaled up together so the panel reads
-     at case-study width (transform rasterizes at capture DPR — stays crisp) */
-  .strip { display: flex; align-items: flex-end; gap: 120px; transform: scale(1.5); }
+  /* product-proportioned components in a 2×2 grid, scaled up together so the
+     panel reads at case-study width (transform rasterizes at capture DPR) */
+  .strip { display: flex; flex-direction: column; align-items: center; gap: 110px; transform: scale(1.6); }
+  .rowc { display: flex; align-items: flex-end; gap: 110px; justify-content: center; }
   .callout { display: flex; flex-direction: column; align-items: center; }
   .clabel { font: 600 16px var(--font); color: rgba(255,255,255,.92); letter-spacing: .01em;
             white-space: nowrap; }
-  /* uniform line height + aligned component tops → labels share one top line */
-  .cline { width: 1px; height: 88px; background: rgba(255,255,255,.30); margin: 14px 0 18px; }
+  /* uniform line height + aligned component tops → labels share one top line
+     per row */
+  .cline { width: 1px; height: 64px; background: rgba(255,255,255,.30); margin: 14px 0 18px; }
   /* fixed-height box so component TOPS align across columns (bottom-aligned row) */
   .cbox { height: 64px; display: flex; align-items: flex-start; justify-content: center; }
 
@@ -113,21 +115,29 @@ function addButton() {
   return p;
 }
 
-/* assemble -------------------------------------------------------------------- */
+/* assemble — 2×2 for the square panel ----------------------------------------- */
 const CALLOUTS = [
-  { label: 'Event-type sticker', node: () => stickerTile('sunrise', 56) },
-  { label: 'Island switcher',    node: segmented },
-  { label: 'Live “Now” marker',  node: nowIndicator },
-  { label: 'Primary action',     node: addButton },
+  [
+    { label: 'Event-type sticker', node: () => stickerTile('sunrise', 56) },
+    { label: 'Island switcher',    node: segmented },
+  ],
+  [
+    { label: 'Live “Now” marker',  node: nowIndicator },
+    { label: 'Primary action',     node: addButton },
+  ],
 ];
 
 const strip = document.getElementById('strip');
-for (const c of CALLOUTS) {
-  const col = el('div','callout');
-  col.append(el('div','clabel', c.label));
-  col.append(el('div','cline'));
-  const box = el('div','cbox'); box.appendChild(c.node()); col.append(box);
-  strip.appendChild(col);
+for (const row of CALLOUTS) {
+  const r = el('div','rowc');
+  for (const c of row) {
+    const col = el('div','callout');
+    col.append(el('div','clabel', c.label));
+    col.append(el('div','cline'));
+    const box = el('div','cbox'); box.appendChild(c.node()); col.append(box);
+    r.appendChild(col);
+  }
+  strip.appendChild(r);
 }
 
 /* animation — every component takes a turn across the loop (sticker bob →

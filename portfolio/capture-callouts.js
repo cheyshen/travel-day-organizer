@@ -11,8 +11,8 @@
  * screenshot per frame, then encodes MP4 + GIF (flattened onto the case-study
  * grey) and APNG (true alpha, rounded corners preserved).
  *
- * Output: ./exports/component-callouts.png                    (3840×2000)
- *         ./exports/anim/component-callouts.{mp4,gif,apng}    (--anim)
+ * Output: ./exports/component-callouts.png                    (2160×2160)
+ *         ./exports/anim/component-callouts.{mp4,gif,apng}    (--anim, square)
  * Run:    PUPPETEER_EXECUTABLE_PATH=... node capture-callouts.js [--anim]
  *         CALLOUT_BG=#14181F node capture-callouts.js   (panel color override)
  * ========================================================================== */
@@ -26,7 +26,7 @@ const OUT_PNG = path.join(HERE, 'exports', 'component-callouts.png');
 const ANIM_DIR = path.join(HERE, 'exports', 'anim');
 const FPS = 30;
 const GIF_W = 960;
-const PAGE_GREY = '0xF2F3F5'; // case-study page bg — flatten target for MP4/GIF corners
+const PAGE_GREY = '0xF9F9F9'; // user's portfolio page bg — flatten target for MP4/GIF corners
 
 function ff(args) { execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', ...args], { stdio: 'inherit' }); }
 function probeSize(file) {
@@ -45,7 +45,7 @@ async function main() {
   const browser = await puppeteer.launch(launchOpts);
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1960, height: 1040, deviceScaleFactor: 2 });
+    await page.setViewport({ width: 1120, height: 1120, deviceScaleFactor: 2 });
     await page.goto('file://' + path.join(HERE, 'component-callouts.html'), { waitUntil: 'networkidle2', timeout: 60000 });
     await page.evaluate(() => window.__ready); // fonts loaded
     await page.evaluate(() => window.__stopAutoplay()); // freeze live loop → deterministic capture
@@ -58,7 +58,7 @@ async function main() {
     if (!anim) {
       await page.evaluate(() => window.setAnimFrame(0)); // rest pose
       await panel.screenshot({ path: OUT_PNG, omitBackground: true });
-      console.log(`✓ component-callouts.png (3840×2000, transparent corners) → ${OUT_PNG}`);
+      console.log(`✓ component-callouts.png (2160×2160, transparent corners) → ${OUT_PNG}`);
       return;
     }
 
