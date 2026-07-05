@@ -250,12 +250,17 @@ function weatherSection() {
   Object.assign(btn.style,{ padding:'8px 14px', borderRadius:'10px', backgroundColor:'#0E7490',
     color:'#fff', font:'600 15px/20px var(--font)', whiteSpace:'nowrap' });
   inrow.append(input, btn); c.appendChild(inrow);
-  const chips = el('div'); Object.assign(chips.style,{ display:'flex', gap:'10px' });
+  /* product row is overflow-x scroll ("Swipe to browse") — clip at the row
+     edge like the app does; the cut chip is the scroll affordance */
+  const chips = el('div'); Object.assign(chips.style,{ display:'flex', gap:'10px',
+    overflow:'hidden', paddingBottom:'4px' });
   const DAYS = [
     ['Sat','4','sun','#C05D10','82°'],
     ['Sun','5','cloudsun','#B45309','79°'],
     ['Mon','6','sun','#C05D10','81°'],
     ['Tue','7','cloudrain','#2B7A9E','77°'],
+    ['Wed','8','sun','#C05D10','80°'],
+    ['Thu','9','cloudsun','#B45309','78°'],
   ];
   for (const [dow, num, icon, color, temp] of DAYS) {
     const chip = el('div'); Object.assign(chip.style,{ display:'flex', flexDirection:'column',
