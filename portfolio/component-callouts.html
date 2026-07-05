@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Travel — Annotated component callouts</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: transparent;
+         display: flex; align-items: flex-start; justify-content: flex-start; }
+
+  /* the exported artifact: a rounded dark panel, reference-style */
+  #panel { width: 1920px; height: 1000px; background: var(--panel-bg, #1F2937); border-radius: 48px;
+           display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+  /* product-proportioned components, scaled up together so the panel reads
+     at case-study width (transform rasterizes at capture DPR — stays crisp) */
+  .strip { display: flex; align-items: flex-end; gap: 120px; transform: scale(1.5); }
+  .callout { display: flex; flex-direction: column; align-items: center; }
+  .clabel { font: 600 16px var(--font); color: rgba(255,255,255,.92); letter-spacing: .01em;
+            white-space: nowrap; }
+  .cline { width: 1px; background: rgba(255,255,255,.30); margin: 14px 0 18px; }
+  /* fixed-height box so component TOPS align across columns (bottom-aligned row) */
+  .cbox { height: 64px; display: flex; align-items: flex-start; justify-content: center; }
+
+  /* sticker tile (matches product AnimatedEventIcon sticker) */
+  .tile { display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;
+          border: 4px solid #FFFFFF; box-shadow: 0 3px 10px rgba(0,0,0,.35); }
+  .tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.04) 45%, rgba(0,0,0,.05) 100%); }
+
+  /* island switcher segmented control */
+  .seg { display: inline-flex; background: rgba(255,255,255,.10); border-radius: 9999px; padding: 4px; gap: 4px; }
+  .seg .s { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 18px;
+            border-radius: 9999px; }
+  .seg .s.active { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .seg .s span { font: 500 16px var(--font); color: rgba(255,255,255,.72); }
+  .seg .s.active span { font-weight: 700; color: #1A1A1A; }
+
+  /* live "Now" marker */
+  .now-row { display: flex; align-items: center; gap: 14px; width: 200px; height: 44px; }
+  .now-dot-wrap { position: relative; width: 14px; height: 14px; flex-shrink: 0; }
+  .now-dot { position: absolute; inset: 0; border-radius: 50%; background: #22B8D4; box-shadow: 0 0 12px rgba(34,184,212,.6); }
+  .now-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #22B8D4; opacity: .45; transform: scale(2.1); }
+  .now-line { flex: 1; height: 2px; background: #22B8D4; border-radius: 1px; }
+  .now-lbl { font: 600 13px var(--font); letter-spacing: .1em; text-transform: uppercase; color: #fff; }
+
+  /* primary CTA */
+  .btn-primary { height: 48px; padding: 0 22px; border-radius: 12px; background: #0E7490; color: #fff;
+                 display: inline-flex; align-items: center; gap: 8px; font: 700 16px var(--font);
+                 box-shadow: 0 2px 12px rgba(14,116,144,.5); }
+</style>
+</head>
+<body>
+  <div id="panel"><div class="strip" id="strip"></div></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const ICON_NODES = {"sunrise":[["path",{"d":"M12 2v8"}],["path",{"d":"m4.93 10.93 1.41 1.41"}],["path",{"d":"M2 18h2"}],["path",{"d":"M20 18h2"}],["path",{"d":"m19.07 10.93-1.41 1.41"}],["path",{"d":"M22 22H2"}],["path",{"d":"m8 6 4-4 4 4"}],["path",{"d":"M16 18a4 4 0 0 0-8 0"}]]};
+const MAPPIN = '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';
+const PLUS = '<path d="M5 12h14"/><path d="M12 5v14"/>';
+const DEST = { kauai:'#0A8F8F', maui:'#C4A265' };
+const VIZ = { sunrise:'#DB8F43' };
+
+function rawSvg(d, size, color, sw) {
+  const s = document.createElementNS(NS,'svg');
+  s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('width',size); s.setAttribute('height',size);
+  s.setAttribute('fill','none'); s.setAttribute('stroke',color); s.setAttribute('stroke-width',sw||2);
+  s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round'); s.innerHTML = d; return s;
+}
+function svg(typeId, size, color, sw) {
+  const paths = ICON_NODES[typeId].map(([t,a]) =>
+    `<${t} ${Object.entries(a).map(([k,v])=>`${k}="${v}"`).join(' ')}/>`).join('');
+  return rawSvg(paths, size, color, sw);
+}
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html!=null) e.innerHTML = html; return e; }
+
+/* components ---------------------------------------------------------------- */
+function stickerTile(typeId, size) {
+  const t = el('div','tile');
+  Object.assign(t.style, { width:size+'px', height:size+'px', borderRadius:Math.round(size*0.29)+'px',
+    background:VIZ[typeId] });
+  const span = el('span'); span.style.display='inline-flex'; span.style.lineHeight='0';
+  span.appendChild(svg(typeId, Math.round(size*0.5), '#fff', 2)); t.appendChild(span); return t;
+}
+function segmented() {
+  const s = el('div','seg');
+  function seg(name, color, active) {
+    const b = el('div','s' + (active ? ' active' : ''));
+    b.appendChild(rawSvg(MAPPIN, 16, color, 2.5));
+    b.appendChild(el('span',null,name));
+    return b;
+  }
+  s.append(seg('Kauai', DEST.kauai, true), seg('Maui', DEST.maui, false));
+  return s;
+}
+function nowIndicator() {
+  const r = el('div','now-row');
+  r.innerHTML = `<div class="now-dot-wrap"><div class="now-ring"></div><div class="now-dot"></div></div><div class="now-line"></div><div class="now-lbl">Now</div>`;
+  return r;
+}
+function addButton() {
+  const p = el('div','btn-primary'); p.append('Add event'); p.appendChild(rawSvg(PLUS,18,'#fff',2.5));
+  return p;
+}
+
+/* assemble — staggered line lengths give the organic annotated feel ---------- */
+const CALLOUTS = [
+  { label: 'Event-type sticker', line: 88,  node: () => stickerTile('sunrise', 56) },
+  { label: 'Island switcher',    line: 56,  node: segmented },
+  { label: 'Live “Now” marker',  line: 104, node: nowIndicator },
+  { label: 'Primary action',     line: 72,  node: addButton },
+];
+
+const strip = document.getElementById('strip');
+for (const c of CALLOUTS) {
+  const col = el('div','callout');
+  col.append(el('div','clabel', c.label));
+  const line = el('div','cline'); line.style.height = c.line + 'px'; col.append(line);
+  const box = el('div','cbox'); box.appendChild(c.node()); col.append(box);
+  strip.appendChild(col);
+}
+
+window.__ready = document.fonts.ready.then(() => true);
+</script>
+</body>
+</html>

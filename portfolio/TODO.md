@@ -39,3 +39,18 @@ Record 4 real-app interaction clips (add-event, calendar-day-jump, day-island-sw
 - [x] case-study.html "In action" section
 - [x] Full re-run + review at http://192.168.1.122:8080/case-study.html
 - [x] compose-triptych.js — calendar-day-jump + day-island-switch + checklist side by side in ONE video (in-action-triptych.mp4/gif); case-study #inaction now embeds it instead of the 4 separate phones
+
+## Task: Annotated component callouts (2026-07-05)
+
+### Goal
+Reference-style annotated component strip (user picked option 1): dark slate panel, row of isolated components with thin leader lines up to labels.
+
+### Steps
+- [x] component-callouts.html — self-contained panel (sticker / island switcher / Now marker / Add event), strip scaled 1.5×, staggered line lengths
+- [x] capture-callouts.js + npm run capture-callouts → exports/component-callouts.png (3840×2000, transparent rounded corners)
+- [x] Review at http://192.168.1.122:8080/component-callouts.html
+
+### Notes
+- On-dark legibility adaptations: Now marker teal lightened #0E7490→#22B8D4, switcher track rgba(255,255,255,.10), NOW label white. Sticker = Sunrise orange for color spread.
+- CALLOUT_BG env overrides panel color (e.g. #14181F near-black).
+- Animated variant (option 5, same layout w/ micro-motions) not built yet — offered.
