@@ -82,6 +82,7 @@ in both states (unchecked / checked).
 | Motion clips (now-marker, card-press, page-transition, icon-cascade, icon-select) | `animations.html` | `node capture-anim.js` | `exports/anim/*.{mp4,gif,apng}` |
 | Interaction flow videos (4 real-app flows) | `capture-flows.js` (records live app at 192.168.1.198) | `node capture-flows.js [name]` | `exports/flows/*.{mp4,gif}` |
 | In-action triptych (3 flows side by side, ocean bg) | `compose-triptych.js` | `node compose-triptych.js` | `exports/flows/in-action-triptych.{mp4,gif}` |
+| Solo hero flow (1 phone on ocean square, 1080×1080 — depth companion to the triptych) | `compose-solo.js` | `node compose-solo.js [clip]` (default `add-event`) | `exports/flows/add-event-solo.{mp4,gif}` |
 | Screens wall (8-state collage, infoLight bg) | `compose-screens-wall.js` | `node compose-screens-wall.js [--layout-only] [state…]` | `exports/wall/screens-wall.png` |
 | Pulled-apart component gallery (light theme) | `components.html` | view in browser | — |
 | Case study page | `case-study.html` | view in browser | — |

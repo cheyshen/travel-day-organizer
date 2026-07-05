@@ -10,6 +10,7 @@
     "capture-board": "node capture-board.js",
     "capture-callouts": "node capture-callouts.js",
     "capture-flows": "node capture-flows.js",
+    "compose-solo": "node compose-solo.js",
     "compose-triptych": "node compose-triptych.js",
     "compose-wall": "node compose-screens-wall.js",
     "capture:all": "node capture.js && node capture-anim.js"
