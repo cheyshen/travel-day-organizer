@@ -20,21 +20,27 @@
   .callout { display: flex; flex-direction: column; align-items: center; }
   .clabel { font: 600 16px var(--font); color: rgba(255,255,255,.92); letter-spacing: .01em;
             white-space: nowrap; }
-  .cline { width: 1px; background: rgba(255,255,255,.30); margin: 14px 0 18px; }
+  /* uniform line height + aligned component tops → labels share one top line */
+  .cline { width: 1px; height: 88px; background: rgba(255,255,255,.30); margin: 14px 0 18px; }
   /* fixed-height box so component TOPS align across columns (bottom-aligned row) */
   .cbox { height: 64px; display: flex; align-items: flex-start; justify-content: center; }
 
   /* sticker tile (matches product AnimatedEventIcon sticker) */
   .tile { display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;
           border: 4px solid #FFFFFF; box-shadow: 0 3px 10px rgba(0,0,0,.35); }
+  /* gloss toned down vs product (.25 → .10): on the dark panel the stronger
+     sheen washed out the tile top and read as an unfilled icon */
   .tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-    background: linear-gradient(160deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.04) 45%, rgba(0,0,0,.05) 100%); }
+    background: linear-gradient(160deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.02) 40%, rgba(0,0,0,.06) 100%); }
 
-  /* island switcher segmented control */
-  .seg { display: inline-flex; background: rgba(255,255,255,.10); border-radius: 9999px; padding: 4px; gap: 4px; }
+  /* island switcher segmented control — active bg is a separate sliding pill
+     (.seg-hl) so the switch can animate; segments stay transparent */
+  .seg { display: inline-flex; background: rgba(255,255,255,.10); border-radius: 9999px; padding: 4px; gap: 4px;
+         position: relative; }
+  .seg-hl { position: absolute; top: 4px; bottom: 4px; border-radius: 9999px; background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,.3); }
   .seg .s { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 18px;
-            border-radius: 9999px; }
-  .seg .s.active { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+            border-radius: 9999px; position: relative; z-index: 1; }
   .seg .s span { font: 500 16px var(--font); color: rgba(255,255,255,.72); }
   .seg .s.active span { font-weight: 700; color: #1A1A1A; }
 
@@ -87,6 +93,7 @@ function stickerTile(typeId, size) {
 }
 function segmented() {
   const s = el('div','seg');
+  s.appendChild(el('div','seg-hl'));
   function seg(name, color, active) {
     const b = el('div','s' + (active ? ' active' : ''));
     b.appendChild(rawSvg(MAPPIN, 16, color, 2.5));
@@ -106,32 +113,37 @@ function addButton() {
   return p;
 }
 
-/* assemble — staggered line lengths give the organic annotated feel ---------- */
+/* assemble -------------------------------------------------------------------- */
 const CALLOUTS = [
-  { label: 'Event-type sticker', line: 88,  node: () => stickerTile('sunrise', 56) },
-  { label: 'Island switcher',    line: 56,  node: segmented },
-  { label: 'Live “Now” marker',  line: 104, node: nowIndicator },
-  { label: 'Primary action',     line: 72,  node: addButton },
+  { label: 'Event-type sticker', node: () => stickerTile('sunrise', 56) },
+  { label: 'Island switcher',    node: segmented },
+  { label: 'Live “Now” marker',  node: nowIndicator },
+  { label: 'Primary action',     node: addButton },
 ];
 
 const strip = document.getElementById('strip');
 for (const c of CALLOUTS) {
   const col = el('div','callout');
   col.append(el('div','clabel', c.label));
-  const line = el('div','cline'); line.style.height = c.line + 'px'; col.append(line);
+  col.append(el('div','cline'));
   const box = el('div','cbox'); box.appendChild(c.node()); col.append(box);
   strip.appendChild(col);
 }
 
-/* animation — ONLY the live components move (Now pulse + sticker), the states
-   (switcher, button) stay still. Deterministic t∈[0,1) per the harness pattern:
-   capture steps setAnimFrame(t); the browser preview autoplays the same loop. */
+/* animation — every component takes a turn across the loop (sticker bob →
+   island switch round-trip → button press), while the Now marker's radar pulse
+   runs continuously (it's the live element). Deterministic t∈[0,1) per the
+   harness pattern: capture steps setAnimFrame(t); the browser preview
+   autoplays the same loop. */
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 const easeIO  = (x) => (x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2);
 const lerp = (a,b,e) => a + (b-a)*e;
 const _g = (o,k,d) => (o[k] !== undefined ? o[k] : d);
-/* sunrise signature motion — same stops as animations.html KF.sun */
-const KF_SUN = [[0,{}],[0.40,{}],[0.50,{y:6,s:0.9}],[0.66,{y:-10,s:1.15}],[0.86,{y:-1,s:1.01}],[1,{}]];
+/* sunrise signature motion — animations.html KF.sun with the leading rest
+   trimmed (rest comes from this component's window in the master timeline) */
+const KF_SUN = [[0,{}],[0.17,{y:6,s:0.9}],[0.43,{y:-10,s:1.15}],[0.77,{y:-1,s:1.01}],[1,{}]];
+/* button press feedback — whileTap press, hold, springy release */
+const KF_BTN = [[0,{}],[0.30,{s:0.955}],[0.50,{s:0.955}],[0.80,{s:1.012}],[1,{}]];
 function evalKF(stops, u) {
   u = Math.max(0, Math.min(1, u));
   let a = stops[0], b = stops[stops.length - 1];
@@ -148,31 +160,77 @@ const ring1 = document.querySelector('.now-ring:not(.now-ring2)');
 const ring2 = document.querySelector('.now-ring2');
 const nowDot = document.querySelector('.now-dot');
 const stickerIcon = document.querySelector('.tile > span');
+const btn = document.querySelector('.btn-primary');
+const segEl = document.querySelector('.seg');
+const segHl = segEl.querySelector('.seg-hl');
+const [segK, segM] = segEl.querySelectorAll('.s');
 const ringAt = (p) => ({ scale: 1 + 2.2 * p, opacity: 0.5 * (1 - easeOut(p)) });
 
-window.LOOP_MS = 4800; // 2 radar pings-pairs (1200ms cadence, = harness) + 1 sunrise bob
+/* switcher geometry — measured after fonts load; widths frozen at the bold
+   (700) size so the weight swap mid-slide can't reflow the strip */
+let segRects = null;
+function setupSeg() {
+  for (const s of [segK, segM]) {
+    const span = s.querySelector('span');
+    const w0 = span.style.fontWeight; span.style.fontWeight = '700';
+    s.style.width = s.offsetWidth + 'px'; // layout px — unaffected by the strip scale
+    span.style.fontWeight = w0;
+  }
+  segRects = {
+    k: { left: segK.offsetLeft, width: segK.offsetWidth },
+    m: { left: segM.offsetLeft, width: segM.offsetWidth },
+  };
+  segHl.style.left = segRects.k.left + 'px';
+  segHl.style.width = segRects.k.width + 'px';
+}
+
+const DARK = [26,26,26,1], LIGHT = [255,255,255,0.72];
+const mix = (A,B,e) => `rgba(${Math.round(lerp(A[0],B[0],e))},${Math.round(lerp(A[1],B[1],e))},${Math.round(lerp(A[2],B[2],e))},${lerp(A[3],B[3],e).toFixed(3)})`;
+/* clamped window phase: 0 before [a,b], 0→1 inside, back at rest after (KF
+   stops start/end at rest so clamping = still) */
+const win = (t,a,b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+
+window.LOOP_MS = 4800; // 2 radar ping-pairs (1200ms cadence, = harness) + one turn each
 window.setAnimFrame = (t) => {
-  const p = (t * 2) % 1;                                    // radar: 2 cycles per loop
+  /* Now marker — continuous radar, 2 cycles per loop */
+  const p = (t * 2) % 1;
   const a = ringAt(p), b = ringAt((p + 0.5) % 1);           // two pings, offset → continuous
   ring1.style.transform = `scale(${a.scale})`; ring1.style.opacity = a.opacity;
   ring2.style.transform = `scale(${b.scale})`; ring2.style.opacity = b.opacity;
   nowDot.style.transform = `scale(${1 + 0.08 * Math.sin(p * 2 * Math.PI)})`;
-  const m = evalKF(KF_SUN, t);                              // sticker: 1 bob per loop
+
+  /* sticker — signature bob, first turn */
+  const m = evalKF(KF_SUN, win(t, 0.04, 0.32));
   stickerIcon.style.transform = `translate(${m.x}px,${m.y}px) rotate(${m.r}deg) skewX(${m.sk}deg) scale(${m.s})`;
   stickerIcon.style.opacity = m.o;
+
+  /* island switcher — Kauai → Maui, hold, back; second turn */
+  if (segRects) {
+    const u = win(t, 0.40, 0.68);
+    const s = u < 0.35 ? easeIO(u / 0.35) : u < 0.65 ? 1 : 1 - easeIO((u - 0.65) / 0.35);
+    segHl.style.left = lerp(segRects.k.left, segRects.m.left, s) + 'px';
+    segHl.style.width = lerp(segRects.k.width, segRects.m.width, s) + 'px';
+    segK.querySelector('span').style.color = mix(DARK, LIGHT, s);
+    segM.querySelector('span').style.color = mix(LIGHT, DARK, s);
+    segK.querySelector('span').style.fontWeight = s > 0.5 ? '500' : '700';
+    segM.querySelector('span').style.fontWeight = s > 0.5 ? '700' : '500';
+  }
+
+  /* button — press + springy release; third turn */
+  btn.style.transform = `scale(${evalKF(KF_BTN, win(t, 0.74, 0.87)).s})`;
 };
 
 let __raf;
-(function autoplay() {
+window.__stopAutoplay = () => cancelAnimationFrame(__raf);
+window.__ready = document.fonts.ready.then(() => {
+  setupSeg();
   const t0 = performance.now();
   (function step(ts) {
     window.setAnimFrame(((ts - t0) / window.LOOP_MS) % 1);
     __raf = requestAnimationFrame(step);
   })(t0);
-})();
-window.__stopAutoplay = () => cancelAnimationFrame(__raf);
-
-window.__ready = document.fonts.ready.then(() => true);
+  return true;
+});
 </script>
 </body>
 </html>
