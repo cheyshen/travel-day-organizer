@@ -51,13 +51,15 @@ columns, items centered per column. Static only.
 | Static | `exports/component-board.png` (3840×2160) — **full-bleed, no rounded corners**; background is **transparent by default** (the page supplies the panel color) — bake one with `BOARD_BG=#1F2937` |
 
 **Shows** (no overlap with the callouts panel), four columns: destination card
-(Kauai), details card, stat tiles (9/38/2) · event card (Poipu Beach), calendar
-day-cell strip (non-trip / selected / Kauai / Maui variants), buffer card ·
-day header on Kauai tint, checklist progress header (+ Add pill, 5/8 bar),
-checklist row in both states (unchecked / checked) · **feedback & safety
-states:** document card (boarding pass), uploader dropzone with its real
-inline error ("File too large (3.2 MB). Maximum is 2 MB."), inline delete
-confirmation (Cancel / Delete).
+(Kauai), details card, stat tiles (9/38/2), weather day-chip strip (simulated
+forecast, condition colors) · event card (Poipu Beach), calendar day-cell
+strip (non-trip / selected / Kauai / Maui variants), buffer card, trip
+highlight card (Haleakala Sunrise, Maui) · day header on Kauai tint, checklist
+progress header (+ Add pill, 5/8 bar), checklist row in both states (unchecked
+/ checked) · **feedback & safety states:** document card (boarding pass),
+uploader dropzone with its real inline error ("File too large (3.2 MB).
+Maximum is 2 MB."), inline delete confirmation (Cancel / Delete — sample event
+title "Sunset Sail", swappable in `deleteConfirm()`).
 
 ### Conventions (decided 2026-07-05)
 

@@ -40,6 +40,11 @@ const ICONS = {
   upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
   plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  cloudsun: '<path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>',
+  cloudrain: '<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>',
+  mappin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  sunrise: '<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>',
 };
 function svg(name, size, color, sw) {
   const s = document.createElementNS(NS,'svg');
@@ -268,10 +273,65 @@ function deleteConfirm() {
   return c;
 }
 
+/* daily-overview weather chips (HeroView: simulated forecast per trip day;
+   condition colors sunny #C05D10 / partly #B45309 / rain #2B7A9E) ------------ */
+function weatherStrip() {
+  const c = el('div','card'); Object.assign(c.style,{ borderRadius:'16px', padding:'12px',
+    display:'flex', gap:'8px' });
+  const DAYS = [
+    ['Sat','4','sun','#C05D10','82°'],
+    ['Sun','5','cloudsun','#B45309','79°'],
+    ['Mon','6','sun','#C05D10','81°'],
+    ['Tue','7','cloudrain','#2B7A9E','77°'],
+  ];
+  for (const [dow, num, icon, color, temp] of DAYS) {
+    const chip = el('div'); Object.assign(chip.style,{ display:'flex', flexDirection:'column',
+      alignItems:'center', padding:'10px 12px 8px', backgroundColor:'rgba(0,0,0,0.03)',
+      borderRadius:'14px', minWidth:'56px' });
+    chip.appendChild(el('span',null,`<span style="font:600 13px var(--font);letter-spacing:.06em;text-transform:uppercase;color:#6B6B6B">${dow}</span>`));
+    chip.appendChild(el('span',null,`<span style="font:700 18px/24px var(--font);color:#1A1A1A">${num}</span>`));
+    const w = svg(icon, 20, color, 1.5); w.style.marginTop='5px'; chip.appendChild(w);
+    chip.appendChild(el('span',null,`<span style="font:600 16px var(--font);color:#1A1A1A;margin-top:4px">${temp}</span>`));
+    c.appendChild(chip);
+  }
+  return c;
+}
+/* trip highlight editorial card (HeroView HIGHLIGHTS — Haleakala/Maui) -------- */
+function highlightCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:'300px', borderRadius:'16px', overflow:'hidden' });
+  const img = el('div'); Object.assign(img.style,{ height:'130px', position:'relative',
+    backgroundImage:"url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=80')",
+    backgroundSize:'cover', backgroundPosition:'center' });
+  img.appendChild(el('div',null,'')).style.cssText = 'position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(28,25,23,.75) 100%)';
+  const foot = el('div'); Object.assign(foot.style,{ position:'absolute', bottom:'10px', left:'12px',
+    right:'12px', display:'flex', alignItems:'center', justifyContent:'space-between' });
+  const tag = el('div'); Object.assign(tag.style,{ display:'flex', alignItems:'center', gap:'6px' });
+  tag.appendChild(svg('sunrise', 14, '#fff', 2));
+  tag.appendChild(el('span',null,'<span style="font:600 13px var(--font);letter-spacing:.06em;text-transform:uppercase;color:#fff">Highlight</span>'));
+  const pill = el('div'); Object.assign(pill.style,{ background:'rgba(255,255,255,.28)',
+    backdropFilter:'blur(8px)', borderRadius:'9999px', padding:'4px 8px', display:'flex',
+    alignItems:'center', gap:'4px' });
+  pill.appendChild(svg('clock', 11, '#fff', 2));
+  pill.appendChild(el('span',null,'<span style="font:500 13px var(--font);color:#fff">Day 8</span>'));
+  foot.append(tag, pill); img.appendChild(foot); c.appendChild(img);
+  const body = el('div'); body.style.padding = '16px';
+  body.appendChild(el('h3',null,'<span style="font:600 18px var(--font);color:#1A1A1A">Haleakala Sunrise</span>'));
+  const meta = el('div'); Object.assign(meta.style,{ display:'flex', alignItems:'center', gap:'6px', marginTop:'8px' });
+  meta.appendChild(svg('mappin', 13, '#6B6B6B', 2));
+  meta.appendChild(el('span',null,'<span style="font:500 15px var(--font);color:#6B6B6B">Maui</span>'));
+  meta.appendChild(el('span',null,'<span style="font:500 15px var(--font);color:#9B9B9B">·</span>'));
+  meta.appendChild(svg('clock', 13, '#6B6B6B', 2));
+  meta.appendChild(el('span',null,'<span style="font:500 15px var(--font);color:#6B6B6B">5:30 AM – 7:30 AM</span>'));
+  body.appendChild(meta);
+  body.appendChild(el('p',null,'<span style="font:500 15px/20px var(--font);color:#6B6B6B;display:block;margin-top:8px">Watch the sunrise from 10,023 feet above Maui’s dormant volcano crater.</span>'));
+  c.appendChild(body);
+  return c;
+}
+
 /* assemble — 4 top-aligned columns --------------------------------------------- */
 const COLS = [
-  { items: [destCard, detailsCard, statTiles] },
-  { items: [eventCard, calStrip, bufferCard] },
+  { items: [destCard, detailsCard, statTiles, weatherStrip] },
+  { items: [eventCard, calStrip, bufferCard, highlightCard] },
   { items: [dayHeader, progressCard, () => checklistRow(false), () => checklistRow(true)] },
   { items: [documentCard, uploaderCard, deleteConfirm] },
 ];
