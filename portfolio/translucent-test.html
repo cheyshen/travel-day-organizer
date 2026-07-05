@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Translucent panel demo</title>
+<style>
+  body { margin: 0; background: #F9F9F9; font-family: sans-serif; }
+  /* loud stripes behind the video so the see-through is unmistakable */
+  .stage { position: relative; padding: 60px;
+    background: repeating-linear-gradient(45deg, #F9F9F9 0 60px, #DB8F43 60px 120px, #2AA5CB 120px 180px); }
+  h2 { margin: 0 0 16px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.4); }
+  video, img.apng { width: 100%; display: block; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <h2>WebM in &lt;video&gt; — stripes should show through the panel</h2>
+    <video src="exports/anim/component-callouts-wide-translucent.webm" autoplay loop muted playsinline></video>
+  </div>
+  <div class="stage">
+    <h2>APNG in &lt;img&gt; — same, Safari-friendly</h2>
+    <img class="apng" src="exports/anim/component-callouts-wide-translucent.apng" alt="" />
+  </div>
+</body>
+</html>
