@@ -48,7 +48,7 @@ columns, items centered per column. Static only.
 |---|---|
 | Source | `component-board.html` |
 | Regenerate | `node capture-board.js` |
-| Static | `exports/component-board.png` (3840×2160) — **full-bleed, no rounded corners** |
+| Static | `exports/component-board.png` (3840×2160) — **full-bleed, no rounded corners**; background is **transparent by default** (the page supplies the panel color) — bake one with `BOARD_BG=#1F2937` |
 
 **Shows** (no overlap with the callouts panel): destination card (Kauai),
 details card, stat tiles (9/38/2) · event card (Poipu Beach), calendar day-cell

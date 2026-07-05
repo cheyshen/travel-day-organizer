@@ -9,7 +9,8 @@
  *
  * Output: ./exports/component-board.png  (1920×1080 @2x = 3840×2160)
  * Run:    PUPPETEER_EXECUTABLE_PATH=... node capture-board.js
- *         BOARD_BG=#14181F node capture-board.js   (panel color override)
+ *         Default background is TRANSPARENT (page controls the panel color).
+ *         BOARD_BG=#1F2937 node capture-board.js   (bake a panel color)
  * ========================================================================== */
 const fs = require('fs');
 const path = require('path');
@@ -28,13 +29,13 @@ async function main() {
     await page.setViewport({ width: 1960, height: 1120, deviceScaleFactor: 2 });
     await page.goto('file://' + path.join(HERE, 'component-board.html'), { waitUntil: 'networkidle2', timeout: 60000 });
     await page.evaluate(() => window.__ready); // fonts loaded (photos via networkidle2)
-    if (process.env.BOARD_BG) {
-      await page.evaluate((bg) => document.getElementById('panel').style.background = bg, process.env.BOARD_BG);
-    }
+    const bg = process.env.BOARD_BG || 'transparent';
+    const transparent = bg === 'transparent';
+    await page.evaluate((b) => document.getElementById('panel').style.background = b, bg);
     await new Promise((r) => setTimeout(r, 300));
     const panel = await page.$('#panel');
-    await panel.screenshot({ path: OUT });
-    console.log(`✓ component-board.png (3840×2160, full-bleed) → ${OUT}`);
+    await panel.screenshot({ path: OUT, omitBackground: transparent });
+    console.log(`✓ component-board.png (3840×2160, full-bleed, bg=${bg}) → ${OUT}`);
   } finally {
     await browser.close();
   }
