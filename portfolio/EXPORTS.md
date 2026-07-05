@@ -27,8 +27,8 @@ to labels. **Two layouts**, both regenerated every run.
 |---|---|
 | Source | `component-callouts.html` (`?layout=wide` / `?layout=square`) |
 | Regenerate | `node capture-callouts.js` (statics) + `node capture-callouts.js --anim` (videos) — append `wide` or `square` to do one layout |
-| Static | `exports/component-callouts-wide.png` (3840×2000) · `exports/component-callouts-square.png` (2160×2160) — rounded 48px corners, transparent |
-| Video | `exports/anim/component-callouts-{wide,square}.{mp4,gif,apng}` — **full-bleed, no rounded corners** |
+| Static | `exports/component-callouts-wide.png` (3840×2000) · `exports/component-callouts-square.png` (2160×2160) — rounded 48px corners, transparent; **panel keeps its real nav-glass alpha** |
+| Video | `exports/anim/component-callouts-{wide,square}.{mp4,gif,apng}` — **full-bleed, no rounded corners**; MP4/GIF flattened onto page `#F9F9F9`, **APNG = true alpha** (translucent panel survives on any bg) |
 
 **Shows:** Event-type sticker (Sunrise), Island switcher (Kauai active), Live
 "Now" marker, Add event button. Wide = one row of 4 (desktop); square = 2×2
@@ -69,8 +69,10 @@ event title "Sunset Sail", swappable in `deleteConfirm()`).
 
 ### Conventions (decided 2026-07-05)
 
-- **Panel color:** `#1F2937` — the app's bottom-nav dark slate. Override per
-  run with `CALLOUT_BG=` / `BOARD_BG=`.
+- **Panel color:** `rgba(20,28,40,0.88)` = `#141C28E0` — the product bottom-nav
+  glass (`glass.nav` in styles.js), translucency included (changed from opaque
+  `#1F2937` 2026-07-05 to match the real nav). Override per run with
+  `CALLOUT_BG=` / `BOARD_BG=`. The board default is fully transparent.
 - **Videos are full-bleed** (no rounded corners); rounded+transparent corners
   are only on the callouts static PNGs. The board static is full-bleed too.
 - **Portfolio page background is `#F9F9F9`** — used as the corner-flatten color
@@ -94,7 +96,8 @@ event title "Sunset Sail", swappable in `deleteConfirm()`).
 | Interaction flow videos (4 real-app flows) | `capture-flows.js` (records live app at 192.168.1.198) | `node capture-flows.js [name]` | `exports/flows/*.{mp4,gif}` |
 | In-action triptych (3 flows side by side, ocean bg) | `compose-triptych.js` | `node compose-triptych.js` | `exports/flows/in-action-triptych.{mp4,gif}` |
 | Solo hero flow (1 phone on ocean square, 1080×1080 — depth companion to the triptych) | `compose-solo.js` | `node compose-solo.js [clip]` (default `add-event`) | `exports/flows/add-event-solo.{mp4,gif}` |
-| Screens wall (8-state collage, infoLight bg) | `compose-screens-wall.js` | `node compose-screens-wall.js [--layout-only] [state…]` | `exports/wall/screens-wall.png` |
+| Screens wall (8-state collage, neutral `#F9F9F9` bg — was infoLight until 2026-07-05) | `compose-screens-wall.js` | `node compose-screens-wall.js [--layout-only] [state…]` | `exports/wall/screens-wall.png` |
+| Screens wall, transparent (alpha PNG: screens + shadows only, supply your own bg) | `compose-screens-wall.js` | `WALL_BG=transparent WALL_OUT=screens-wall-transparent.png node compose-screens-wall.js --layout-only` | `exports/wall/screens-wall-transparent.png` |
 | Pulled-apart component gallery (light theme) | `components.html` | view in browser | — |
 | Case study page | `case-study.html` | view in browser | — |
 

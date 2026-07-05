@@ -11,8 +11,11 @@
          display: flex; align-items: flex-start; justify-content: flex-start; }
 
   /* the exported artifact: a rounded dark panel, reference-style. Two layouts
-     (?layout=): square 2×2 (default, mobile) / wide single row (desktop) */
-  #panel { width: 1080px; height: 1080px; background: var(--panel-bg, #1F2937); border-radius: 48px;
+     (?layout=): square 2×2 (default, mobile) / wide single row (desktop).
+     Panel color = the product bottom-nav glass rgba(20,28,40,.88) (#141C28E0)
+     — kept translucent; PNG/APNG preserve the alpha, MP4/GIF flatten onto the
+     portfolio page grey */
+  #panel { width: 1080px; height: 1080px; background: var(--panel-bg, rgba(20,28,40,0.88)); border-radius: 48px;
            display: flex; align-items: center; justify-content: center; overflow: hidden; }
   body.wide #panel { width: 1920px; height: 1000px; }
 

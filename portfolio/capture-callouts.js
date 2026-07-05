@@ -29,8 +29,15 @@ const ANIM_DIR = path.join(OUT_DIR, 'anim');
 const LAYOUTS = ['wide', 'square'];
 const FPS = 30;
 const GIF_W = 960;
+const PAGE_GREY = '0xF9F9F9'; // portfolio page bg — flatten target for MP4/GIF
 
 function ff(args) { execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', ...args], { stdio: 'inherit' }); }
+function probeSize(file) {
+  const out = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0',
+    '-show_entries', 'stream=width,height', '-of', 'csv=p=0:s=x', file]).toString().trim();
+  const [w, h] = out.split('x').map(Number);
+  return { w, h };
+}
 
 async function captureLayout(browser, layout, anim) {
   const name = `component-callouts-${layout}`;
@@ -66,23 +73,32 @@ async function captureLayout(browser, layout, anim) {
     fs.mkdirSync(fdir, { recursive: true });
     for (let i = 0; i < frames; i++) {
       await page.evaluate((t) => window.setAnimFrame(t), i / frames);
-      await panel.screenshot({ path: path.join(fdir, `f_${String(i).padStart(4, '0')}.png`) });
+      // omitBackground: the translucent nav-glass panel keeps its alpha
+      await panel.screenshot({ path: path.join(fdir, `f_${String(i).padStart(4, '0')}.png`), omitBackground: true });
     }
-    const glob = path.join(fdir, 'f_%04d.png');
+    const rawGlob = path.join(fdir, 'f_%04d.png');
+    const { w, h } = probeSize(path.join(fdir, 'f_0000.png'));
+
+    // MP4/GIF can't hold alpha — flatten the translucent panel onto the
+    // portfolio page grey so it composites exactly as it would on the page
+    const flatGlob = path.join(fdir, 'flat_%04d.png');
+    ff(['-i', rawGlob, '-f', 'lavfi', '-i', `color=c=${PAGE_GREY}:s=${w}x${h}`,
+        '-filter_complex', '[1:v][0:v]overlay=shortest=1[v]', '-map', '[v]', flatGlob]);
 
     const mp4 = path.join(ANIM_DIR, `${name}.mp4`);
-    ff(['-framerate', String(FPS), '-i', glob, '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p',
+    ff(['-framerate', String(FPS), '-i', flatGlob, '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p',
         '-c:v', 'libx264', '-crf', '18', '-movflags', '+faststart', mp4]);
 
     const pal = path.join(fdir, 'palette.png');
-    ff(['-i', glob, '-vf', `scale=${GIF_W}:-1:flags=lanczos,palettegen=stats_mode=full`, pal]);
+    ff(['-i', flatGlob, '-vf', `scale=${GIF_W}:-1:flags=lanczos,palettegen=stats_mode=full`, pal]);
     const gif = path.join(ANIM_DIR, `${name}.gif`);
-    ff(['-framerate', String(FPS), '-i', glob, '-i', pal,
+    ff(['-framerate', String(FPS), '-i', flatGlob, '-i', pal,
         '-lavfi', `scale=${GIF_W}:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=3`,
         '-loop', '0', gif]);
 
+    // true-alpha video: translucent panel survives — drop on any background
     const apng = path.join(ANIM_DIR, `${name}.apng`);
-    ff(['-framerate', String(FPS), '-i', glob, '-plays', '0', '-f', 'apng', apng]);
+    ff(['-framerate', String(FPS), '-i', rawGlob, '-plays', '0', '-f', 'apng', apng]);
 
     fs.rmSync(fdir, { recursive: true, force: true });
     console.log(`  ✓ ${name} (${frames} frames @ ${FPS}fps, full-bleed) → mp4, gif, apng in exports/anim/`);
