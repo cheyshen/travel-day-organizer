@@ -43,6 +43,7 @@
   .now-dot-wrap { position: relative; width: 14px; height: 14px; flex-shrink: 0; }
   .now-dot { position: absolute; inset: 0; border-radius: 50%; background: #22B8D4; box-shadow: 0 0 12px rgba(34,184,212,.6); }
   .now-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #22B8D4; opacity: .45; transform: scale(2.1); }
+  .now-ring2 { opacity: 0; }
   .now-line { flex: 1; height: 2px; background: #22B8D4; border-radius: 1px; }
   .now-lbl { font: 600 13px var(--font); letter-spacing: .1em; text-transform: uppercase; color: #fff; }
 
@@ -97,7 +98,7 @@ function segmented() {
 }
 function nowIndicator() {
   const r = el('div','now-row');
-  r.innerHTML = `<div class="now-dot-wrap"><div class="now-ring"></div><div class="now-dot"></div></div><div class="now-line"></div><div class="now-lbl">Now</div>`;
+  r.innerHTML = `<div class="now-dot-wrap"><div class="now-ring"></div><div class="now-ring now-ring2"></div><div class="now-dot"></div></div><div class="now-line"></div><div class="now-lbl">Now</div>`;
   return r;
 }
 function addButton() {
@@ -121,6 +122,55 @@ for (const c of CALLOUTS) {
   const box = el('div','cbox'); box.appendChild(c.node()); col.append(box);
   strip.appendChild(col);
 }
+
+/* animation — ONLY the live components move (Now pulse + sticker), the states
+   (switcher, button) stay still. Deterministic t∈[0,1) per the harness pattern:
+   capture steps setAnimFrame(t); the browser preview autoplays the same loop. */
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeIO  = (x) => (x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2);
+const lerp = (a,b,e) => a + (b-a)*e;
+const _g = (o,k,d) => (o[k] !== undefined ? o[k] : d);
+/* sunrise signature motion — same stops as animations.html KF.sun */
+const KF_SUN = [[0,{}],[0.40,{}],[0.50,{y:6,s:0.9}],[0.66,{y:-10,s:1.15}],[0.86,{y:-1,s:1.01}],[1,{}]];
+function evalKF(stops, u) {
+  u = Math.max(0, Math.min(1, u));
+  let a = stops[0], b = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (u >= stops[i][0] && u <= stops[i + 1][0]) { a = stops[i]; b = stops[i + 1]; break; }
+  }
+  const e = easeIO((u - a[0]) / ((b[0] - a[0]) || 1)), A = a[1], B = b[1];
+  return { x: lerp(_g(A,'x',0),_g(B,'x',0),e), y: lerp(_g(A,'y',0),_g(B,'y',0),e),
+           r: lerp(_g(A,'r',0),_g(B,'r',0),e), s: lerp(_g(A,'s',1),_g(B,'s',1),e),
+           sk: lerp(_g(A,'sk',0),_g(B,'sk',0),e), o: lerp(_g(A,'o',1),_g(B,'o',1),e) };
+}
+
+const ring1 = document.querySelector('.now-ring:not(.now-ring2)');
+const ring2 = document.querySelector('.now-ring2');
+const nowDot = document.querySelector('.now-dot');
+const stickerIcon = document.querySelector('.tile > span');
+const ringAt = (p) => ({ scale: 1 + 2.2 * p, opacity: 0.5 * (1 - easeOut(p)) });
+
+window.LOOP_MS = 4800; // 2 radar pings-pairs (1200ms cadence, = harness) + 1 sunrise bob
+window.setAnimFrame = (t) => {
+  const p = (t * 2) % 1;                                    // radar: 2 cycles per loop
+  const a = ringAt(p), b = ringAt((p + 0.5) % 1);           // two pings, offset → continuous
+  ring1.style.transform = `scale(${a.scale})`; ring1.style.opacity = a.opacity;
+  ring2.style.transform = `scale(${b.scale})`; ring2.style.opacity = b.opacity;
+  nowDot.style.transform = `scale(${1 + 0.08 * Math.sin(p * 2 * Math.PI)})`;
+  const m = evalKF(KF_SUN, t);                              // sticker: 1 bob per loop
+  stickerIcon.style.transform = `translate(${m.x}px,${m.y}px) rotate(${m.r}deg) skewX(${m.sk}deg) scale(${m.s})`;
+  stickerIcon.style.opacity = m.o;
+};
+
+let __raf;
+(function autoplay() {
+  const t0 = performance.now();
+  (function step(ts) {
+    window.setAnimFrame(((ts - t0) / window.LOOP_MS) % 1);
+    __raf = requestAnimationFrame(step);
+  })(t0);
+})();
+window.__stopAutoplay = () => cancelAnimationFrame(__raf);
 
 window.__ready = document.fonts.ready.then(() => true);
 </script>

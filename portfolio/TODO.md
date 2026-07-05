@@ -53,4 +53,4 @@ Reference-style annotated component strip (user picked option 1): dark slate pan
 ### Notes
 - On-dark legibility adaptations: Now marker teal lightened #0E7490→#22B8D4, switcher track rgba(255,255,255,.10), NOW label white. Sticker = Sunrise orange for color spread.
 - CALLOUT_BG env overrides panel color (e.g. #14181F near-black).
-- Animated variant (option 5, same layout w/ micro-motions) not built yet — offered.
+- [x] Animated variant (2026-07-05): `node capture-callouts.js --anim` → exports/anim/component-callouts.{mp4,gif,apng}. Only the LIVE components move (Now radar pulse @1200ms cadence + one sunrise sticker bob per 4.8s loop); switcher/button stay still. Live page autoplays the same loop; static PNG pinned to setAnimFrame(0) rest pose.
