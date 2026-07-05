@@ -14,8 +14,9 @@
      Full-bleed: no rounded corners (user request). */
   #panel { width: 1920px; height: 1080px; background: var(--panel-bg, #1F2937);
            display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .board { display: flex; gap: 84px; align-items: center; transform: scale(1.35); }
-  .bcol { display: flex; flex-direction: column; gap: 36px; }
+  /* columns top-aligned on one shared line; items centered within each column */
+  .board { display: flex; gap: 84px; align-items: flex-start; transform: scale(1.35); }
+  .bcol { display: flex; flex-direction: column; gap: 36px; align-items: center; }
 
   /* card primitives (mirroring src tokens: cleanCard, radius, type ramp) */
   .card { background: #FFFFFF; border: 1px solid rgba(0,0,0,.05);
@@ -209,16 +210,15 @@ function progressCard() {
   return c;
 }
 
-/* assemble — 3 heavily staggered columns, reference-style loose grid ---------- */
+/* assemble — 3 top-aligned columns --------------------------------------------- */
 const COLS = [
-  { offset: -64, items: [destCard, detailsCard, statTiles] },
-  { offset: 84,  items: [eventCard, calStrip, bufferCard] },
-  { offset: -28, items: [dayHeader, progressCard, () => checklistRow(false), () => checklistRow(true)] },
+  { items: [destCard, detailsCard, statTiles] },
+  { items: [eventCard, calStrip, bufferCard] },
+  { items: [dayHeader, progressCard, () => checklistRow(false), () => checklistRow(true)] },
 ];
 const board = document.getElementById('board');
 for (const col of COLS) {
   const c = el('div','bcol');
-  c.style.transform = `translateY(${col.offset}px)`;
   for (const make of col.items) c.appendChild(make());
   board.appendChild(c);
 }
