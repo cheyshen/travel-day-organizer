@@ -8,7 +8,7 @@ A mobile-first trip planning app for managing multi-day, multi-destination itine
 
 
 
-<p align="center"><img src="docs/demo.webp" alt="Tour of the app: Trip, Plan, event details, checklist, Day timeline, and adding an event" width="375" /></p>
+<p align="center"><img src=".github/assets/demo.webp" alt="Tour of the app: Trip, Plan, event details, checklist, Day timeline, and adding an event" width="375" /></p>
 
 
 
@@ -73,10 +73,10 @@ The app is designed mobile-first (max 480px) with light surfaces, color-coded is
 
 <table>
   <tr>
-    <td valign="top"><img src="docs/hero-view.png" alt="Trip Overview" width="230" /></td>
-    <td valign="top"><img src="docs/calendar-view.png" alt="Plan" width="230" /></td>
-    <td valign="top"><img src="docs/day-view.png" alt="Day Timeline" width="230" /></td>
-    <td valign="top"><img src="docs/status-view.png" alt="Status & Checklists" width="230" /></td>
+    <td valign="top"><img src=".github/assets/hero-view.png" alt="Trip Overview" width="230" /></td>
+    <td valign="top"><img src=".github/assets/calendar-view.png" alt="Plan" width="230" /></td>
+    <td valign="top"><img src=".github/assets/day-view.png" alt="Day Timeline" width="230" /></td>
+    <td valign="top"><img src=".github/assets/status-view.png" alt="Status & Checklists" width="230" /></td>
   </tr>
   <tr>
     <td align="center"><b>Trip Overview</b></td>

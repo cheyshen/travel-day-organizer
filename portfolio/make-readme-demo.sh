@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# make-readme-demo.sh — build docs/demo.webp (README demo) from exports/flows/tap-flow.mp4.
+# make-readme-demo.sh — build .github/assets/demo.webp (README demo) from exports/flows/tap-flow.mp4.
 # tap-flow.mp4 is full-bleed with SQUARE corners (cheyshen.com rounds it via CSS);
 # GitHub allows no CSS, so bake transparent rounded corners in: 44px-radius phone
 # silhouette (4x-supersampled) -> alphamerge -> RGBA frames -> img2webp lossy.
 # NOT ffmpeg libwebp_anim: it flattens alpha to a black box (see EXPORTS.md / memory).
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-SRC="$HERE/exports/flows/tap-flow.mp4"; OUT="$HERE/../docs/demo.webp"
+SRC="$HERE/exports/flows/tap-flow.mp4"; OUT="$HERE/../.github/assets/demo.webp"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 python3 -c "
 from PIL import Image, ImageDraw

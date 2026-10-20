@@ -8,3 +8,6 @@ portfolio/exports/
 portfolio/*.zip
 portfolio/_up_*.png
 portfolio/_debug_save.js
+
+# Internal design notes, specs and plans — local only, never published
+docs/

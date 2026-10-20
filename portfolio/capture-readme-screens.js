@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* capture-readme-screens.js — Re-capture the 4 README screenshots (docs/*-view.png)
+/* capture-readme-screens.js — Re-capture the 4 README screenshots (.github/assets/*-view.png)
  * from the live app: full-page, 390px wide @2x, one per tab (Trip, Plan, Day, Status).
  * Clock pinned to Sat Jul 4 2026 09:30 (same as capture-flows.js) so the sample trip
  * keeps its real July dates and Day/Trip show a live "Now" / "Up next".
@@ -10,7 +10,7 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 
 const APP = process.env.APP_URL || 'http://192.168.1.198';
-const OUT = path.join(__dirname, '..', 'docs');
+const OUT = path.join(__dirname, '..', '.github', 'assets');
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 const SHOTS = [
@@ -55,7 +55,7 @@ async function main() {
     await page.setViewport({ width: 390, height: h, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     await sleep(800);
     await page.screenshot({ path: path.join(OUT, file) });
-    console.log(`  ✓ docs/${file}`);
+    console.log(`  ✓ .github/assets/${file}`);
     await ctx.close();
   }
   await browser.close();
