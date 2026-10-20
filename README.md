@@ -8,7 +8,7 @@ A mobile-first trip planning app for managing multi-day, multi-destination itine
 
 
 
-https://github.com/user-attachments/assets/baff91a1-b53b-4f1d-b4c8-b8fcacba22d6
+<p align="center"><img src="docs/demo.webp" alt="Tour of the app: Trip, Plan, event details, checklist, Day timeline, and adding an event" width="375" /></p>
 
 
 
