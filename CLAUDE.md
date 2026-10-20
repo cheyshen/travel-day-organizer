@@ -318,18 +318,21 @@ These are the foundational principles. When in doubt about a design decision, re
 |-------|------|--------|-------------|-----|
 | hero | 42px | 700 | 44px | Page title (masthead) only |
 | title | 24px | 700 | 30px | Feature / overlay titles (destination cards, event detail) |
-| heading | 20px | 700 | 26px | Section headings (e.g. "Up next", "Your trip") |
+| heading | 18px | 700 | 24px | Section headings (e.g. "Up next", "Your trip") |
 | sectionHeader | 18px | 600 | 24px | Card titles |
-| body | 15px | 400 | 22px | Primary content |
-| bodyMedium | 15px | 500 | 22px | Emphasized body text |
-| helper | 13px | 400 | 18px | Secondary info, metadata |
-| caption | 11px | 600 | 14px | Labels, tags, eyebrows (UPPERCASE) |
+| body | 16px | 500 | 22px | Primary content |
+| bodyMedium | 16px | 500 | 22px | Emphasized body text |
+| helper | 15px | 500 | 20px | Secondary info, metadata |
+| caption | 13px | 600 | 16px | Labels, tags, eyebrows (UPPERCASE) |
 
 > Inputs use 16px deliberately (prevents iOS auto-zoom on focus) — an intentional exception to the ramp.
 
+**Three weights only — no 400.** The type system uses just **500 / 600 / 700** (DM Sans is loaded `wght@500;600;700`; `index.css` sets `body { font-weight: 500 }`). 500 is the lightest weight anywhere — `body` and `helper` moved from 400 to 500 in June 2026. Use ramp tokens as-is and differentiate hierarchy by weight and color; avoid ad-hoc `fontSize`/`letterSpacing` overrides.
+
 **Typography Rules:**
-- Never go below 11px (Apple HIG minimum; WCAG readability)
-- Use a single font family (Inter) — mixing fonts looks fragmented
+- Never go below 13px (project minimum for readability; smaller text was bumped product-wide June 2026)
+- No weight below 500 — only 500 / 600 / 700 are used product-wide
+- Use a single font family (**DM Sans**, via Google Fonts) — mixing fonts looks fragmented
 - Use weight, size, and color to create hierarchy (not decoration)
 - Line height should be 1.4-1.6x the font size for body text
 - Avoid Ultralight/Thin weights (Apple HIG: not user-friendly)
@@ -385,6 +388,7 @@ These are the foundational principles. When in doubt about a design decision, re
 - Always pair with text labels (NN/g: icon-only navigation is problematic)
 - Set `aria-hidden="true"` when adjacent text provides meaning
 - Color: inherit from parent text color, or use accent for interactive
+- **Event-type icons are ALWAYS sticker-style, everywhere.** Render every event-type icon via `AnimatedEventIcon` with the `sticker` prop — a saturated `EVENT_VISUALS` tile + white icon + white border + gloss + drop shadow (the border auto-scales with `tile` size). Never use flat tiles (light tint + colored icon) or a bare `<Icon>` for an event type. Any new surface that shows an event-type icon must match this.
 
 ---
 

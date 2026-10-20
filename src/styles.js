@@ -4,17 +4,17 @@ import { colors } from './colors'
 // SHARED STYLES — Typography, Spacing, Tokens
 // =============================================================================
 
-export const fontStack = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+export const fontStack = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
 export const typography = {
   hero: { fontSize: 42, fontWeight: 700, lineHeight: '44px', letterSpacing: '-0.02em' },
   title: { fontSize: 24, fontWeight: 700, lineHeight: '30px', letterSpacing: '-0.01em' },
-  heading: { fontSize: 20, fontWeight: 700, lineHeight: '26px', letterSpacing: '-0.01em' },
+  heading: { fontSize: 18, fontWeight: 700, lineHeight: '24px', letterSpacing: '-0.01em' },
   sectionHeader: { fontSize: 18, fontWeight: 600, lineHeight: '24px' },
-  body: { fontSize: 15, fontWeight: 400, lineHeight: '22px' },
-  bodyMedium: { fontSize: 15, fontWeight: 500, lineHeight: '22px' },
-  helper: { fontSize: 13, fontWeight: 400, lineHeight: '18px' },
-  caption: { fontSize: 11, fontWeight: 600, lineHeight: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  body: { fontSize: 16, fontWeight: 500, lineHeight: '22px' },
+  bodyMedium: { fontSize: 16, fontWeight: 500, lineHeight: '22px' },
+  helper: { fontSize: 15, fontWeight: 500, lineHeight: '20px' },
+  caption: { fontSize: 13, fontWeight: 600, lineHeight: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' },
 }
 
 export const spacing = {
@@ -63,10 +63,10 @@ export const warmPalette = {
 }
 
 // Glossy page background — very light baby blue
-export const glossyBg = '#EAF3FC'
+export const glossyBg = '#F2F3F5'
 
 // Page background — very light baby blue
-export const pageGradient = '#EAF3FC'
+export const pageGradient = '#F2F3F5'
 
 // Clean opaque card surface — modern, replaces the muddy glass on the Trip tab
 export const cleanCard = {
@@ -83,7 +83,7 @@ export const glass = {
     border: '1px solid rgba(255, 255, 255, 0.3)',
   },
   frostedLight: {
-    background: 'rgba(240, 237, 232, 0.85)',
+    background: 'rgba(242, 243, 245, 0.85)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
     border: '1px solid rgba(0, 0, 0, 0.08)',

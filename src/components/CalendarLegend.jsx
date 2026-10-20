@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { typography, spacing, radius, shadows, warmPalette, glass } from '../styles'
+import { MapPin } from 'lucide-react'
+import { typography, spacing, radius, shadows, warmPalette } from '../styles'
 
 // =============================================================================
-// CALENDAR LEGEND — Interactive destination filter pills
+// CALENDAR LEGEND — Destination filter as a segmented control
 // =============================================================================
 
 export default function CalendarLegend({ destinations, days, activeFilter, onFilter }) {
@@ -15,62 +16,56 @@ export default function CalendarLegend({ destinations, days, activeFilter, onFil
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      gap: spacing.sm,
-      padding: `${spacing.md}px 0`,
-    }}>
-      {destinations.map(dest => {
-        const isActive = activeFilter === dest.id
-        const count = destCounts[dest.id] || 0
-        const isKauai = dest.id === 'dest-kauai'
+    <div style={{ padding: `${spacing.md}px 0` }}>
+      <div style={{
+        display: 'flex',
+        gap: spacing.xs,
+        padding: spacing.xs,
+        backgroundColor: 'rgba(60,70,90,0.10)',
+        borderRadius: radius.pill,
+      }}>
+        {destinations.map(dest => {
+          const isActive = activeFilter === dest.id
+          const count = destCounts[dest.id] || 0
 
-        return (
-          <motion.button
-            key={dest.id}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onFilter(isActive ? null : dest.id)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing.sm,
-              padding: `${spacing.md}px ${spacing.xl}px`,
-              borderRadius: radius.pill,
-              border: isActive
-                ? `2px solid ${dest.color}`
-                : '2px solid transparent',
-              ...(isActive ? { backgroundColor: dest.accentLight } : glass.badge),
-              boxShadow: isActive ? shadows.md : glass.badge.boxShadow,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            {/* Shape indicator */}
-            <span style={{
-              width: 12,
-              height: 12,
-              borderRadius: isKauai ? '50%' : 2,
-              backgroundColor: dest.color,
-              display: 'inline-block',
-              flexShrink: 0,
-            }} />
-            <span style={{
-              ...typography.sectionHeader,
-              fontSize: 15,
-              color: warmPalette.textDark,
-            }}>
-              {dest.name}
-            </span>
-            <span style={{
-              ...typography.bodyMedium,
-              color: warmPalette.textMedium,
-            }}>
-              {count}d
-            </span>
-          </motion.button>
-        )
-      })}
+          return (
+            <motion.button
+              key={dest.id}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onFilter(isActive ? null : dest.id)}
+              aria-pressed={isActive}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.sm,
+                padding: `${spacing.sm + 2}px ${spacing.md}px`,
+                borderRadius: radius.pill,
+                border: 'none',
+                background: isActive ? '#FFFFFF' : 'transparent',
+                boxShadow: isActive ? shadows.sm : 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <MapPin size={16} color={dest.color} strokeWidth={2.5} />
+              <span style={{
+                ...typography.bodyMedium,
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? warmPalette.textDark : warmPalette.textMedium,
+              }}>
+                {dest.name}
+              </span>
+              <span style={{
+                ...typography.helper,
+                color: isActive ? warmPalette.textMedium : warmPalette.textLight,
+              }}>
+                {count}d
+              </span>
+            </motion.button>
+          )
+        })}
+      </div>
     </div>
   )
 }

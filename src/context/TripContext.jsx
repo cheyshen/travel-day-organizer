@@ -9,7 +9,22 @@ import { getTodayStr, isTripOver, computeShiftDays, buildShiftedData } from './t
 // =============================================================================
 
 const STORAGE_KEY = 'travel-trip-state'
-const DATA_VERSION = 5 // Bump to invalidate cached localStorage
+const DATA_VERSION = 9 // Bump to invalidate cached localStorage
+
+// localStorage can throw (privacy settings, blocked cookies/storage, sandboxed
+// or "Block all cookies" contexts). Never let storage access crash the app —
+// degrade gracefully to in-memory state.
+const safeStorage = {
+  get(key) {
+    try { return localStorage.getItem(key) } catch { return null }
+  },
+  set(key, value) {
+    try { localStorage.setItem(key, value) } catch { /* unavailable or full */ }
+  },
+  remove(key) {
+    try { localStorage.removeItem(key) } catch { /* unavailable */ }
+  },
+}
 
 const TripContext = createContext(null)
 
@@ -19,7 +34,7 @@ function getInitialState() {
 
   // Try loading saved state first
   try {
-    const saved = localStorage.getItem(STORAGE_KEY)
+    const saved = safeStorage.get(STORAGE_KEY)
     if (saved) {
       const parsed = JSON.parse(saved)
       if (parsed.trip?.id === sampleTrip.id && parsed._dataVersion === DATA_VERSION) {
@@ -67,7 +82,7 @@ function getInitialState() {
   }
 
   if (shouldShift) {
-    localStorage.removeItem(STORAGE_KEY)
+    safeStorage.remove(STORAGE_KEY)
   }
 
   return defaults
@@ -226,7 +241,7 @@ function tripReducer(state, action) {
       return { ...state, weatherData: action.payload }
 
     case 'RESET':
-      localStorage.removeItem(STORAGE_KEY)
+      safeStorage.remove(STORAGE_KEY)
       return {
         trip: sampleTrip,
         days: sampleDays,
@@ -251,9 +266,7 @@ export function TripProvider({ children }) {
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, _dataVersion: DATA_VERSION }))
-      } catch (e) { /* storage full */ }
+      safeStorage.set(STORAGE_KEY, JSON.stringify({ ...state, _dataVersion: DATA_VERSION }))
     }, 500)
     return () => clearTimeout(saveTimer.current)
   }, [state])

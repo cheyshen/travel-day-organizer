@@ -108,7 +108,7 @@ export default function Navigation({ activeView, onNavigate, onAdd }) {
       width: '100%',
       maxWidth: 480,
       zIndex: 90,
-      padding: `0 ${spacing.lg}px calc(${spacing.lg}px + env(safe-area-inset-bottom, 0px))`,
+      padding: 0,
       pointerEvents: 'none',
       background: 'transparent',
     }}>
@@ -119,8 +119,8 @@ export default function Navigation({ activeView, onNavigate, onAdd }) {
           display: 'flex',
           alignItems: 'center',
           ...glass.nav,
-          borderRadius: radius.xl,
-          padding: `${spacing.sm}px ${spacing.sm}px`,
+          borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
+          padding: `${spacing.sm}px ${spacing.sm}px calc(${spacing.sm}px + env(safe-area-inset-bottom, 0px))`,
           pointerEvents: 'auto',
           position: 'relative',
         }}

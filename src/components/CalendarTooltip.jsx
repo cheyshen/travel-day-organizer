@@ -5,6 +5,7 @@ import { colors } from '../colors'
 import { typography, spacing, radius, warmPalette } from '../styles'
 import { formatTripDate } from '../utils/dateUtils'
 import { getEventType } from '../data/eventTypes'
+import AnimatedEventIcon from './AnimatedEventIcon'
 
 // =============================================================================
 // CALENDAR TOOLTIP — Day summary popover on cell tap
@@ -43,32 +44,32 @@ export default function CalendarTooltip({
     }
   })
 
-  // Position + responsive width calculation
+  // Position + responsive width — fixed to the viewport so a tall popup can never
+  // clip off the top/bottom; it falls back above→below and is clamped both ways,
+  // with a viewport-capped max-height (it scrolls internally on very busy days).
   const getLayout = useCallback(() => {
-    if (!anchorRect || !containerRef?.current) return { top: 0, left: 0, width: 280 }
+    if (!anchorRect) return { top: 0, left: 0, width: 280, maxHeight: 320 }
 
-    const container = containerRef.current.getBoundingClientRect()
-    // Responsive: 75% of container width, clamped 260–340px
-    const tooltipWidth = Math.min(340, Math.max(260, container.width * 0.75))
-    // First render: use a conservative upper-bound so "above" is preferred
-    // for cells near the bottom. Subsequent renders use the measured height.
-    const tooltipHeight = measuredHeight ?? 320
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const m = 8 // viewport margin
+    const tooltipWidth = Math.min(340, Math.max(260, vw * 0.82))
+    const maxHeight = vh - m * 2
+    const tooltipHeight = Math.min(measuredHeight ?? 320, maxHeight)
 
-    // Horizontal: center on cell, clamp to container edges
-    let left = anchorRect.left - container.left + anchorRect.width / 2 - tooltipWidth / 2
-    left = Math.max(8, Math.min(left, container.width - tooltipWidth - 8))
+    // Horizontal: center on cell, clamp to viewport
+    let left = anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2
+    left = Math.max(m, Math.min(left, vw - tooltipWidth - m))
 
-    // Vertical: prefer below, fall back to above if not enough room
-    const spaceBelow = container.bottom - anchorRect.bottom
-    let top
-    if (spaceBelow >= tooltipHeight + 8) {
-      top = anchorRect.bottom - container.top + 8
-    } else {
-      top = anchorRect.top - container.top - tooltipHeight - 8
-    }
+    // Vertical: prefer below, fall back to above, then clamp fully into the viewport
+    const spaceBelow = vh - anchorRect.bottom
+    let top = spaceBelow >= tooltipHeight + m
+      ? anchorRect.bottom + m
+      : anchorRect.top - tooltipHeight - m
+    top = Math.max(m, Math.min(top, vh - tooltipHeight - m))
 
-    return { top, left, width: tooltipWidth }
-  }, [anchorRect, containerRef, measuredHeight])
+    return { top, left, width: tooltipWidth, maxHeight }
+  }, [anchorRect, measuredHeight])
 
   if (!date || !anchorRect || !day) return null
 
@@ -104,16 +105,18 @@ export default function CalendarTooltip({
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ type: 'spring', stiffness: 400, damping: 28, duration: 0.2 }}
         style={{
-          position: 'absolute',
+          position: 'fixed',
           top: layout.top,
           left: layout.left,
           width: layout.width,
+          maxHeight: layout.maxHeight,
           background: colors.surface,
           border: '1px solid rgba(0,0,0,0.08)',
           boxShadow: '0 12px 40px rgba(0,0,0,0.16)',
           borderRadius: radius.lg,
           zIndex: 100,
-          overflow: 'hidden',
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
         {/* Header */}
@@ -183,25 +186,13 @@ export default function CalendarTooltip({
             <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
               {groups.map(group => {
                 const eventType = getEventType(group.type)
-                const Icon = eventType.icon
                 return (
                   <div key={group.type} style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: spacing.md,
                   }}>
-                    <div style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 8,
-                      backgroundColor: eventType.bgColor,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      <Icon size={16} color={eventType.color} strokeWidth={2} />
-                    </div>
+                    <AnimatedEventIcon type={group.type} sticker tile={30} icon={16} radius={8} />
                     <span style={{ ...typography.body, color: warmPalette.textMedium, flex: 1 }}>
                       {eventType.label}
                     </span>
@@ -230,7 +221,7 @@ export default function CalendarTooltip({
             backgroundColor: 'transparent',
             cursor: 'pointer',
             ...typography.sectionHeader,
-            fontSize: 15,
+            fontSize: 16,
             color: warmPalette.accent,
           }}
         >

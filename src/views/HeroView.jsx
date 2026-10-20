@@ -24,7 +24,7 @@ const HIGHLIGHTS = [
     description: '5-hour catamaran cruise along Kauai\'s dramatic coastline with snorkeling and dolphins.',
     image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80',
     day: 4,
-    date: '2026-03-17',
+    date: '2026-07-07',
     destination: 'Kauai',
     time: '8:00 AM – 1:00 PM',
     icon: Ship,
@@ -35,7 +35,7 @@ const HIGHLIGHTS = [
     description: 'Watch the sunrise from 10,023 feet above Maui\'s dormant volcano crater.',
     image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=80',
     day: 8,
-    date: '2026-03-21',
+    date: '2026-07-11',
     destination: 'Maui',
     time: '5:30 AM – 7:30 AM',
     icon: Sunrise,
@@ -46,7 +46,7 @@ const HIGHLIGHTS = [
     description: 'Scenic drive through the "Grand Canyon of the Pacific" with stunning lookout points.',
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
     day: 3,
-    date: '2026-03-16',
+    date: '2026-07-06',
     destination: 'Kauai',
     time: '9:00 AM – 2:00 PM',
     icon: Mountain,
@@ -57,7 +57,7 @@ const HIGHLIGHTS = [
     description: 'Crystal-clear waters with sea turtles and tropical fish at Kauai\'s sunny south shore.',
     image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?auto=format&fit=crop&w=600&q=80',
     day: 2,
-    date: '2026-03-15',
+    date: '2026-07-05',
     destination: 'Kauai',
     time: '2:00 PM – 5:00 PM',
     icon: Waves,
@@ -68,7 +68,7 @@ const HIGHLIGHTS = [
     description: 'Legendary coastal highway through bamboo forests, waterfalls, and black sand beaches.',
     image: 'https://images.unsplash.com/photo-1616193653378-a9414ff47462?auto=format&fit=crop&w=600&q=80',
     day: 6,
-    date: '2026-03-19',
+    date: '2026-07-09',
     destination: 'Maui',
     time: '6:30 AM – 5:00 PM',
     icon: Mountain,
@@ -484,15 +484,6 @@ export default function HeroView({ onNavigate }) {
     return null
   }, [days, tripDates, now])
 
-  // Flight milestone state
-  const flightMilestones = useMemo(() => {
-    if (!nextFlight) return []
-    return getFlightMilestones(nextFlight.event, now)
-  }, [nextFlight, now])
-
-  const visibleMilestones = useMemo(() => {
-    return getVisibleMilestones(flightMilestones)
-  }, [flightMilestones])
 
   function getDestDayCount(destId) {
     return Object.values(days).filter(d => d.destinationId === destId).length
@@ -503,9 +494,6 @@ export default function HeroView({ onNavigate }) {
     if (!day) return null
     return trip.destinations.find(d => d.id === day.destinationId)
   }
-
-  // Days until the trip starts — drives the masthead countdown pill (pre-trip only)
-  const daysToGo = Math.ceil((new Date(trip.startDate).getTime() - now) / DAY_MS)
 
   return (
     <div style={{ background: pageGradient, minHeight: '100vh' }}>
@@ -538,33 +526,6 @@ export default function HeroView({ onNavigate }) {
           inset: 0,
           background: scrimGradient,
         }} />
-
-        {/* Countdown pill — small, text-only, readable on any photo (pre-trip only) */}
-        {daysToGo > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.6 }}
-            style={{
-              position: 'absolute',
-              top: 16,
-              left: 20,
-              zIndex: 3,
-              background: 'rgba(0,0,0,0.34)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              color: colors.textOnDark,
-              fontFamily: fontStack,
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: '0.2px',
-              padding: '6px 12px',
-              borderRadius: radius.pill,
-            }}
-          >
-            {daysToGo === 1 ? '1 day to go' : `${daysToGo} days to go`}
-          </motion.div>
-        )}
 
         {/* Title masthead — trip name + dates over the photo */}
         <motion.div
@@ -685,51 +646,42 @@ export default function HeroView({ onNavigate }) {
         </motion.div>
 
         {nextUp && (
-          <div style={{ ...typography.heading, color: palette.textDark, margin: '10px 2px 12px' }}>
+          <div style={{ ...typography.title, fontWeight: 500, color: palette.textDark, margin: '40px 2px 12px' }}>
             Up next
           </div>
         )}
 
-        {/* --- Next Up Card — Temporal orientation --- */}
-        {nextUp && (() => {
-          const EventIcon = getEventIcon(nextUp.event.type)
-          const eventColor = getEventColor(nextUp.event.type)
-          const eventBgColor = getEventBgColor(nextUp.event.type)
-          const destColor = nextDest?.color || palette.accent
-          const locationStr = nextUp.event.location?.destination || nextUp.event.location?.origin || null
+        {/* --- Up Next + Flight, two cards side by side --- */}
+        <div style={{ display: 'flex', gap: spacing.md, marginBottom: 20, alignItems: 'stretch' }}>
+          {nextUp && (() => {
+            const locationStr = nextUp.event.location?.destination || nextUp.event.location?.origin || null
 
-          // Format countdown text
-          let countdownText
-          if (isNow) {
-            countdownText = 'Now'
-          } else if (minutesUntil < 60) {
-            countdownText = `${minutesUntil} min`
-          } else {
-            const hrs = Math.floor(minutesUntil / 60)
-            const mins = minutesUntil % 60
-            countdownText = mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`
-          }
+            let countdownText
+            if (isNow) {
+              countdownText = 'Now'
+            } else if (minutesUntil < 60) {
+              countdownText = `${minutesUntil} min`
+            } else {
+              const hrs = Math.floor(minutesUntil / 60)
+              const mins = minutesUntil % 60
+              countdownText = mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`
+            }
 
-          // "How soon" chip — calendar-day aware
-          const evMid = new Date(`${nextUp.dateStr}T00:00:00`).getTime()
-          const todayMid = new Date(now)
-          todayMid.setHours(0, 0, 0, 0)
-          const daysUntil = Math.round((evMid - todayMid.getTime()) / DAY_MS)
-          let soonLabel
-          if (isNow) soonLabel = 'Now'
-          else if (daysUntil <= 0) soonLabel = `in ${countdownText}`
-          else if (daysUntil === 1) soonLabel = 'Tomorrow'
-          else soonLabel = `in ${daysUntil}d`
+            const evMid = new Date(`${nextUp.dateStr}T00:00:00`).getTime()
+            const todayMid = new Date(now)
+            todayMid.setHours(0, 0, 0, 0)
+            const daysUntil = Math.round((evMid - todayMid.getTime()) / DAY_MS)
+            let soonLabel
+            if (isNow) soonLabel = 'Now'
+            else if (daysUntil <= 0) soonLabel = `in ${countdownText}`
+            else if (daysUntil === 1) soonLabel = 'Tomorrow'
+            else soonLabel = `in ${daysUntil}d`
 
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55, duration: 0.5 }}
-              style={{ marginBottom: 20 }}
-            >
-              {/* Primary card */}
+            return (
               <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55, duration: 0.5 }}
                 role="button"
                 tabIndex={0}
                 whileTap={{ scale: 0.98 }}
@@ -737,230 +689,123 @@ export default function HeroView({ onNavigate }) {
                   dispatch({ type: 'SET_SELECTED_EVENT', payload: nextUp.event.id })
                   onNavigate('eventDetail', nextUp.dateStr)
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    dispatch({ type: 'SET_SELECTED_EVENT', payload: nextUp.event.id })
-                    onNavigate('eventDetail', nextUp.dateStr)
-                  }
+                style={{
+                  ...cleanCard,
+                  borderRadius: radius.lg,
+                  padding: spacing.lg,
+                  cursor: 'pointer',
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  fontFamily: fontStack,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                  <AnimatedEventIcon type={nextUp.event.type} tile={42} icon={21} radius={11} playOnMount sticker />
+                  <div style={{
+                    flexShrink: 0,
+                    backgroundColor: palette.accentSoft,
+                    color: palette.accent,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    padding: '5px 11px',
+                    borderRadius: radius.pill,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {soonLabel}
+                  </div>
+                </div>
+                <div>
+                  <div style={{
+                    ...typography.sectionHeader,
+                    color: palette.textDark,
+                    fontFamily: fontStack,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}>
+                    {nextUp.event.title}
+                  </div>
+                  <div style={{ ...typography.helper, color: palette.textMedium, marginTop: 6, fontFamily: fontStack }}>
+                    {formatTime(nextUp.event.startTime)}
+                  </div>
+                  {locationStr && (
+                    <div style={{ ...typography.helper, color: palette.textMedium, marginTop: 2, fontFamily: fontStack }}>
+                      {locationStr}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )
+          })()}
+
+          {nextFlight && nextFlight.event.id !== nextUp?.event?.id && (() => {
+            const fl = nextFlight.event
+            const extractCode = (str) => {
+              if (!str) return ''
+              const match = str.match(/\(([A-Z]{3})\)/)
+              return match ? match[1] : str.split(',')[0].trim()
+            }
+            const originCode = extractCode(fl.location?.origin)
+            const destCode = extractCode(fl.location?.destination)
+            const flDate = new Date(fl.startTime)
+            const dateLabel = `${flDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+            const timeLabel = formatTime(fl.startTime)
+
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.65, duration: 0.5 }}
+                role="button"
+                tabIndex={0}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  dispatch({ type: 'SET_SELECTED_EVENT', payload: fl.id })
+                  onNavigate('eventDetail', nextFlight.dateStr)
                 }}
                 style={{
                   ...cleanCard,
                   borderRadius: radius.lg,
-                  padding: 16,
+                  padding: spacing.lg,
                   cursor: 'pointer',
+                  flex: 1,
+                  minWidth: 0,
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 13,
+                  flexDirection: 'column',
+                  gap: 12,
                   fontFamily: fontStack,
                 }}
               >
-                {/* Event icon */}
-                <AnimatedEventIcon
-                  type={nextUp.event.type}
-                  tile={42}
-                  icon={21}
-                  radius={11}
-                  playOnMount
-                />
-
-                {/* Title + time · location */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    ...typography.sectionHeader,
-                    color: palette.textDark,
-                    fontFamily: fontStack,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}>
-                    {nextUp.event.title}
-                  </div>
-                  <div style={{
-                    ...typography.helper,
-                    color: palette.textMedium,
-                    marginTop: 3,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}>
-                    {formatTime(nextUp.event.startTime)}{locationStr ? ` · ${locationStr}` : ''}
-                  </div>
-                </div>
-
-                {/* "How soon" chip */}
-                <div style={{
-                  flexShrink: 0,
-                  backgroundColor: palette.accentSoft,
-                  color: palette.accent,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '5px 11px',
-                  borderRadius: radius.pill,
-                  whiteSpace: 'nowrap',
-                }}>
-                  {soonLabel}
-                </div>
-
-              </motion.div>
-            </motion.div>
-          )
-        })()}
-
-        {/* --- Flight Status Card with milestone log (skip if same as Next Up) --- */}
-        {nextFlight && nextFlight.event.id !== nextUp?.event?.id && (() => {
-          const fl = nextFlight.event
-          const extractCode = (str) => {
-            if (!str) return ''
-            const match = str.match(/\(([A-Z]{3})\)/)
-            return match ? match[1] : str.split(',')[0].trim()
-          }
-          const originCode = extractCode(fl.location?.origin)
-          const destCode = extractCode(fl.location?.destination)
-          const flDate = new Date(fl.startTime)
-          const dateLabel = `${flDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-          const timeLabel = formatTime(fl.startTime)
-          const isDelayed = fl.status === 'delayed'
-          const statusLabel = isDelayed ? 'Delayed' : 'On Time'
-          const statusBg = isDelayed ? colors.warningLight : colors.successLight
-          const statusColor = isDelayed ? colors.warning : colors.success
-
-          return (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.65, duration: 0.5 }}
-              role="button"
-              tabIndex={0}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                dispatch({ type: 'SET_SELECTED_EVENT', payload: fl.id })
-                onNavigate('eventDetail', nextFlight.dateStr)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  dispatch({ type: 'SET_SELECTED_EVENT', payload: fl.id })
-                  onNavigate('eventDetail', nextFlight.dateStr)
-                }
-              }}
-              style={{
-                ...cleanCard,
-                borderRadius: radius.lg,
-                padding: '26px',
-                marginBottom: 20,
-                cursor: 'pointer',
-                position: 'relative',
-                fontFamily: fontStack,
-              }}
-            >
-              {/* Corner icon */}
-              <div style={{ position: 'absolute', top: 20, right: 20 }}>
-                <AnimatedEventIcon type="flight" tile={38} icon={20} radius={11} playOnMount />
-              </div>
-
-              {/* Eyebrow + status */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, paddingRight: 52 }}>
-                <span style={{ ...typography.caption, color: palette.textMedium }}>Flight</span>
-                <div style={{
-                  backgroundColor: statusBg,
-                  color: statusColor,
-                  padding: '2px 8px',
-                  borderRadius: radius.pill,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {statusLabel}
-                </div>
-              </div>
-
-              {/* Title */}
-              <div style={{ marginBottom: 12, paddingRight: 52 }}>
-                <InlineEdit
-                  value={fl.title}
-                  onSave={(v) => dispatch({ type: 'UPDATE_EVENT', payload: { date: nextFlight.dateStr, eventId: fl.id, updates: { title: v } } })}
-                  style={{
-                    ...typography.sectionHeader,
-                    color: palette.textDark,
-                    fontFamily: fontStack,
-                  }}
-                />
-              </div>
-
-              {/* Date/time line */}
-              <div style={{
-                ...typography.body,
-                color: palette.textMedium,
-                marginBottom: 14,
-              }}>
-                {dateLabel} · {timeLabel}
-              </div>
-
-              {/* Route visualization */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                marginBottom: 14,
-              }}>
-                <span style={{
-                  ...typography.bodyMedium,
-                  fontWeight: 600,
-                  color: palette.textDark,
-                  fontSize: 15,
-                  fontFamily: fontStack,
-                }}>
-                  {originCode}
-                </span>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  flex: 1,
-                  maxWidth: 120,
-                }}>
-                  <div style={{ flex: 1, height: 1, backgroundColor: palette.textLight, opacity: 0.4 }} />
-                  <Plane size={14} color={palette.textMedium} strokeWidth={2} style={{ transform: 'rotate(45deg)' }} />
-                  <div style={{ flex: 1, height: 1, backgroundColor: palette.textLight, opacity: 0.4 }} />
-                </div>
-                <span style={{
-                  ...typography.bodyMedium,
-                  fontWeight: 600,
-                  color: palette.textDark,
-                  fontSize: 15,
-                  fontFamily: fontStack,
-                }}>
-                  {destCode}
-                </span>
-              </div>
-
-              {/* Divider */}
-              <div style={{
-                height: 1,
-                backgroundColor: colors.borderLight,
-                marginBottom: 14,
-              }} />
-
-              {/* Milestone log */}
-              {visibleMilestones.length > 0 && (
+                <AnimatedEventIcon type="flight" tile={42} icon={21} radius={11} playOnMount sticker />
                 <div>
-                  {visibleMilestones.map((m, i) => (
-                    <FlightMilestoneRow
-                      key={m.id}
-                      milestone={m}
-                      isLast={i === visibleMilestones.length - 1}
-                    />
-                  ))}
+                  <div style={{
+                    ...typography.sectionHeader,
+                    color: palette.textDark,
+                    fontFamily: fontStack,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}>
+                    {fl.title}
+                  </div>
+                  <div style={{ ...typography.helper, color: palette.textMedium, marginTop: 6, fontFamily: fontStack }}>
+                    {originCode} → {destCode}
+                  </div>
+                  <div style={{ ...typography.helper, color: palette.textMedium, marginTop: 2, fontFamily: fontStack }}>
+                    {dateLabel} · {timeLabel}
+                  </div>
                 </div>
-              )}
-            </motion.div>
-          )
-        })()}
+              </motion.div>
+            )
+          })()}
+        </div>
 
-        <div style={{ ...typography.heading, color: palette.textDark, margin: '10px 2px 12px' }}>
+        <div style={{ ...typography.title, fontWeight: 500, color: palette.textDark, margin: '30px 2px 12px' }}>
           Your trip
         </div>
 
@@ -972,7 +817,7 @@ export default function HeroView({ onNavigate }) {
           style={{
             ...cleanCard,
             borderRadius: radius.lg,
-            padding: 26,
+            padding: spacing.xl,
           }}
         >
           <div style={{
@@ -1011,11 +856,12 @@ export default function HeroView({ onNavigate }) {
               onKeyDown={e => { if (e.key === 'Enter') handleWeatherSubmit() }}
               style={{
                 flex: 1,
+                minWidth: 0,
                 padding: '10px 12px',
                 borderRadius: radius.iconSquare,
                 border: `1px solid ${weatherError ? '#C0392B' : 'rgba(0,0,0,0.14)'}`,
                 backgroundColor: 'rgba(0,0,0,0.04)',
-                fontSize: 15,
+                fontSize: 16,
                 fontFamily: fontStack,
                 color: palette.textDark,
                 outline: 'none',
@@ -1122,7 +968,7 @@ export default function HeroView({ onNavigate }) {
                     <WeatherIcon condition={weather.condition} size={20} />
                   </div>
                   <span style={{
-                    fontSize: 15,
+                    fontSize: 16,
                     color: palette.textDark,
                     marginTop: 4,
                     fontWeight: 600,
@@ -1144,7 +990,7 @@ export default function HeroView({ onNavigate }) {
             marginTop: 24,
             ...cleanCard,
             borderRadius: radius.lg,
-            padding: 26,
+            padding: spacing.xl,
           }}
         >
           <div style={{
@@ -1226,14 +1072,21 @@ export default function HeroView({ onNavigate }) {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        backgroundColor: 'rgba(0,0,0,0.6)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        padding: `4px 10px`,
+                        borderRadius: radius.sm,
+                      }}>
                         <HlIcon size={14} color={colors.textOnDark} strokeWidth={2} />
                         <span style={{
                           fontSize: typography.caption.fontSize,
                           fontWeight: 600,
                           color: colors.textOnDark,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.06em',
                         }}>
                           Highlight
                         </span>
@@ -1253,7 +1106,7 @@ export default function HeroView({ onNavigate }) {
                   </div>
 
                   {/* Content area */}
-                  <div style={{ padding: '14px 16px 16px' }}>
+                  <div style={{ padding: spacing.xl }}>
                     <h3 style={{
                       ...typography.sectionHeader,
                       fontFamily: fontStack,
@@ -1362,7 +1215,7 @@ function FlightMilestoneRow({ milestone, isLast }) {
           <div style={{
             width: 2,
             flex: 1,
-            minHeight: 14,
+            minHeight: 18,
             backgroundColor: lineColor,
             marginTop: 4,
           }} />
@@ -1373,10 +1226,10 @@ function FlightMilestoneRow({ milestone, isLast }) {
       <div style={{
         flex: 1,
         minWidth: 0,
-        paddingBottom: isLast ? 0 : 8,
+        paddingBottom: isLast ? 0 : 14,
         display: 'flex',
         flexDirection: 'column',
-        gap: 1,
+        gap: 2,
       }}>
         <div style={{
           display: 'flex',
@@ -1386,7 +1239,7 @@ function FlightMilestoneRow({ milestone, isLast }) {
           <span style={{
             fontSize: typography.helper.fontSize,
             fontWeight: isCurrent ? 700 : 400,
-            color: isCurrent ? palette.textDark : palette.textLight,
+            color: isCurrent ? palette.textDark : isDone ? palette.textMedium : palette.textLight,
             fontFamily: fontStack,
           }}>
             {milestone.label}
@@ -1394,7 +1247,7 @@ function FlightMilestoneRow({ milestone, isLast }) {
           <span style={{
             fontSize: typography.caption.fontSize,
             fontWeight: 600,
-            color: isCurrent ? palette.textDark : palette.textLight,
+            color: isCurrent ? palette.textDark : isDone ? palette.textMedium : palette.textLight,
             textTransform: 'uppercase',
             letterSpacing: '0.03em',
             flexShrink: 0,
@@ -1467,7 +1320,7 @@ function DestCard({ destination, photo, dayCount, delay, onTap, onPhotoChange })
         overflow: 'hidden',
         cursor: 'pointer',
         position: 'relative',
-        height: 170,
+        height: 144,
       }}
     >
       {/* Photo */}
@@ -1514,6 +1367,8 @@ function DestCard({ destination, photo, dayCount, delay, onTap, onPhotoChange })
         <div style={{ minWidth: 0 }}>
           <h3 style={{
             ...typography.title,
+            fontSize: 30,
+            lineHeight: '36px',
             color: '#FFFFFF',
             margin: 0,
             fontFamily: fontStack,
@@ -1522,7 +1377,7 @@ function DestCard({ destination, photo, dayCount, delay, onTap, onPhotoChange })
             {destination.name}
           </h3>
           <p style={{
-            fontSize: 13,
+            fontSize: 15,
             fontWeight: 500,
             color: 'rgba(255,255,255,0.92)',
             margin: '4px 0 0',

@@ -172,7 +172,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
           background: 'rgba(255,255,255,0.98)',
           zIndex: 10,
         }}>
-          <h3 style={{ ...typography.sectionHeader, color: warmPalette.textDark }}>
+          <h3 style={{ ...typography.title, color: warmPalette.textDark }}>
             {isNew ? 'New Event' : 'Edit Event'}
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
@@ -192,14 +192,14 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
 
         <div style={{ padding: spacing.lg }}>
           {/* Type picker */}
-          <label style={{ fontSize: typography.helper.fontSize, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: warmPalette.textMedium, display: 'block', marginBottom: spacing.sm }}>
+          <label style={{ fontSize: typography.helper.fontSize, fontWeight: 600, color: warmPalette.textMedium, display: 'block', marginBottom: spacing.sm }}>
             Type
           </label>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(74px, 1fr))',
-            gap: spacing.md,
-            marginBottom: spacing.lg,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
+            gap: spacing.sm,
+            marginBottom: spacing.md,
           }}>
             {typeOptions.map(opt => {
               const isSelected = formData.type === opt.id
@@ -215,21 +215,24 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 8,
-                    padding: `${spacing.md}px ${spacing.sm}px`,
-                    backgroundColor: isSelected ? 'rgba(0,0,0,0.05)' : 'transparent',
+                    gap: spacing.sm,
+                    padding: `${spacing.sm}px ${spacing.xs}px`,
+                    backgroundColor: 'transparent',
                     border: 'none',
                     borderRadius: radius.md,
                     cursor: 'pointer',
-                    minHeight: 72,
+                    minHeight: 56,
                   }}
                 >
                   <AnimatedEventIcon
                     type={opt.id}
-                    tile={44}
-                    icon={22}
-                    radius={13}
+                    tile={38}
+                    icon={19}
+                    radius={11}
                     playSignal={iconPlays[opt.id] || 0}
+                    sticker
+                    selected={isSelected}
+                    confetti
                   />
                   <span style={{
                     fontSize: typography.caption.fontSize,
@@ -307,7 +310,7 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
                 >
                   <ImagePlus size={32} strokeWidth={1.5} />
                   <span style={{ ...typography.body, color: colors.textSecondary, margin: 0 }}>Tap to add a cover photo</span>
-                  <span style={{ ...typography.caption, color: colors.textMuted, margin: 0 }}>Images only · Max 5 MB</span>
+                  <span style={{ ...typography.helper, color: colors.textSecondary, margin: 0 }}>Images only · Max 5 MB</span>
                 </button>
               )
             })()}
@@ -346,23 +349,23 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
 
           {/* Times */}
           <div style={{ display: 'flex', gap: spacing.md, marginBottom: spacing.lg }}>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <FieldGroup label="Start Time" icon={Clock}>
                 <input
                   type="time"
                   value={formData.startTime ? formatInputTime(formData.startTime) : ''}
                   onChange={e => update('startTime', buildISOTime(date, e.target.value, originalTzOffset))}
-                  style={inputStyle}
+                  style={{ ...inputStyle, paddingLeft: 12, paddingRight: 8 }}
                 />
               </FieldGroup>
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <FieldGroup label="End Time" icon={Clock}>
                 <input
                   type="time"
                   value={formData.endTime ? formatInputTime(formData.endTime) : ''}
                   onChange={e => update('endTime', buildISOTime(date, e.target.value, originalTzOffset))}
-                  style={inputStyle}
+                  style={{ ...inputStyle, paddingLeft: 12, paddingRight: 8 }}
                 />
               </FieldGroup>
             </div>
@@ -450,17 +453,36 @@ export default function EventEditor({ event, isNew, date, onSave, onDelete, onCl
               </button>
             )}
             <button
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: `${spacing.lg}px`,
+                backgroundColor: warmPalette.accentSoft,
+                color: colors.ocean,
+                border: 'none',
+                borderRadius: radius.md,
+                fontSize: 16,
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+              }}
+            >
+              Close
+            </button>
+            <button
               onClick={handleSave}
               disabled={!formData.title.trim()}
               style={{
                 flex: 1,
                 padding: `${spacing.lg}px`,
-                backgroundColor: formData.title.trim() ? colors.ocean : colors.borderLight,
-                color: formData.title.trim() ? colors.textOnAccent : colors.textMuted,
+                backgroundColor: colors.ocean,
+                color: colors.textOnAccent,
+                opacity: formData.title.trim() ? 1 : 0.45,
                 border: 'none',
                 borderRadius: radius.md,
                 fontSize: 16,
                 fontWeight: 600,
+                whiteSpace: 'nowrap',
                 cursor: formData.title.trim() ? 'pointer' : 'default',
               }}
             >
@@ -536,8 +558,6 @@ function FieldGroup({ label, icon: Icon, children }) {
       <label style={{
         fontSize: typography.helper.fontSize,
         fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
         color: warmPalette.textMedium,
         display: 'flex',
         alignItems: 'center',
@@ -555,13 +575,13 @@ function FieldGroup({ label, icon: Icon, children }) {
 const inputStyle = {
   width: '100%',
   padding: `${spacing.lg}px`,
-  background: 'rgba(240,238,235,0.7)',
-  border: '1px solid rgba(0,0,0,0.14)',
+  background: '#F1F3F6',
+  border: '1px solid rgba(0,0,0,0.06)',
   borderRadius: radius.md,
   fontSize: 16,
   color: colors.textPrimary,
   outline: 'none',
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
   boxSizing: 'border-box',
 }
 

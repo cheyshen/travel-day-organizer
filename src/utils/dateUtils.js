@@ -8,6 +8,10 @@ export function formatTripDate(dateStr) {
   return format(parseISO(dateStr), 'EEE, MMMM d')
 }
 
+export function formatTripDateLong(dateStr) {
+  return format(parseISO(dateStr), 'EEEE, MMMM d')
+}
+
 export function formatShortDate(dateStr) {
   return format(parseISO(dateStr), 'MMM d')
 }

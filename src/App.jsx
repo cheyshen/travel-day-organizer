@@ -83,7 +83,7 @@ function TravelInner() {
     <div style={{
       minHeight: '100vh',
       backgroundColor: glossyBg,
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
       maxWidth: 480,
       margin: '0 auto',
       position: 'relative',

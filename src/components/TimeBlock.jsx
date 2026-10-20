@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { ChevronRight, Pencil } from 'lucide-react'
 import { typography, spacing, radius, shadows, warmPalette, glass, cleanCard } from '../styles'
 import { colors } from '../colors'
-import { formatTime, getEventColor, getEventIcon } from '../utils/timeUtils'
+import { formatTime, getEventIcon } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
 import { getCoverImage, getCoverGradient } from '../data/coverImages'
 
@@ -14,7 +14,6 @@ import { getCoverImage, getCoverGradient } from '../data/coverImages'
 const IMAGE_HEIGHT = 125
 
 export default function TimeBlock({ event, isNext, onTap, onDetail }) {
-  const accentColor = getEventColor(event.type)
   const Icon = getEventIcon(event.type)
   const eventType = getEventType(event.type)
   const isBuffer = event.type === 'buffer'
@@ -26,7 +25,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
   // Buffer events stay minimal — compact card, no image
   if (isBuffer) {
     const minutes = event.bufferMinutes || 0
-    const bufferTextColor = warmPalette.textMedium
+    const bufferTextColor = warmPalette.textDark
 
     const timeRange = event.startTime && event.endTime
       ? `${formatTime(event.startTime)} – ${formatTime(event.endTime)}`
@@ -40,10 +39,9 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
         onClick={() => onTap(event)}
         style={{
           borderRadius: radius.md,
-          backgroundColor: colors.surface,
-          border: '1px solid rgba(0,0,0,0.04)',
-          borderLeft: '1px solid rgba(0,0,0,0.04)',
-          padding: `${spacing.lg}px`,
+          backgroundColor: '#F6F8FC',
+          border: '1.5px dashed #B6C2D1',
+          padding: `${spacing.xl}px`,
           cursor: 'pointer',
           display: 'flex',
           flexDirection: 'column',
@@ -60,8 +58,8 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
           {timeRange}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-          <Icon size={18} color={accentColor} strokeWidth={2.5} />
-          <p style={{ ...typography.sectionHeader, fontSize: 15, color: warmPalette.textDark, margin: 0, flex: 1 }}>
+          <Icon size={18} color={warmPalette.textMedium} strokeWidth={2.5} />
+          <p style={{ ...typography.sectionHeader, fontSize: 16, color: warmPalette.textDark, margin: 0, flex: 1 }}>
             {minutes > 0 ? `~${minutes} min buffer` : event.title}
           </p>
         </div>
@@ -145,14 +143,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
             fontWeight: 600,
             letterSpacing: '0.01em',
           }}>
-            {formatTime(event.startTime)}
-          </span>
-          <span style={{
-            color: 'rgba(255,255,255,0.7)',
-            fontSize: typography.caption.fontSize,
-            fontWeight: 500,
-          }}>
-            · {eventType.label}
+            {eventType.label}
           </span>
         </div>
 
@@ -178,7 +169,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
 
       {/* Content area */}
       <div style={{
-        padding: `${spacing.md}px ${spacing.lg}px`,
+        padding: `${spacing.xl}px`,
         display: 'flex',
         alignItems: 'center',
         gap: spacing.sm,
@@ -220,7 +211,7 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
               paddingRight: 10,
               borderRadius: radius.sm,
               border: 'none',
-              backgroundColor: warmPalette.warmGray,
+              backgroundColor: warmPalette.accentSoft,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -228,12 +219,12 @@ export default function TimeBlock({ event, isNext, onTap, onDetail }) {
               flexShrink: 0,
               fontSize: typography.helper.fontSize,
               fontWeight: 600,
-              color: warmPalette.textMedium,
+              color: colors.ocean,
             }}
             aria-label={`View details for ${event.title}`}
           >
             Details
-            <ChevronRight size={16} color={warmPalette.textLight} strokeWidth={2} />
+            <ChevronRight size={16} color={colors.ocean} strokeWidth={2} />
           </button>
         )}
       </div>

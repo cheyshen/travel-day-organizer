@@ -22,7 +22,7 @@ const inputStyle = {
   fontSize: 16,
   color: warmPalette.textDark,
   outline: 'none',
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
   boxSizing: 'border-box',
 }
 

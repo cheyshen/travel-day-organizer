@@ -67,7 +67,7 @@ export default function DocumentCard({ doc, onPreview, onDelete }) {
         </div>
       </div>
 
-      <div style={{ padding: `${spacing.sm}px ${spacing.md}px` }}>
+      <div style={{ padding: `${spacing.xl}px` }}>
         <p style={{
           ...typography.bodyMedium,
           color: warmPalette.textDark,

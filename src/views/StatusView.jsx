@@ -214,8 +214,8 @@ export default function StatusView() {
                 gap: spacing.xs,
                 marginBottom: spacing.sm,
               }}>
-                <CatIcon size={14} color={cat.color} strokeWidth={2.5} />
-                <span style={{ ...typography.caption, color: warmPalette.textDark }}>
+                <CatIcon size={16} color={cat.color} strokeWidth={2.5} />
+                <span style={{ ...typography.helper, fontWeight: 600, color: warmPalette.textDark }}>
                   {cat.label}
                 </span>
               </div>

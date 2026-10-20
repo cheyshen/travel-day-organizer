@@ -49,15 +49,15 @@ test('getTodayStr pads single-digit month and day', () => {
 // isTripOver
 // ---------------------------------------------------------------------------
 test('isTripOver is false on the last day of the trip', () => {
-  assert.equal(isTripOver('2026-03-22', sampleTrip), false)
+  assert.equal(isTripOver('2026-07-12', sampleTrip), false)
 })
 
 test('isTripOver is true the day after the trip ends', () => {
-  assert.equal(isTripOver('2026-03-23', sampleTrip), true)
+  assert.equal(isTripOver('2026-07-13', sampleTrip), true)
 })
 
 test('isTripOver is false before the trip ends', () => {
-  assert.equal(isTripOver('2026-03-15', sampleTrip), false)
+  assert.equal(isTripOver('2026-07-05', sampleTrip), false)
 })
 
 // ---------------------------------------------------------------------------
@@ -92,7 +92,7 @@ test('computeShiftDays for the 2026-04-17 incident returns 42 days', () => {
 // buildShiftedData — the main regression guard
 // ---------------------------------------------------------------------------
 test('buildShiftedData aligns days-dict keys with trip.startDate..endDate', () => {
-  const shift = computeShiftDays('2026-04-17', sampleTrip.startDate)
+  const shift = computeShiftDays('2026-08-15', sampleTrip.startDate)
   const { trip, days } = buildShiftedData(shift, sampleTrip, sampleDays)
 
   // Walk every day from trip.startDate to trip.endDate; each must exist in days
@@ -113,7 +113,7 @@ test('buildShiftedData aligns days-dict keys with trip.startDate..endDate', () =
 })
 
 test('buildShiftedData preserves event count and IDs per day', () => {
-  const shift = computeShiftDays('2026-04-17', sampleTrip.startDate)
+  const shift = computeShiftDays('2026-08-15', sampleTrip.startDate)
   const { days } = buildShiftedData(shift, sampleTrip, sampleDays)
 
   for (const [origKey, origDay] of Object.entries(sampleDays)) {
@@ -151,8 +151,8 @@ test('buildShiftedData shifts event startTime/endTime preserving timezone suffix
 // Full init-flow scenarios (the class of bug that bit us)
 // ---------------------------------------------------------------------------
 test('INCIDENT GUARD: today past trip end → init produces non-empty Day tab', () => {
-  // Simulate getInitialState's fresh-shift branch on 2026-04-17.
-  const today = '2026-04-17'
+  // Simulate getInitialState's fresh-shift branch after the trip has ended.
+  const today = '2026-08-15'
   assert.equal(isTripOver(today, sampleTrip), true)
 
   const shift = computeShiftDays(today, sampleTrip.startDate)
@@ -172,8 +172,8 @@ test('INCIDENT GUARD: today past trip end → init produces non-empty Day tab', 
 
 test('INCIDENT GUARD: saved shifted state with expired endDate triggers re-shift (not stale reuse)', () => {
   // Mirrors the TripContext getInitialState saved-state check.
-  const today = '2026-04-17'
-  const savedTrip = { ...sampleTrip, endDate: '2026-04-12' } // previously shifted, now expired
+  const today = '2026-08-15'
+  const savedTrip = { ...sampleTrip, endDate: '2026-08-01' } // previously shifted, now expired
   const savedIsValid = today <= savedTrip.endDate
   assert.equal(savedIsValid, false, 'expired saved trip must be treated as invalid so fresh re-shift runs')
 })

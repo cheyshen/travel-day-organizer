@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { typography, spacing, radius, shadows, warmPalette } from '../styles'
 import { colors } from '../colors'
-import { isTripDay, isTodayDate, formatDayNumber } from '../utils/dateUtils'
+import { isTripDay, formatDayNumber } from '../utils/dateUtils'
 
 // =============================================================================
 // DAY CARD — Calendar grid cell (redesigned)
@@ -12,7 +12,6 @@ export default function DayCard({ dateInfo, trip, days, destinations, selectedDa
   const { date, isCurrentMonth } = dateInfo
   const cellRef = useRef(null)
   const isTrip = isTripDay(date, trip.startDate, trip.endDate)
-  const isToday = isTodayDate(date)
   const isSelected = selectedDate === date
   const day = days[date]
   const dest = day ? destinations.find(d => d.id === day.destinationId) : null
@@ -43,8 +42,6 @@ export default function DayCard({ dateInfo, trip, days, destinations, selectedDa
   let border = 'none'
   if (isSelected && isTrip) {
     border = '2.5px solid #0E7490'
-  } else if (isToday && isCurrentMonth) {
-    border = `1.5px solid ${warmPalette.textLight}`
   }
 
   // Text weight: bold for days with events, medium for trip days without, regular for non-trip

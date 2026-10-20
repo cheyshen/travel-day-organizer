@@ -1,23 +1,28 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Clock, MapPin, Hash, FileText, Edit3 } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
+import { format, parseISO } from 'date-fns'
+import { ArrowLeft, Edit3, Navigation as DirectionsIcon } from 'lucide-react'
 import { useTripContext } from '../context/TripContext'
 import { typography, spacing, radius, warmPalette, glass, glossyBg, cleanCard } from '../styles'
 import { colors } from '../colors'
-import { formatTime, formatTimeRange, getDurationMinutes, formatDuration, getEventIcon, getEventColor, getEventBgColor } from '../utils/timeUtils'
+import { formatTime, getDurationMinutes, formatDuration, getEventColor } from '../utils/timeUtils'
 import { getEventType } from '../data/eventTypes'
 import { getCoverImage, getCoverGradient } from '../data/coverImages'
 import EventEditor from '../components/EventEditor'
 
 // =============================================================================
-// EVENT DETAIL VIEW — Full event information page
+// EVENT DETAIL VIEW — Tour-style detail page
+// Title → tag line → hero photo → description → details (stacked rows + action links)
 // =============================================================================
+
+const NOTES_CLAMP = 150
 
 export default function EventDetailView({ onNavigate }) {
   const { state, dispatch } = useTripContext()
   const { days, selectedDate, selectedEventId, previousView } = state
 
   const [isEditing, setIsEditing] = useState(false)
+  const [notesExpanded, setNotesExpanded] = useState(false)
 
   const day = days[selectedDate]
   const event = day?.events?.find(e => e.id === selectedEventId)
@@ -45,272 +50,206 @@ export default function EventDetailView({ onNavigate }) {
   }
 
   const eventType = getEventType(event.type)
-  const Icon = getEventIcon(event.type)
   const accentColor = getEventColor(event.type)
-  const bgColor = getEventBgColor(event.type)
   const duration = getDurationMinutes(event.startTime, event.endTime)
+  const coverSrc = event.coverImage || getCoverImage(event.type, event.id)
+
+  // Location → maps query (destination preferred)
+  const loc = event.location
+  const placeQuery = loc ? (loc.destination || loc.name || loc.origin || '') : ''
+  const directionsUrl = placeQuery
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(placeQuery)}`
+    : null
+
+  // Tag line beneath the title
+  const tagLine = event.subtitle || (duration > 0 ? formatDuration(duration) : '')
+
+  // Info chips (reference "Tour Package" row)
+  const chips = []
+  if (event.startTime) chips.push({ k: 'Time', v: formatTime(event.startTime), filled: true })
+  if (duration > 0) chips.push({ k: 'Duration', v: formatDuration(duration) })
+  if (placeQuery) chips.push({ k: 'Place', v: placeQuery })
+  if (event.confirmationNumber) chips.push({ k: 'Confirmation', v: event.confirmationNumber, mono: true })
+
+  const notes = event.notes || ''
+  const notesIsLong = notes.length > NOTES_CLAMP
+
+  let headerLabel = 'Detail'
+  try { headerLabel = format(parseISO(selectedDate), 'EEE, MMM d') } catch { /* keep default */ }
 
   function handleBack() {
     onNavigate(previousView === 'hero' ? 'hero' : 'day')
   }
 
-  function handleEdit() {
-    setIsEditing(true)
+  function openMaps(url) {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   function handleEditorSave(eventData) {
-    dispatch({
-      type: 'UPDATE_EVENT',
-      payload: { date: selectedDate, eventId: event.id, updates: eventData },
-    })
+    dispatch({ type: 'UPDATE_EVENT', payload: { date: selectedDate, eventId: event.id, updates: eventData } })
     setIsEditing(false)
   }
 
   function handleEditorDelete(eventId) {
-    dispatch({
-      type: 'DELETE_EVENT',
-      payload: { date: selectedDate, eventId },
-    })
+    dispatch({ type: 'DELETE_EVENT', payload: { date: selectedDate, eventId } })
     onNavigate('day')
   }
 
-  function handleEditorClose() {
-    setIsEditing(false)
-  }
-
   return (
-    <div style={{ background: glossyBg, minHeight: '100vh' }}>
+    <div style={{ background: glossyBg, minHeight: 'calc(100vh - 80px)' }}>
       {/* Header */}
       <div style={{
-        padding: `${spacing.lg}px ${spacing.lg}px ${spacing.md}px`,
+        padding: `${spacing.md}px ${spacing.lg}px`,
         display: 'flex',
         alignItems: 'center',
         gap: spacing.md,
         ...glass.frostedLight,
-        borderBottom: '1px solid rgba(255,255,255,0.4)',
         position: 'sticky',
         top: 0,
         zIndex: 10,
       }}>
         <button
           onClick={handleBack}
+          aria-label="Back"
           style={{
             width: 44, height: 44,
             borderRadius: radius.sm,
-            backgroundColor: warmPalette.warmGray,
-            border: 'none',
+            ...cleanCard,
             cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
           }}
         >
           <ArrowLeft size={20} color={warmPalette.textDark} strokeWidth={2} />
         </button>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ ...typography.caption, color: warmPalette.textLight, margin: 0 }}>
-            Event Details
-          </p>
-          <p style={{
-            ...typography.bodyMedium,
-            color: warmPalette.textDark,
-            margin: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            {event.title}
-          </p>
-        </div>
+        <span style={{ ...typography.bodyMedium, color: warmPalette.textMedium, flex: 1, textAlign: 'center' }}>
+          {headerLabel}
+        </span>
 
-        <button
-          onClick={handleEdit}
-          style={{
-            width: 44, height: 44,
-            borderRadius: radius.sm,
-            border: 'none',
-            backgroundColor: warmPalette.accentSoft,
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 0,
-          }}
-          aria-label="Edit event"
-        >
-          <Edit3 size={18} color={warmPalette.accent} strokeWidth={2} />
-        </button>
+        {/* spacer balances the back button (edit lives in the bottom bar) */}
+        <div style={{ width: 44, height: 44, flexShrink: 0 }} />
       </div>
 
-      {/* Location photo — same source as TimeBlock card */}
+      {/* Title + tag line */}
+      <div style={{ padding: `${spacing.xxl}px ${spacing.lg}px 0` }}>
+        <span style={{ ...typography.caption, color: accentColor, display: 'block', marginBottom: spacing.xs }}>
+          {eventType.label}
+        </span>
+        <h1 style={{ ...typography.title, color: warmPalette.textDark, margin: 0 }}>
+          {event.title}
+        </h1>
+        {tagLine && (
+          <p style={{ ...typography.body, color: warmPalette.textMedium, margin: `${spacing.sm}px 0 0` }}>
+            {tagLine}
+          </p>
+        )}
+      </div>
+
+      {/* Hero photo */}
       <div style={{
-        height: 80,
-        margin: `0 ${spacing.lg}px`,
-        marginTop: spacing.md,
-        borderRadius: `${radius.md}px ${radius.md}px 0 0`,
-        backgroundImage: `url(${event.coverImage || getCoverImage(event.type, event.id)})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        position: 'relative',
+        height: 200,
+        margin: `${spacing.lg}px ${spacing.lg}px 0`,
+        borderRadius: radius.lg,
         overflow: 'hidden',
+        position: 'relative',
         background: getCoverGradient(event.type),
+        boxShadow: cleanCard.boxShadow,
       }}>
         <img
-          src={event.coverImage || getCoverImage(event.type, event.id)}
+          src={coverSrc}
           alt=""
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
           onError={(e) => { e.target.style.display = 'none' }}
         />
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, transparent 30%, rgba(28,25,23,0.35) 100%)',
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, transparent 55%, rgba(28,25,23,0.28) 100%)',
         }} />
       </div>
 
-      {/* Hero card — type icon + title */}
-      <div style={{
-        margin: `0 ${spacing.lg}px ${spacing.lg}px`,
-        ...cleanCard,
-        borderRadius: `0 0 ${radius.lg}px ${radius.lg}px`,
-        borderTop: 'none',
-        padding: `${spacing.xl}px ${spacing.lg}px`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: spacing.lg,
-      }}>
-        <div style={{
-          width: 52,
-          height: 52,
-          borderRadius: radius.md,
-          backgroundColor: `${accentColor}1A`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}>
-          <Icon size={26} color={accentColor} strokeWidth={2.5} />
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <span style={{
-            ...typography.caption,
-            color: warmPalette.textMedium,
-            display: 'block',
-            marginBottom: 4,
-          }}>
-            {eventType.label}
-          </span>
-          <h1 style={{
-            ...typography.title,
-            color: warmPalette.textDark,
-            margin: 0,
-          }}>
-            {event.title}
-          </h1>
-          {event.subtitle && (
-            <p style={{
-              ...typography.body,
-              color: warmPalette.textMedium,
-              margin: 0,
-              marginTop: 4,
-            }}>
-              {event.subtitle}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Info sections */}
-      <div style={{
-        padding: `0 ${spacing.lg}px`,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: spacing.md,
-      }}>
-        {/* Time */}
-        {event.startTime && (
-          <InfoRow
-            icon={Clock}
-            label="Time"
-            value={formatTimeRange(event.startTime, event.endTime) || formatTime(event.startTime)}
-            secondary={duration > 0 ? formatDuration(duration) : null}
-            accentColor={accentColor}
-          />
-        )}
-
-        {/* Location — origin/destination or single location */}
-        {event.location && (
-          <InfoRow
-            icon={MapPin}
-            label="Location"
-            value={
-              event.location.origin && event.location.destination
-                ? `${event.location.origin} → ${event.location.destination}`
-                : event.location.destination || event.location.origin || event.location.name || ''
-            }
-            accentColor={accentColor}
-          />
-        )}
-
-        {/* Confirmation number */}
-        {event.confirmationNumber && (
-          <InfoRow
-            icon={Hash}
-            label="Confirmation"
-            value={event.confirmationNumber}
-            accentColor={accentColor}
-            mono
-          />
-        )}
-
-        {/* Timezone */}
-        {event.timezone && (
-          <InfoRow
-            icon={Clock}
-            label="Timezone"
-            value={event.timezone.replace(/_/g, ' ').replace('America/', '')}
-            accentColor={warmPalette.textLight}
-          />
-        )}
-
-        {/* Notes */}
-        {event.notes && (
-          <div style={{
-            ...cleanCard,
-            borderRadius: radius.md,
-            padding: spacing.lg,
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing.sm,
-              marginBottom: spacing.sm,
-            }}>
-              <FileText size={16} color={warmPalette.textLight} strokeWidth={2} />
-              <span style={{ ...typography.caption, color: warmPalette.textLight }}>
-                Notes
-              </span>
-            </div>
-            <p style={{
-              ...typography.body,
-              color: warmPalette.textMedium,
-              margin: 0,
-              whiteSpace: 'pre-wrap',
-            }}>
-              {event.notes}
-            </p>
+      {/* Description */}
+      {notes && (
+        <div style={{ padding: `${spacing.xxl}px ${spacing.lg}px 0` }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ ...typography.sectionHeader, color: warmPalette.textDark, margin: 0 }}>
+              Description
+            </h2>
+            {notesIsLong && (
+              <button
+                onClick={() => setNotesExpanded(v => !v)}
+                style={{
+                  border: 'none', background: 'none', cursor: 'pointer', padding: 0,
+                  ...typography.helper, fontWeight: 600, color: warmPalette.accent,
+                }}
+              >
+                {notesExpanded ? 'Less' : 'More'}
+              </button>
+            )}
           </div>
-        )}
+          <p style={{
+            ...typography.body,
+            color: warmPalette.textMedium,
+            margin: `${spacing.sm}px 0 0`,
+            whiteSpace: 'pre-wrap',
+            ...(notesIsLong && !notesExpanded ? {
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            } : {}),
+          }}>
+            {notes}
+          </p>
+        </div>
+      )}
 
-      </div>
+      {/* Details — stacked rows, with action links across from the title */}
+      {chips.length > 0 && (
+        <div style={{ padding: `${spacing.xxl}px ${spacing.lg}px 0` }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: spacing.sm, margin: `0 0 ${spacing.md}px`,
+          }}>
+            <h2 style={{ ...typography.sectionHeader, color: warmPalette.textDark, margin: 0 }}>
+              Details
+            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing.lg }}>
+              {directionsUrl && (
+                <button
+                  onClick={() => openMaps(directionsUrl)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: spacing.xs,
+                    border: 'none', background: 'none', cursor: 'pointer', padding: `${spacing.xs}px 0`,
+                    ...typography.helper, fontWeight: 600, color: warmPalette.accent,
+                  }}
+                >
+                  <DirectionsIcon size={14} strokeWidth={2.2} />
+                  Get directions
+                </button>
+              )}
+              <button
+                onClick={() => setIsEditing(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: spacing.xs,
+                  border: 'none', background: 'none', cursor: 'pointer', padding: 0,
+                  ...typography.helper, fontWeight: 600, color: warmPalette.accent,
+                }}
+              >
+                <Edit3 size={14} strokeWidth={2.2} />
+                Edit
+              </button>
+            </div>
+          </div>
+          <div style={{ ...cleanCard, borderRadius: radius.lg, padding: `0 ${spacing.xl}px` }}>
+            {chips.map((chip, i) => (
+              <DetailRow key={i} chip={chip} isLast={i === chips.length - 1} />
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Bottom padding */}
-      <div style={{ height: 100 }} />
+      {/* Bottom breathing room (global nav reserves 80px below) */}
+      <div style={{ height: spacing.xl }} />
 
       {/* Event Editor Modal */}
       <AnimatePresence>
@@ -321,7 +260,7 @@ export default function EventDetailView({ onNavigate }) {
             date={selectedDate}
             onSave={handleEditorSave}
             onDelete={handleEditorDelete}
-            onClose={handleEditorClose}
+            onClose={() => setIsEditing(false)}
           />
         )}
       </AnimatePresence>
@@ -330,63 +269,33 @@ export default function EventDetailView({ onNavigate }) {
 }
 
 // =============================================================================
-// INFO ROW — Reusable detail row
+// DETAIL ROW — stacked label/value row inside the Details card
 // =============================================================================
 
-function InfoRow({ icon: RowIcon, label, value, secondary, accentColor, mono }) {
-  if (!value) return null
-
+function DetailRow({ chip, isLast }) {
   return (
     <div style={{
-      ...cleanCard,
-      borderRadius: radius.md,
-      padding: spacing.lg,
       display: 'flex',
-      alignItems: 'flex-start',
-      gap: spacing.md,
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      gap: spacing.lg,
+      padding: `${spacing.md}px 0`,
+      borderBottom: isLast ? 'none' : `1px solid ${colors.borderLight}`,
     }}>
-      <div style={{
-        width: 32,
-        height: 32,
-        borderRadius: radius.sm,
-        backgroundColor: `${accentColor}14`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
+      <span style={{ ...typography.helper, color: warmPalette.textLight, flexShrink: 0 }}>
+        {chip.k}
+      </span>
+      <span style={{
+        ...typography.helper,
+        fontWeight: 600,
+        color: warmPalette.textDark,
+        textAlign: 'right',
+        fontFamily: chip.mono ? "'SF Mono', 'Fira Code', monospace" : 'inherit',
+        wordBreak: 'break-word',
+        minWidth: 0,
       }}>
-        <RowIcon size={16} color={accentColor} strokeWidth={2} />
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{
-          ...typography.caption,
-          color: warmPalette.textLight,
-          display: 'block',
-          marginBottom: 2,
-        }}>
-          {label}
-        </span>
-        <p style={{
-          ...typography.bodyMedium,
-          color: warmPalette.textDark,
-          margin: 0,
-          fontFamily: mono ? "'SF Mono', 'Fira Code', monospace" : 'inherit',
-          wordBreak: 'break-word',
-        }}>
-          {value}
-        </p>
-        {secondary && (
-          <span style={{
-            ...typography.helper,
-            color: warmPalette.textLight,
-            marginTop: 2,
-            display: 'block',
-          }}>
-            {secondary}
-          </span>
-        )}
-      </div>
+        {chip.v}
+      </span>
     </div>
   )
 }

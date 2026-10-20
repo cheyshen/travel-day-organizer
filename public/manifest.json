@@ -4,8 +4,8 @@
   "description": "Plan and manage your multi-day trip itinerary",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F0EDE8",
-  "theme_color": "#0E7490",
+  "background_color": "#F2F3F5",
+  "theme_color": "#F2F3F5",
   "icons": [
     {
       "src": "/pwa-icon-192.png",

@@ -21,7 +21,7 @@ export default function ChecklistItemRow({ item, onToggle, onEdit, onDelete }) {
         display: 'flex',
         alignItems: 'center',
         gap: spacing.md,
-        padding: `${spacing.md}px`,
+        padding: `${spacing.md}px ${spacing.lg}px`,
         ...cleanCard,
         borderRadius: radius.md,
       }}

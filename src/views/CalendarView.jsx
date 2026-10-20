@@ -172,7 +172,10 @@ export default function CalendarView({ onNavigate }) {
         borderRadius: '24px 24px 0 0',
         marginTop: -28,
         position: 'relative',
-        zIndex: tooltipState ? 100 : 2,
+        // no lift while the tooltip is open — the tooltip is viewport-fixed with
+        // its own z-index (v0.0.204+); raising this opaque card above the nav
+        // (z 90) painted over the bottom navigation whenever a popup was open
+        zIndex: 2,
         padding: `${spacing.xl}px ${spacing.lg}px`,
       }}>
         {/* Pull handle */}
@@ -343,6 +346,25 @@ export default function CalendarView({ onNavigate }) {
           activeFilter={activeFilter}
           onFilter={handleFilter}
         />
+
+        {/* Trip at a glance */}
+        <div style={{ marginTop: spacing.xl }}>
+          <h2 style={{ ...typography.sectionHeader, color: warmPalette.textDark, margin: `0 0 ${spacing.md}px` }}>
+            Trip at a glance
+          </h2>
+          <div style={{ display: 'flex', gap: spacing.md }}>
+            {[
+              { value: Object.keys(days).length, label: 'Days' },
+              { value: Object.values(days).reduce((n, d) => n + (d.events?.filter(e => e.type !== 'buffer').length || 0), 0), label: 'Events' },
+              { value: trip.destinations.length, label: trip.destinations.length === 1 ? 'Island' : 'Islands' },
+            ].map((s, i) => (
+              <div key={i} style={{ ...cleanCard, borderRadius: radius.lg, padding: spacing.lg, flex: 1, textAlign: 'center' }}>
+                <div style={{ ...typography.title, color: warmPalette.textDark }}>{s.value}</div>
+                <div style={{ ...typography.helper, color: warmPalette.textMedium, marginTop: 2 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Bottom padding so content isn't hidden behind nav */}
         <div style={{ height: 80 }} />
