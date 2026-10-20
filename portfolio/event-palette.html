@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Event palette — pick island hues</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, sans-serif; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: #F2F3F5; color: #1A1A1A; padding: 40px 24px 90px; }
+  h1 { font-size: 25px; font-weight: 700; text-align: center; }
+  .sub { text-align: center; font-size: 14px; font-weight: 500; color: #6B6B6B; margin: 6px auto 34px; max-width: 600px; line-height: 1.5; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap: 16px; max-width: 880px; margin: 0 auto; }
+  .sw { background:#fff; border:1px solid rgba(0,0,0,.05); border-radius:16px; padding:14px; box-shadow:0 4px 12px rgba(40,50,70,.06); }
+  .chip { height: 70px; border-radius:12px; position:relative; }
+  .chip .tint { position:absolute; right:8px; bottom:8px; width:30px; height:30px; border-radius:8px; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.15); }
+  .name { font:700 15px var(--font); margin-top:12px; }
+  .hex { font:600 12px var(--font); color:#9B9B9B; margin-top:2px; }
+  .flag { font:600 11px var(--font); color:#C0392B; margin-top:4px; }
+</style>
+</head>
+<body>
+  <h1>Event palette — pick the island hues</h1>
+  <p class="sub">Every color already used by an event icon. Tell me which one = <b>Kauai</b> and which = <b>Maui</b> (the small inset square is the soft tint that'd land on calendar days).</p>
+  <div class="grid" id="grid"></div>
+
+<script>
+const COLORS = [
+  ['Flight','#438ADB','#E7EFF8','echoes old Kauai blue'],
+  ['Transport','#725ED4','#EEEBF9',''],
+  ['Hotel','#A35CCC','#F4ECF9',''],
+  ['Activity','#32AE70','#E8F7F0',''],
+  ['Dining','#DB5743','#FAECEA',''],
+  ['Boat','#2AA5CB','#E7F4F8','echoes old Kauai teal'],
+  ['Sunrise','#DB8F43','#F9F0E6',''],
+  ['Sightseeing','#D5B534','#F8F4E2','echoes old Maui gold'],
+  ['Beach','#29AEA0','#E8F8F6',''],
+  ['Hiking','#38B242','#E8F7EA',''],
+  ['Shopping','#DD4B94','#FAEAF2',''],
+  ['Fun','#D256D2','#F9ECF9',''],
+];
+const g = document.getElementById('grid');
+for (const [name,accent,tint,flag] of COLORS) {
+  const s = document.createElement('div'); s.className='sw';
+  s.innerHTML = `<div class="chip" style="background:${accent}"><div class="tint" style="background:${tint}"></div></div>`
+    + `<div class="name">${name}</div><div class="hex">${accent} · tint ${tint}</div>`
+    + (flag?`<div class="flag">${flag}</div>`:'');
+  g.appendChild(s);
+}
+</script>
+</body>
+</html>

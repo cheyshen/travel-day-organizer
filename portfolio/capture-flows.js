@@ -123,10 +123,16 @@ const FLOWS = [
       await tapSelector(page, 'button[aria-label="Status"]', { settle: 1000 });
     },
     run: async (page) => {
-      for (let i = 0; i < 4; i++) {
-        // re-query each time: the first "Mark complete" is always the top-most unchecked item
-        await tapSelector(page, 'button[aria-label="Mark complete"]', { settle: 650 });
-      }
+      // tick the top two items — satisfying check + progress-bar bump
+      await tapSelector(page, 'button[aria-label="Mark complete"]', { settle: 650 });
+      await tapSelector(page, 'button[aria-label="Mark complete"]', { settle: 650 });
+      // scroll the full checklist (Packing → Booking → Documents → Health → Transport → docs)
+      await page.evaluate(() => window.__smoothScroll(
+        Math.max(0, document.documentElement.scrollHeight - innerHeight), 2000));
+      await sleep(750);
+      // back to the top
+      await page.evaluate(() => window.__smoothScroll(0, 1400));
+      await sleep(400);
     },
   },
   {
@@ -165,8 +171,14 @@ const FLOWS = [
       await tapSelector(page, 'button[aria-label="Plan"]', { settle: 1100 });
     },
     run: async (page) => {
-      await tapDayCell(page, 5, { settle: 1300 });                            // Kauai day → popup
-      await tapSelector(page, 'button[aria-label="Close tooltip"]', { settle: 700 });
+      await tapDayCell(page, 5, { settle: 1200 });                            // Kauai day → popup
+      await tapSelector(page, 'button[aria-label="Close tooltip"]', { settle: 650 });
+      // scroll down to reveal the legend + "Trip at a glance" stats, then back up
+      await page.evaluate(() => window.__smoothScroll(
+        Math.max(0, document.documentElement.scrollHeight - innerHeight), 1700));
+      await sleep(650);
+      await page.evaluate(() => window.__smoothScroll(0, 1200));
+      await sleep(400);
       await tapDayCell(page, 9, { settle: 1300 });                            // Maui day → popup, hold
       await page.waitForFunction(
         () => document.body.innerText.includes('July 9'), { timeout: 5000 });
@@ -196,6 +208,20 @@ async function openApp(browser) {
   const ctx = await browser.createBrowserContext(); // fresh localStorage every flow
   const page = await ctx.newPage();
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  // Pin "today" to during the trip (Sat Jul 4 2026) so the evergreen auto-shift
+  // stays off and the sample trip keeps its real July dates — otherwise, once the
+  // real date passes Jul 12, dates shift forward and the flows' hardcoded day
+  // cells / "July N" waits break. Only the argless clock is frozen; parsing is
+  // untouched, and rAF/performance.now (Framer Motion) are unaffected.
+  await page.evaluateOnNewDocument(() => {
+    const RealDate = Date;
+    const FAKE = new RealDate(2026, 6, 4, 9, 30, 0).getTime(); // local Jul 4 2026, 09:30
+    class MockDate extends RealDate {
+      constructor(...a) { super(...(a.length ? a : [FAKE])); }
+      static now() { return FAKE; }
+    }
+    window.Date = MockDate;
+  });
   await page.goto(APP_URL, { waitUntil: 'networkidle2', timeout: 60000 });
   await page.waitForSelector('button[aria-label="Add event"]', { visible: true, timeout: 20000 });
   await installHelpers(page);

@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Travel — Components (pulled apart)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: #F2F3F5; color: #1A1A1A;
+         padding: 44px 24px 100px; }
+  h1 { font-size: 28px; font-weight: 700; text-align: center; letter-spacing: -0.01em; }
+  .sub { text-align: center; font-size: 15px; font-weight: 500; color: #6B6B6B; margin: 6px 0 40px; }
+
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+             gap: 22px; max-width: 1120px; margin: 0 auto; align-items: stretch; }
+  .comp { background: #FFFFFF; border: 1px solid rgba(0,0,0,0.05); border-radius: 20px; padding: 22px;
+          box-shadow: 0 6px 18px rgba(40,50,70,0.08); display: flex; flex-direction: column; gap: 18px; }
+  .comp.span2 { grid-column: span 2; }
+  .lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9B9B9B; }
+  .body { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 96px; }
+  .row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+  /* sticker tile (matches product AnimatedEventIcon sticker: solid white border + toned gloss) */
+  .tile { display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative;
+          border: 3px solid #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+  .tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.04) 45%, rgba(0,0,0,.05) 100%); }
+  .tile svg { color: #fff; }
+  .cellcap { font-size: 12px; font-weight: 600; color: #6B6B6B; margin-top: 7px; text-align: center; }
+
+  /* card primitives */
+  .ecard { width: 100%; max-width: 300px; border-radius: 16px; overflow: hidden; position: relative; background: #fff;
+           border: 1px solid rgba(0,0,0,.06); box-shadow: 0 2px 8px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04); }
+  .ephoto { position: relative; height: 120px; overflow: hidden; }
+  .escrim { position: absolute; left:0; right:0; bottom:0; height: 56px; background: linear-gradient(to top, rgba(0,0,0,.5), transparent); }
+  .ebadge { position: absolute; bottom: 9px; left: 9px; display: flex; align-items: center; gap: 6px;
+            background: rgba(0,0,0,.6); padding: 4px 10px; border-radius: 8px; color: #fff; font: 600 12px var(--font); }
+  .ebadge .bl { color: rgba(255,255,255,.72); font-weight: 500; }
+  .ebody { padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .et { margin: 0; font: 600 18px var(--font); color: #1A1A1A; }
+  .es { margin: 2px 0 0; font: 500 16px var(--font); color: #6B6B6B; }
+
+  .btn-details { height: 34px; padding: 0 10px 0 12px; border-radius: 8px; background: rgba(14,116,144,.12);
+                 display: inline-flex; align-items: center; gap: 4px; font: 600 14px var(--font); color: #0E7490; }
+  .btn-primary { height: 48px; padding: 0 22px; border-radius: 12px; background: #0E7490; color: #fff;
+                 display: inline-flex; align-items: center; gap: 8px; font: 700 16px var(--font);
+                 box-shadow: 0 2px 8px rgba(14,116,144,.25); }
+  .chip { display: inline-flex; flex-direction: column; gap: 2px; padding: 9px 14px; border-radius: 12px;
+          background: #F4F6F8; border: 1px solid rgba(0,0,0,.05); }
+  .chip.filled { background: rgba(14,116,144,.10); }
+  .chip .k { font: 600 11px var(--font); letter-spacing: .05em; text-transform: uppercase; color: #9B9B9B; }
+  .chip .v { font: 600 15px var(--font); color: #1A1A1A; }
+
+  .pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 9999px;
+          background: rgba(14,116,144,.12); color: #0E7490; font: 700 13px var(--font); }
+  .seg { display: inline-flex; background: rgba(60,70,90,.10); border-radius: 12px; padding: 4px; gap: 4px; }
+  .seg .s { padding: 8px 18px; border-radius: 9px; font: 600 14px var(--font); color: #6B6B6B; display:flex; align-items:center; gap:6px; }
+  .seg .s.active { background: #fff; color: #1A1A1A; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+  .check-row { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 320px;
+               background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 12px; padding: 12px 16px;
+               box-shadow: 0 6px 18px rgba(40,50,70,.08); }
+  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 3px solid #27815B40; flex-shrink: 0; }
+  .check-row .ct { flex: 1; font: 500 16px var(--font); color: #1A1A1A; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+  .now-row { display: flex; align-items: center; gap: 14px; width: 100%; max-width: 300px; }
+  .now-dot-wrap { position: relative; width: 14px; height: 14px; flex-shrink: 0; }
+  .now-dot { position: absolute; inset: 0; border-radius: 50%; background: #0E7490; box-shadow: 0 0 8px rgba(14,116,144,.5); }
+  .now-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #0E7490; opacity: .4; transform: scale(2.1); }
+  .now-line { flex: 1; height: 2px; background: #0E7490; border-radius: 1px; }
+  .now-lbl { font: 600 13px var(--font); letter-spacing: .1em; text-transform: uppercase; color: #1A1A1A; }
+
+  /* bottom navigation (dark glass, edge-clinging) */
+  .navbar { display: flex; align-items: center; width: 100%; max-width: 380px; background: #1F2937;
+            border-radius: 20px 20px 0 0; box-shadow: 0 8px 32px rgba(0,0,0,.25); padding: 8px; }
+  .navtab { flex: 1; min-height: 54px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 4px; padding: 4px 0 12px; position: relative; }
+  .navtab .nl { font: 600 13px var(--font); letter-spacing: .01em; line-height: 1em; }
+  .navdot { position: absolute; bottom: 4px; width: 20px; height: 3px; border-radius: 1.5px; }
+  .navadd { flex: 1; display: flex; justify-content: center; align-items: center; min-height: 54px; }
+  .navadd .circle { width: 48px; height: 48px; border-radius: 9999px; background: #0E7490; display: flex;
+                    align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(14,116,144,.4); }
+
+  /* calendar day-cell states */
+  .daymatrix { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .daycol { display: flex; flex-direction: column; align-items: center; }
+  .daycell { width: 56px; height: 56px; border-radius: 8px; display: flex; align-items: center;
+             justify-content: center; position: relative; font-size: 18px; }
+  .daydot { position: absolute; bottom: 4px; right: 4px; width: 6px; height: 6px; opacity: .5; }
+
+  /* event-type picker (sticker grid) */
+  .picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 8px; width: 100%; max-width: 296px; }
+  .pcell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px 2px;
+           position: relative; }
+  .pcell .pl { font: 500 13px var(--font); color: #6B6B6B; line-height: 1.1; text-align: center; }
+  .pcell.sel .pl { font-weight: 700; color: #1A1A1A; }
+  .confetti { position: absolute; border-radius: 2px; pointer-events: none; }
+
+  /* empty state */
+  .empty { width: 100%; max-width: 320px; text-align: center; background: #fff;
+           border: 1px solid rgba(0,0,0,.05); border-radius: 20px; box-shadow: 0 6px 18px rgba(40,50,70,.08);
+           padding: 48px 16px; }
+  .empty .circle { width: 56px; height: 56px; border-radius: 28px; background: rgba(14,116,144,.12);
+                   display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+  .empty h4 { font: 600 18px/24px var(--font); color: #1A1A1A; margin: 0 0 4px; }
+  .empty p { font: 500 15px var(--font); color: #6B6B6B; margin: 0 0 24px; }
+</style>
+</head>
+<body>
+  <h1>Travel — Components</h1>
+  <p class="sub">The design system pulled apart — each UI component isolated on its own card.</p>
+  <div class="gallery" id="gallery"></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const ICON_NODES = {"flight":[["path",{"d":"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"}]],"ground_transport":[["path",{"d":"M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"}],["circle",{"cx":"7","cy":"17","r":"2"}],["path",{"d":"M9 17h6"}],["circle",{"cx":"17","cy":"17","r":"2"}]],"hotel":[["path",{"d":"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"}],["path",{"d":"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"}],["path",{"d":"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"}],["path",{"d":"M10 6h4"}],["path",{"d":"M10 10h4"}],["path",{"d":"M10 14h4"}],["path",{"d":"M10 18h4"}]],"activity":[["path",{"d":"M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"}],["path",{"d":"M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"}],["path",{"d":"M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"}],["path",{"d":"M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"}]],"dining":[["path",{"d":"m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"}],["path",{"d":"M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"}],["path",{"d":"m2.1 21.8 6.4-6.3"}],["path",{"d":"m19 5-7 7"}]],"buffer":[["circle",{"cx":"12","cy":"12","r":"10"}],["polyline",{"points":"12 6 12 12 16 14"}]],"boat":[["path",{"d":"M12 10.189V14"}],["path",{"d":"M12 2v3"}],["path",{"d":"M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"}],["path",{"d":"M19.38 20A11.6 11.6 0 0 0 21 14l-8.188-3.639a2 2 0 0 0-1.624 0L3 14a11.6 11.6 0 0 0 2.81 7.76"}],["path",{"d":"M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"sunrise":[["path",{"d":"M12 2v8"}],["path",{"d":"m4.93 10.93 1.41 1.41"}],["path",{"d":"M2 18h2"}],["path",{"d":"M20 18h2"}],["path",{"d":"m19.07 10.93-1.41 1.41"}],["path",{"d":"M22 22H2"}],["path",{"d":"m8 6 4-4 4 4"}],["path",{"d":"M16 18a4 4 0 0 0-8 0"}]],"sightseeing":[["path",{"d":"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"}],["circle",{"cx":"12","cy":"13","r":"3"}]],"beach":[["path",{"d":"M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"hiking":[["path",{"d":"m8 3 4 8 5-5 5 15H2L8 3z"}]],"shopping":[["path",{"d":"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"}],["path",{"d":"M3 6h18"}],["path",{"d":"M16 10a4 4 0 0 1-8 0"}]],"entertainment":[["path",{"d":"M5.8 11.3 2 22l10.7-3.79"}],["path",{"d":"M4 3h.01"}],["path",{"d":"M22 8h.01"}],["path",{"d":"M15 2h.01"}],["path",{"d":"M22 20h.01"}],["path",{"d":"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"}],["path",{"d":"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"}],["path",{"d":"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"}],["path",{"d":"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"}]]};
+const PENCIL = '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>';
+const TRASH = '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>';
+const CHEV = '<path d="m9 18 6-6-6-6"/>';
+const MAPPIN = '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';
+const PLUS = '<path d="M5 12h14"/><path d="M12 5v14"/>';
+const CAL_DAYS = '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>';
+const CHECK_CIRCLE = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>';
+const VIZ = {
+  flight:'#438ADB', ground_transport:'#725ED4', hotel:'#A35CCC', activity:'#32AE70', dining:'#DB5743',
+  buffer:'#A8A094', boat:'#2AA5CB', sunrise:'#DB8F43', sightseeing:'#D5B534', beach:'#29AEA0',
+  hiking:'#38B242', shopping:'#DD4B94', entertainment:'#D256D2',
+};
+const LABELS = { flight:'Flight', ground_transport:'Transport', hotel:'Hotel', activity:'Activity', dining:'Dining', buffer:'Buffer', boat:'Boat', sunrise:'Sunrise', sightseeing:'Sightseeing', beach:'Beach', hiking:'Hiking', shopping:'Shopping', entertainment:'Fun' };
+const DEST = { kauai:'#0A8F8F', maui:'#C4A265' };
+const GRAD = {
+  beach:'linear-gradient(135deg,#0891B2,#67E8F9)', boat:'linear-gradient(135deg,#1B9AAA,#67E8F9)',
+  dining:'linear-gradient(135deg,#E8725A,#F0A090)', flight:'linear-gradient(135deg,#2B7A9E,#87CEEB)',
+};
+
+function svg(typeId, size, color, sw) {
+  const s = document.createElementNS(NS,'svg');
+  s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('width',size); s.setAttribute('height',size);
+  s.setAttribute('fill','none'); s.setAttribute('stroke',color||'currentColor'); s.setAttribute('stroke-width',sw||2);
+  s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+  for (const [t,a] of (ICON_NODES[typeId]||ICON_NODES.flight)) {
+    const e = document.createElementNS(NS,t); for (const k in a) e.setAttribute(k,a[k]); s.appendChild(e);
+  }
+  return s;
+}
+function rawSvg(d, size, color, sw) {
+  const s = document.createElementNS(NS,'svg');
+  s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('width',size); s.setAttribute('height',size);
+  s.setAttribute('fill','none'); s.setAttribute('stroke',color); s.setAttribute('stroke-width',sw||2);
+  s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round'); s.innerHTML = d; return s;
+}
+function stickerTile(typeId, size) {
+  const t = document.createElement('div'); t.className = 'tile';
+  Object.assign(t.style, { width:size+'px', height:size+'px', borderRadius:Math.round(size*0.29)+'px',
+    background:VIZ[typeId], borderWidth: Math.max(2, size*0.065)+'px' });
+  const span = document.createElement('span'); span.style.display='inline-flex'; span.style.lineHeight='0';
+  span.appendChild(svg(typeId, Math.round(size*0.5), '#fff', 2)); t.appendChild(span); return t;
+}
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html!=null) e.innerHTML = html; return e; }
+function comp(label, node, span2) {
+  const c = el('div', 'comp' + (span2 ? ' span2' : ''));
+  c.append(el('div','lbl',label));
+  const b = el('div','body'); b.appendChild(node); c.appendChild(b); return c;
+}
+
+/* component builders ------------------------------------------------------- */
+function eventCard() {
+  const c = el('div','ecard');
+  c.innerHTML =
+    `<div class="ephoto" style="background:${GRAD.beach}">
+       <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=300&fit=crop&auto=format" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
+       <div class="escrim"></div>
+     </div>
+     <div class="ebody"><div style="flex:1;min-width:0"><p class="et">Poipu Beach Afternoon</p><p class="es">Snorkel + sunbathe</p></div></div>`;
+  const photo = c.querySelector('.ephoto');
+  // badge: bare white icon + type label (matches the Day-timeline TimeBlock)
+  const badge = el('div','ebadge'); badge.appendChild(svg('beach', 14, '#fff', 2.5)); badge.append(el('span',null,'Beach'));
+  photo.appendChild(badge);
+  // edit pencil overlay (top-right)
+  const edit = el('div'); Object.assign(edit.style,{ position:'absolute', top:'9px', right:'9px', width:'28px', height:'28px',
+    borderRadius:'14px', background:'rgba(0,0,0,.35)', display:'flex', alignItems:'center', justifyContent:'center' });
+  edit.appendChild(rawSvg(PENCIL, 13, '#fff', 2)); photo.appendChild(edit);
+  const det = el('div','btn-details','Details'); det.appendChild(rawSvg(CHEV,16,'#0E7490',2.5));
+  c.querySelector('.ebody').appendChild(det);
+  return c;
+}
+function bufferCard() {
+  const c = el('div'); Object.assign(c.style, { width:'100%', maxWidth:'300px', borderRadius:'12px',
+    background:'#F6F8FC', border:'1.5px dashed #B6C2D1', padding:'16px', display:'flex', flexDirection:'column', gap:'6px' });
+  c.appendChild(el('span',null,'<span style="font:600 15px var(--font);color:#6B6B6B">11:15 AM – 12:00 PM</span>'));
+  const row = el('div'); Object.assign(row.style,{display:'flex',alignItems:'center',gap:'8px'});
+  row.appendChild(rawSvg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',18,'#A8A094',2.5));
+  row.appendChild(el('p',null,'<span style="font:600 16px var(--font);color:#1A1A1A">~45 min buffer</span>'));
+  c.appendChild(row);
+  c.appendChild(el('p',null,'<span style="font:500 15px var(--font);color:#6B6B6B">Deplane + baggage + rental car</span>'));
+  return c;
+}
+function destCard() {
+  const c = el('div'); Object.assign(c.style,{ width:'100%', maxWidth:'300px', height:'144px', borderRadius:'18px',
+    overflow:'hidden', position:'relative', background:'linear-gradient(135deg,#0A8F8F,#064e4e)',
+    border:'1px solid rgba(0,0,0,.05)', boxShadow:'0 6px 18px rgba(40,50,70,.08)' });
+  c.innerHTML =
+    `<div style="position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=600&q=80&auto=format&fit=crop');background-size:cover;background-position:center"></div>
+     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.62) 100%)"></div>
+     <div id="ov" style="position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+       <div style="min-width:0">
+         <h3 style="margin:0;font:700 30px/36px var(--font);color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.4)">Kauai</h3>
+         <p style="margin:4px 0 0;font:500 15px var(--font);color:rgba(255,255,255,.92);text-shadow:0 1px 8px rgba(0,0,0,.35)">Jul 4 – Jul 8 · 4 days</p>
+       </div>
+     </div>`;
+  const chev = rawSvg('<path d="m9 18 6-6-6-6"/>', 22, '#fff', 2); chev.style.flexShrink='0'; chev.style.opacity='0.95';
+  c.querySelector('#ov').appendChild(chev);
+  return c;
+}
+function nowIndicator() {
+  const r = el('div','now-row');
+  r.innerHTML = `<div class="now-dot-wrap"><div class="now-ring"></div><div class="now-dot"></div></div><div class="now-line"></div><div class="now-lbl">Now</div>`;
+  return r;
+}
+function checklistRow() {
+  const r = el('div','check-row');
+  r.appendChild(el('div','check-box'));
+  r.appendChild(el('span','ct','Pack sunscreen & reef-safe lotion'));
+  const e1 = el('div','icon-btn'); e1.style.background='rgba(255,255,255,.5)'; e1.appendChild(rawSvg(PENCIL,14,'#9B9B9B',2));
+  const e2 = el('div','icon-btn'); e2.style.background='#FDECEA'; e2.appendChild(rawSvg(TRASH,14,'#C0392B',2));
+  r.append(e1,e2); return r;
+}
+function segmented() {
+  const s = el('div'); Object.assign(s.style,{ display:'inline-flex', background:'rgba(60,70,90,0.10)',
+    borderRadius:'9999px', padding:'4px', gap:'4px' });
+  function seg(name, color, active) {
+    const b = el('div'); Object.assign(b.style,{ display:'flex', alignItems:'center', justifyContent:'center', gap:'7px',
+      padding:'10px 18px', borderRadius:'9999px', background: active?'#fff':'transparent',
+      boxShadow: active?'0 1px 3px rgba(0,0,0,.12)':'none' });
+    b.appendChild(rawSvg(MAPPIN, 16, color, 2.5));
+    b.appendChild(el('span',null,`<span style="font:${active?700:500} 16px var(--font);color:${active?'#1A1A1A':'#6B6B6B'}">${name}</span>`));
+    return b;
+  }
+  s.append(seg('Kauai', DEST.kauai, true), seg('Maui', DEST.maui, false));
+  return s;
+}
+function buttons() {
+  const wrap = el('div','row');
+  const p = el('div','btn-primary'); p.append('Add event'); p.appendChild(rawSvg('<path d="M5 12h14"/><path d="M12 5v14"/>',18,'#fff',2.5));
+  const d = el('div','btn-details','Details'); d.appendChild(rawSvg(CHEV,16,'#0E7490',2.5));
+  wrap.append(p, d); return wrap;
+}
+function detailsCard() {
+  const c = el('div'); Object.assign(c.style,{ width:'100%', maxWidth:'300px', background:'#fff',
+    border:'1px solid rgba(0,0,0,.05)', borderRadius:'16px', padding:'0 24px', boxShadow:'0 6px 18px rgba(40,50,70,.08)' });
+  const rows = [['Time','6:50 AM',false],['Duration','5h 20m',false],['Place','Lihue (LIH)',false],['Confirmation','UA1947',true]];
+  rows.forEach(([k,v,mono],i)=>{
+    const r = el('div'); Object.assign(r.style,{ display:'flex', alignItems:'baseline', justifyContent:'space-between',
+      gap:'16px', padding:'12px 0', borderBottom: i===rows.length-1 ? 'none' : '1px solid #F0EFEA' });
+    r.appendChild(el('span',null,`<span style="font:500 15px var(--font);color:#9B9B9B">${k}</span>`));
+    r.appendChild(el('span',null,`<span style="font:600 15px var(--font);color:#1A1A1A;${mono?"font-family:'SF Mono','Fira Code',monospace;":''}">${v}</span>`));
+    c.appendChild(r);
+  });
+  return c;
+}
+function iconSet() {
+  const wrap = el('div','row');
+  const ids = ['flight','ground_transport','hotel','activity','dining','buffer','boat','sunrise','sightseeing','beach','hiking','shopping','entertainment'];
+  for (const id of ids) {
+    const cell = el('div'); Object.assign(cell.style,{display:'flex',flexDirection:'column',alignItems:'center'});
+    cell.appendChild(stickerTile(id, 52));
+    cell.appendChild(el('div','cellcap', LABELS[id]));
+    wrap.appendChild(cell);
+  }
+  return wrap;
+}
+function countdownPill() {
+  const p = el('div','pill');
+  p.appendChild(rawSvg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',15,'#0E7490',2.2));
+  p.append('6 days to go'); return p;
+}
+function navBar() {
+  const bar = el('div','navbar');
+  // tab: { label, iconFn(color,sw), active }
+  function tab(label, iconFn, active) {
+    const t = el('div','navtab');
+    const dot = el('div','navdot'); dot.style.background = active ? '#0E7490' : 'transparent';
+    const col = active ? '#FFFFFF' : '#9B9B9B';
+    const ic = iconFn(col, active ? 2 : 1.5); ic.style.display = 'block';
+    const lbl = el('span','nl', label); lbl.style.color = col;
+    t.append(dot, ic, lbl); return t;
+  }
+  const add = el('div','navadd');
+  const circle = el('div','circle'); circle.appendChild(rawSvg(PLUS, 24, '#fff', 2.5)); add.appendChild(circle);
+  bar.append(
+    tab('Trip', (c,w)=>svg('activity',22,c,w), false),       // Palmtree
+    tab('Plan', (c,w)=>rawSvg(CAL_DAYS,22,c,w), false),
+    add,
+    tab('Day',  (c,w)=>svg('buffer',22,c,w), true),           // Clock (active)
+    tab('Status',(c,w)=>rawSvg(CHECK_CIRCLE,22,c,w), false),
+  );
+  return bar;
+}
+function dayCellStates() {
+  const wrap = el('div','daymatrix');
+  // [caption, dayNum, bg, textColor, weight, opacity, dot('k'|'m'|null), selected]
+  const states = [
+    ['Off-month', '29', 'rgba(237,234,229,.4)', '#9B9B9B', 400, 0.3, null, false],
+    ['Non-trip',  '12', 'rgba(237,234,229,.4)', '#6B6B6B', 400, 1,   null, false],
+    ['Kauai',     '4',  '#F9F0E6',              '#1A1A1A', 700, 1,   'k',  false],
+    ['Maui',      '9',  '#E7F4F8',              '#1A1A1A', 700, 1,   'm',  false],
+    ['Selected',  '6',  '#F9F0E6',              '#1A1A1A', 700, 1,   'k',  true],
+  ];
+  for (const [cap, num, bg, tc, wt, op, dot, sel] of states) {
+    const col = el('div','daycol');
+    const cell = el('div','daycell');
+    Object.assign(cell.style, {
+      background: bg, opacity: op,
+      boxShadow: sel ? '0 4px 12px rgba(0,0,0,.08)' : (dot ? '0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.06)' : 'none'),
+      border: sel ? '2.5px solid #0E7490' : 'none',
+    });
+    const n = el('span'); n.textContent = num;
+    Object.assign(n.style, { fontWeight: wt, color: tc, lineHeight: '20px' });
+    cell.appendChild(n);
+    if (dot) {
+      const d = el('div','daydot');
+      Object.assign(d.style, { background: dot === 'k' ? '#DB8F43' : '#2AA5CB', borderRadius: dot === 'k' ? '50%' : '1px' });
+      cell.appendChild(d);
+    }
+    col.appendChild(cell);
+    col.appendChild(el('div','cellcap', cap));
+    wrap.appendChild(col);
+  }
+  return wrap;
+}
+function typePicker() {
+  const grid = el('div','picker');
+  const ids = ['flight','ground_transport','hotel','activity','dining','boat','sunrise','sightseeing','beach','hiking','shopping','entertainment'];
+  const selectedId = 'boat';
+  for (const id of ids) {
+    const isSel = id === selectedId;
+    const cell = el('div', 'pcell' + (isSel ? ' sel' : ''));
+    const tile = stickerTile(id, 38);
+    if (isSel) {
+      tile.style.transform = 'rotate(-6deg) scale(1.04)';
+      tile.style.boxShadow = '4px 7px 12px rgba(0,0,0,.26)';
+    }
+    cell.appendChild(tile);
+    cell.appendChild(el('div','pl', LABELS[id]));
+    if (isSel) {
+      // on-brand confetti burst (EVENT_VISUALS palette), scattered around the tile
+      const parts = [
+        [ -6, -8, 6, 6, '#DB5743', '50%'], [ 18, -12, 5, 5, '#D5B534', '2px'],
+        [ 40, -4, 6, 6, '#438ADB', '50%'], [ 44, 20, 5, 5, '#DD4B94', '2px'],
+        [ -10, 18, 5, 5, '#32AE70', '50%'], [ 30, -16, 4, 4, '#A35CCC', '50%'],
+        [ 8, -18, 5, 5, '#29AEA0', '2px'], [ -4, 34, 4, 4, '#DB8F43', '50%'],
+      ];
+      for (const [x,y,w,h,c,r] of parts) {
+        const p = el('div','confetti');
+        Object.assign(p.style, { left: x+'px', top: y+'px', width: w+'px', height: h+'px', background: c, borderRadius: r });
+        cell.appendChild(p);
+      }
+    }
+    grid.appendChild(cell);
+  }
+  return grid;
+}
+function emptyState() {
+  const c = el('div','empty');
+  const circle = el('div','circle'); circle.appendChild(svg('activity', 28, '#0E7490', 2)); // Palmtree
+  c.appendChild(circle);
+  c.appendChild(el('h4', null, 'Nothing planned yet'));
+  c.appendChild(el('p', null, 'Tap the button below to add your first event.'));
+  const btn = el('div','btn-primary'); btn.appendChild(rawSvg(PLUS, 16, '#fff', 2.5)); btn.append('Add Event');
+  c.appendChild(btn);
+  return c;
+}
+
+/* assemble ----------------------------------------------------------------- */
+const g = document.getElementById('gallery');
+g.append(
+  comp('Event-type sticker icons', iconSet(), true),
+  comp('Event card', eventCard()),
+  comp('Buffer card', bufferCard()),
+  comp('Destination card', destCard()),
+  comp('"Now" indicator', nowIndicator()),
+  comp('Checklist row', checklistRow()),
+  comp('Island switcher', segmented()),
+  comp('Countdown pill', countdownPill()),
+  comp('Buttons', buttons()),
+  comp('Details card', detailsCard()),
+  comp('Bottom navigation', navBar(), true),
+  comp('Event-type picker', typePicker(), true),
+  comp('Calendar day states', dayCellStates(), true),
+  comp('Empty state', emptyState()),
+);
+</script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1400px;height:800px}
+  body{background:#F2F3F5;font-family:'DM Sans',system-ui,sans-serif;overflow:hidden}
+  .frame{width:1400px;height:800px;padding:44px;position:relative}
+  .panel{width:100%;height:100%;border-radius:34px;position:relative;overflow:hidden;
+    background:radial-gradient(120% 120% at 16% 10%,#EAF9FB 0%,#DCF0F5 42%,#CBE7F0 100%)}
+  .stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:40px}
+  body.titled .stage{transform:translateY(-58px)}
+  .ecard{background:#fff;border-radius:24px;padding:26px 26px 24px;width:326px;min-height:274px;
+    box-shadow:0 26px 54px rgba(20,45,65,.18)}
+  .etop{display:flex;justify-content:space-between;align-items:flex-start}
+  .stile{width:62px;height:62px;border-radius:17px;display:grid;place-items:center;position:relative;
+    border:3px solid #fff;box-shadow:0 7px 16px rgba(0,0,0,.22)}
+  .stile::after{content:'';position:absolute;inset:0;border-radius:14px;
+    background:linear-gradient(155deg,rgba(255,255,255,.30),transparent 55%)}
+  .stile svg{width:31px;height:31px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;position:relative;z-index:1}
+  .badge{font-weight:600;font-size:18px;padding:6px 15px;border-radius:999px;white-space:nowrap}
+  .etitle{font-weight:700;font-size:30px;line-height:37px;color:#1A1A1A;margin-top:19px;letter-spacing:-.3px}
+  .emeta{font-weight:500;font-size:21px;line-height:29px;color:#6B6B6B;margin-top:11px}
+  /* title lockup */
+  .lockup{position:absolute;left:52px;bottom:44px;display:none}
+  body.titled .lockup{display:block}
+  .lockup .eye{font-weight:600;font-size:17px;letter-spacing:2.4px;color:#0E7490}
+  .lockup .wm{font-weight:700;font-size:52px;line-height:54px;letter-spacing:-1.2px;color:#0F2B36;margin-top:9px}
+  .lockup .sub{font-weight:600;font-size:19px;letter-spacing:.2px;color:#5C7784;margin-top:13px}
+  /* transparent variant: drop the panel + frame fill, keep shadows */
+  body.transparent{background:transparent}
+  body.transparent .panel{background:transparent;border-radius:0;overflow:visible}
+</style>
+</head>
+<body class="titled">
+  <div class="frame">
+    <div class="panel">
+      <div class="stage">
+
+        <!-- hiking card -->
+        <div class="ecard" style="transform:rotate(-5deg) translateY(-6px);z-index:3">
+          <div class="etop">
+            <div class="stile" style="background:#2D7D46">
+              <svg viewBox="0 0 24 24"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+            </div>
+            <span class="badge" style="background:#E0F1F8;color:#2B7A9E">in 6h</span>
+          </div>
+          <div class="etitle">Hiking Na Pali<br>Coast</div>
+          <div class="emeta">9:00 AM<br>Na Pali Coast, Kauai</div>
+        </div>
+
+        <!-- flight card -->
+        <div class="ecard" style="transform:rotate(5deg) translateY(6px);z-index:2">
+          <div class="etop">
+            <div class="stile" style="background:#2563EB">
+              <svg viewBox="0 0 24 24"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+            </div>
+          </div>
+          <div class="etitle">Chicago → Kauai</div>
+          <div class="emeta">ORD → LIH<br>Jul 4 · 7:50 AM</div>
+        </div>
+
+      </div>
+
+      <div class="lockup">
+        <div class="eye">UX / UI CASE STUDY</div>
+        <div class="wm">Travel Day Organizer</div>
+        <div class="sub">A mobile trip-planning app · design system + product</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const p = new URLSearchParams(location.search);
+    if (p.get('mode') === 'clean') document.body.classList.remove('titled');
+    if (p.get('bg') === 'transparent') {
+      document.body.classList.remove('titled');
+      document.body.classList.add('transparent');
+    }
+  </script>
+</body>
+</html>

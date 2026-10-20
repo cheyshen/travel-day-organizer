@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Travel Design System — Animation Frames</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---------------------------------------------------------------------------
+     Deterministic animation stages. Each motion is a pure function of progress
+     t∈[0,1] via window.setAnimFrame(name, t) — NO CSS keyframes/real-time — so
+     capture-anim.js can step t evenly and screenshot exact, reproducible frames.
+     Motion values mirror the design system: now-dot pulse, whileTap scale 0.98,
+     and pageVariants (opacity + y slide, easeOut enter / faster exit).
+  --------------------------------------------------------------------------- */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; --glossy: #F0EDE8; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: transparent;
+         display: flex; flex-direction: column; align-items: center; gap: 56px; padding: 56px; }
+  .astage { display: flex; align-items: center; justify-content: center; background: var(--glossy); overflow: hidden; }
+  .astage--transparent { background: transparent; }
+
+  /* event-icon sticker tiles (motion is JS-driven; these are static styles only) */
+  .iconwrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px 32px; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+  .cap { font: 600 13px var(--font); color: #6B6B6B; }
+  .tile { width: 64px; height: 64px; border-radius: 17px; display: flex; align-items: center; justify-content: center;
+          position: relative; border: 3px solid #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+  .tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.04) 45%, rgba(0,0,0,.05) 100%); }
+  .tile svg { width: 32px; height: 32px; color: #fff; }
+  .tile .evm { display: inline-flex; line-height: 0; }
+  .confetti { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; margin: -3px 0 0 -3px;
+    border-radius: 2px; opacity: 0; }
+</style>
+</head>
+<body>
+
+  <section class="astage astage--transparent" id="anim-now-marker" style="width:760px; height:600px; padding:64px;">
+    <div id="now-root" style="width:440px; display:flex; flex-direction:column; gap:16px;"></div>
+  </section>
+
+  <section class="astage" id="anim-card-press" style="width:880px; height:600px; padding:80px;">
+    <div id="card-root" style="width:420px;"></div>
+  </section>
+
+  <section class="astage" id="anim-page-transition" style="width:880px; height:680px; padding:72px;">
+    <div id="page-root" style="width:480px; position:relative;"></div>
+  </section>
+
+  <section class="astage astage--transparent" id="anim-icon-cascade" style="width:720px; height:520px; padding:48px;">
+    <div id="cascade-root" class="iconwrap"></div>
+  </section>
+
+  <section class="astage" id="anim-icon-select" style="width:720px; height:380px; padding:48px; background:#F2F3F5;">
+    <div id="select-root" style="display:flex; gap:64px;"></div>
+  </section>
+
+  <section class="astage" id="anim-nav-cycle" style="width:620px; height:600px; padding:40px; background:#F2F3F5;">
+    <div id="nav-phone" style="width:320px; height:520px; position:relative; border-radius:32px; overflow:hidden;
+                               box-shadow:0 18px 50px rgba(40,50,70,.20);">
+      <div id="nav-screens" style="position:absolute; inset:0;
+           -webkit-mask:linear-gradient(to bottom, transparent 0, #000 96px, #000 100%);
+                   mask:linear-gradient(to bottom, transparent 0, #000 96px, #000 100%);"></div>
+      <div id="nav-root" style="position:absolute; left:0; right:0; bottom:0;"></div>
+    </div>
+  </section>
+
+<script>
+const colors = {
+  surface:'#FFFFFF', ocean:'#0E7490', textPrimary:'#1A1A1A', textSecondary:'#6B6B6B',
+  textMuted:'#9B9B9B', textOnDark:'#FFFFFF', border:'#E2E0DB', tan:'#7B5B3A',
+};
+const NS = 'http://www.w3.org/2000/svg';
+const ANIM = {};
+
+// easing
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeIn  = (x) => x * x;
+const easeIO  = (x) => x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2, 3)/2;
+const lerp = (a, b, x) => a + (b - a) * x;
+
+/* ---------------------------------------------------------------------------
+   Event-icon data (lucide nodes inlined, mirrors portfolio-assets.html) + a
+   generic keyframe evaluator. Every motion starts AND ends at identity so the
+   loop is seamless. All transforms are applied via JS (no CSS animation) so
+   capture-anim.js can step t deterministically.
+--------------------------------------------------------------------------- */
+const ICON_NODES = {"flight":[["path",{"d":"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"}]],"ground_transport":[["path",{"d":"M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"}],["circle",{"cx":"7","cy":"17","r":"2"}],["path",{"d":"M9 17h6"}],["circle",{"cx":"17","cy":"17","r":"2"}]],"hotel":[["path",{"d":"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"}],["path",{"d":"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"}],["path",{"d":"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"}],["path",{"d":"M10 6h4"}],["path",{"d":"M10 10h4"}],["path",{"d":"M10 14h4"}],["path",{"d":"M10 18h4"}]],"activity":[["path",{"d":"M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"}],["path",{"d":"M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"}],["path",{"d":"M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"}],["path",{"d":"M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"}]],"dining":[["path",{"d":"m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"}],["path",{"d":"M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"}],["path",{"d":"m2.1 21.8 6.4-6.3"}],["path",{"d":"m19 5-7 7"}]],"buffer":[["circle",{"cx":"12","cy":"12","r":"10"}],["polyline",{"points":"12 6 12 12 16 14"}]],"boat":[["path",{"d":"M12 10.189V14"}],["path",{"d":"M12 2v3"}],["path",{"d":"M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"}],["path",{"d":"M19.38 20A11.6 11.6 0 0 0 21 14l-8.188-3.639a2 2 0 0 0-1.624 0L3 14a11.6 11.6 0 0 0 2.81 7.76"}],["path",{"d":"M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"sunrise":[["path",{"d":"M12 2v8"}],["path",{"d":"m4.93 10.93 1.41 1.41"}],["path",{"d":"M2 18h2"}],["path",{"d":"M20 18h2"}],["path",{"d":"m19.07 10.93-1.41 1.41"}],["path",{"d":"M22 22H2"}],["path",{"d":"m8 6 4-4 4 4"}],["path",{"d":"M16 18a4 4 0 0 0-8 0"}]],"sightseeing":[["path",{"d":"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"}],["circle",{"cx":"12","cy":"13","r":"3"}]],"beach":[["path",{"d":"M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"hiking":[["path",{"d":"m8 3 4 8 5-5 5 15H2L8 3z"}]],"shopping":[["path",{"d":"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"}],["path",{"d":"M3 6h18"}],["path",{"d":"M16 10a4 4 0 0 1-8 0"}]],"entertainment":[["path",{"d":"M5.8 11.3 2 22l10.7-3.79"}],["path",{"d":"M4 3h.01"}],["path",{"d":"M22 8h.01"}],["path",{"d":"M15 2h.01"}],["path",{"d":"M22 20h.01"}],["path",{"d":"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"}],["path",{"d":"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"}],["path",{"d":"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"}],["path",{"d":"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"}]]};
+
+// EVENT_VISUALS palette (bright family) + motion + sway origin, in app order
+const ICON_TYPES = [
+  { id:'flight',           label:'Flight',      motion:'flight', color:'#438ADB' },
+  { id:'ground_transport', label:'Transport',   motion:'car',    color:'#725ED4' },
+  { id:'hotel',            label:'Hotel',       motion:'hotel',  color:'#A35CCC' },
+  { id:'activity',         label:'Activity',    motion:'palm',   color:'#32AE70', origin:'50% 100%' },
+  { id:'dining',           label:'Dining',      motion:'dining', color:'#DB5743' },
+  { id:'boat',             label:'Boat',        motion:'boat',   color:'#2AA5CB', origin:'50% 90%' },
+  { id:'sunrise',          label:'Sunrise',     motion:'sun',    color:'#DB8F43' },
+  { id:'sightseeing',      label:'Sightseeing', motion:'camera', color:'#D5B534' },
+  { id:'beach',            label:'Beach',       motion:'waves',  color:'#29AEA0' },
+  { id:'hiking',           label:'Hiking',      motion:'hike',   color:'#38B242' },
+  { id:'shopping',         label:'Shopping',    motion:'bag',    color:'#DD4B94', origin:'50% 6%' },
+  { id:'entertainment',    label:'Fun',         motion:'party',  color:'#D256D2' },
+];
+const CONFETTI_PALETTE = ['#438ADB','#DB5743','#D5B534','#29AEA0','#DD4B94','#D256D2'];
+
+// keyframe stops [u, {x,y,r,s,sk,o}] — defaults x/y/r/sk=0, s/o=1
+const KF = {
+  flight: [[0,{}],[0.55,{}],[0.63,{x:-2,y:2,r:6}],[0.80,{x:11,y:-17,r:-24}],[0.92,{x:2,y:-2,r:-3}],[1,{}]],
+  car:    [[0,{}],[0.50,{}],[0.64,{x:-9,y:1}],[0.80,{x:11,y:-1}],[0.92,{x:-2}],[1,{}]],
+  boat:   [[0,{}],[0.40,{}],[0.52,{r:-17}],[0.64,{r:13}],[0.76,{r:-8}],[0.88,{r:4}],[1,{}]],
+  palm:   [[0,{}],[0.40,{}],[0.54,{r:16}],[0.68,{r:-10}],[0.82,{r:5}],[0.94,{r:-2}],[1,{}]],
+  waves:  [[0,{}],[0.40,{}],[0.52,{x:-5,sk:9}],[0.66,{x:5,sk:-9}],[0.80,{x:-3,sk:5}],[0.92,{x:2,sk:-2}],[1,{}]],
+  hike:   [[0,{}],[0.45,{}],[0.58,{y:-9}],[0.70,{y:-3}],[0.82,{y:-13,s:1.06}],[0.92,{y:-2}],[1,{}]],
+  sun:    [[0,{}],[0.40,{}],[0.50,{y:6,s:0.9}],[0.66,{y:-10,s:1.15}],[0.86,{y:-1,s:1.01}],[1,{}]],
+  camera: [[0,{}],[0.45,{}],[0.58,{s:0.8}],[0.70,{s:1.1,o:0.4}],[0.82,{s:0.98}],[1,{}]],
+  dining: [[0,{}],[0.45,{}],[0.55,{r:-11}],[0.68,{r:10}],[0.80,{r:-6}],[0.91,{r:3}],[1,{}]],
+  bag:    [[0,{}],[0.40,{}],[0.52,{r:-21}],[0.66,{r:14}],[0.80,{r:-8}],[0.91,{r:4}],[1,{}]],
+  hotel:  [[0,{}],[0.45,{}],[0.55,{y:-13}],[0.75,{y:4}],[0.88,{y:-2}],[1,{}]],
+  party:  [[0,{}],[0.45,{}],[0.58,{s:1.34,r:-19}],[0.74,{s:0.91,r:12}],[0.88,{s:1.04,r:-3}],[1,{}]],
+};
+const _g = (o, k, d) => (o[k] !== undefined ? o[k] : d);
+function evalKF(stops, u) {
+  u = Math.max(0, Math.min(1, u));
+  let a = stops[0], b = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (u >= stops[i][0] && u <= stops[i + 1][0]) { a = stops[i]; b = stops[i + 1]; break; }
+  }
+  const e = easeIO((u - a[0]) / ((b[0] - a[0]) || 1)), A = a[1], B = b[1];
+  return {
+    x: lerp(_g(A,'x',0), _g(B,'x',0), e), y: lerp(_g(A,'y',0), _g(B,'y',0), e),
+    r: lerp(_g(A,'r',0), _g(B,'r',0), e), s: lerp(_g(A,'s',1), _g(B,'s',1), e),
+    sk: lerp(_g(A,'sk',0), _g(B,'sk',0), e), o: lerp(_g(A,'o',1), _g(B,'o',1), e),
+  };
+}
+function lucideSVG(typeId) {
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none');
+  svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','2');
+  svg.setAttribute('stroke-linecap','round'); svg.setAttribute('stroke-linejoin','round');
+  for (const [tag, attrs] of (ICON_NODES[typeId] || ICON_NODES.flight)) {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    svg.appendChild(el);
+  }
+  return svg;
+}
+function makeIconTile(t) {
+  const tile = document.createElement('div'); tile.className = 'tile'; tile.style.background = t.color;
+  const evm = document.createElement('span'); evm.className = 'evm'; evm.appendChild(lucideSVG(t.id));
+  tile.appendChild(evm);
+  return { tile, evm };
+}
+
+/* ===========================================================================
+   1. NOW MARKER — radar-style pulse on the live dot (transparent stage)
+   =========================================================================== */
+(function () {
+  const root = document.getElementById('now-root');
+  const row = document.createElement('div');
+  Object.assign(row.style, { display:'flex', alignItems:'center', gap:'14px', position:'relative' });
+
+  // dot + ping rings, all centered on the same point
+  const dotWrap = document.createElement('div');
+  Object.assign(dotWrap.style, { position:'relative', width:'16px', height:'16px', flexShrink:0 });
+  function ring() {
+    const r = document.createElement('div');
+    Object.assign(r.style, { position:'absolute', inset:'0', borderRadius:'50%',
+      border:`2px solid ${colors.ocean}`, transformOrigin:'center' });
+    dotWrap.appendChild(r); return r;
+  }
+  const ring1 = ring(), ring2 = ring();
+  const dot = document.createElement('div');
+  Object.assign(dot.style, { position:'absolute', inset:'0', borderRadius:'50%',
+    background:colors.ocean, boxShadow:`0 0 10px ${colors.ocean}80`, transformOrigin:'center' });
+  dotWrap.appendChild(dot);
+
+  const line = document.createElement('div');
+  Object.assign(line.style, { flex:'1', height:'2px', background:colors.ocean, borderRadius:'1px' });
+  const label = document.createElement('span'); label.textContent = 'NOW';
+  Object.assign(label.style, { font:'500 14px var(--font)', letterSpacing:'0.12em', color:colors.textPrimary, flexShrink:0 });
+
+  row.append(dotWrap, line, label); root.appendChild(row);
+
+  // static boat card beneath the marker (only the indicator pulses) — mirrors the day view
+  const card = document.createElement('div');
+  Object.assign(card.style, { width:'100%', borderRadius:'16px', overflow:'hidden', position:'relative',
+    background:'rgba(255,255,255,0.96)', border:'1px solid rgba(0,0,0,0.06)',
+    boxShadow:'0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' });
+  const imgA = document.createElement('div');
+  Object.assign(imgA.style, { position:'relative', height:'135px', overflow:'hidden',
+    background:'linear-gradient(135deg, #1B9AAA 0%, #67E8F9 100%)' });
+  const photo = document.createElement('img'); photo.alt = '';
+  photo.src = 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=300&fit=crop&auto=format';
+  Object.assign(photo.style, { position:'absolute', inset:'0', width:'100%', height:'100%', objectFit:'cover' });
+  photo.onerror = () => { photo.style.display = 'none'; };
+  imgA.appendChild(photo);
+  const scrim = document.createElement('div');
+  Object.assign(scrim.style, { position:'absolute', left:'0', right:'0', bottom:'0', height:'60px',
+    background:'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)' });
+  imgA.appendChild(scrim);
+  const badge = document.createElement('div');
+  Object.assign(badge.style, { position:'absolute', bottom:'10px', left:'10px', display:'flex', alignItems:'center', gap:'6px',
+    background:'rgba(0,0,0,0.6)', padding:'5px 11px', borderRadius:'8px', color:'#fff', font:'600 12px var(--font)' });
+  badge.textContent = '8:00 AM · Boat';
+  imgA.appendChild(badge);
+  card.appendChild(imgA);
+  const body = document.createElement('div');
+  Object.assign(body.style, { padding:'14px 16px', display:'flex', alignItems:'center', gap:'10px' });
+  const txt = document.createElement('div'); txt.style.flex = '1';
+  txt.innerHTML = `<p style="margin:0;font:600 18px var(--font);color:${colors.textPrimary}">Na Pali Coast Boat Tour</p>`
+                + `<p style="margin:2px 0 0;font:400 15px var(--font);color:${colors.textSecondary}">Captain Andy's · Snorkel + sail</p>`;
+  const btn = document.createElement('div');
+  Object.assign(btn.style, { height:'34px', padding:'0 12px', borderRadius:'8px', background:'#EDEAE5',
+    display:'flex', alignItems:'center', font:'600 13px var(--font)', color:colors.textSecondary, flexShrink:0 });
+  btn.textContent = 'Details';
+  body.append(txt, btn); card.appendChild(body);
+  root.appendChild(card);
+
+  const ringAt = (phase) => ({ scale: 1 + 2.2 * phase, opacity: 0.5 * (1 - easeOut(phase)) });
+  ANIM['now-marker'] = (t) => {
+    const a = ringAt(t), b = ringAt((t + 0.5) % 1);          // two pings, offset → continuous
+    ring1.style.transform = `scale(${a.scale})`; ring1.style.opacity = a.opacity;
+    ring2.style.transform = `scale(${b.scale})`; ring2.style.opacity = b.opacity;
+    dot.style.transform = `scale(${1 + 0.08 * Math.sin(t * 2 * Math.PI)})`;  // subtle breathe
+  };
+})();
+
+/* ===========================================================================
+   2. CARD PRESS — whileTap scale 0.98 (rest → press → release → rest), loops
+   =========================================================================== */
+(function () {
+  const root = document.getElementById('card-root');
+  const card = document.createElement('div');
+  Object.assign(card.style, { width:'100%', borderRadius:'16px', overflow:'hidden', position:'relative',
+    background:'rgba(255,255,255,0.92)', border:'1px solid rgba(0,0,0,0.06)', transformOrigin:'center',
+    boxShadow:'0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' });
+
+  const img = document.createElement('div');
+  Object.assign(img.style, { position:'relative', height:'135px',
+    background:'linear-gradient(135deg, #0891B2 0%, #67E8F9 100%)' });
+  const badge = document.createElement('div');
+  Object.assign(badge.style, { position:'absolute', bottom:'10px', left:'10px', display:'flex', alignItems:'center', gap:'6px',
+    background:'rgba(0,0,0,0.6)', padding:'5px 11px', borderRadius:'8px', color:'#fff', font:'600 12px var(--font)' });
+  badge.textContent = '2:00 PM · Beach';
+  img.appendChild(badge);
+
+  const body = document.createElement('div');
+  Object.assign(body.style, { padding:'14px 16px', display:'flex', alignItems:'center', gap:'10px' });
+  const txt = document.createElement('div'); txt.style.flex = '1';
+  txt.innerHTML = `<p style="margin:0;font:600 18px var(--font);color:${colors.textPrimary}">Poipu Beach Afternoon</p>`
+                + `<p style="margin:2px 0 0;font:400 15px var(--font);color:${colors.textSecondary}">Snorkel + sunbathe</p>`;
+  const btn = document.createElement('div');
+  Object.assign(btn.style, { height:'34px', padding:'0 12px', borderRadius:'8px', background:'#EDEAE5',
+    display:'flex', alignItems:'center', font:'600 13px var(--font)', color:colors.textSecondary, flexShrink:0 });
+  btn.textContent = 'Details';
+  body.append(txt, btn);
+  card.append(img, body);
+
+  // press overlay (subtle dim during the tap)
+  const dim = document.createElement('div');
+  Object.assign(dim.style, { position:'absolute', inset:'0', background:'#000', opacity:'0', pointerEvents:'none' });
+  card.appendChild(dim);
+  root.appendChild(card);
+
+  ANIM['card-press'] = (t) => {
+    let s = 1, d = 0;
+    if (t >= 0.32 && t < 0.5)      { const e = easeIO((t - 0.32) / 0.18); s = lerp(1, 0.98, e); d = lerp(0, 0.05, e); }
+    else if (t >= 0.5 && t < 0.68) { const e = easeIO((t - 0.5) / 0.18);  s = lerp(0.98, 1, e); d = lerp(0.05, 0, e); }
+    card.style.transform = `scale(${s})`;
+    dim.style.opacity = d;
+  };
+})();
+
+/* ===========================================================================
+   3. PAGE TRANSITION — pageVariants: enter (opacity 0→1, y 12→0, easeOut),
+      hold, then faster exit (opacity→0, y→-12). Loops.
+   =========================================================================== */
+(function () {
+  const root = document.getElementById('page-root');
+  const view = document.createElement('div');
+  Object.assign(view.style, { width:'100%', borderRadius:'18px', background:colors.surface,
+    border:'1px solid '+colors.border, boxShadow:'0 4px 12px rgba(0,0,0,0.08)', padding:'20px', willChange:'transform,opacity' });
+
+  // sticky-style day header
+  const head = document.createElement('div');
+  Object.assign(head.style, { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' });
+  head.innerHTML = `<span style="font:700 20px var(--font);color:${colors.textPrimary}">Saturday, March 14</span>`
+                 + `<span style="font:600 12px var(--font);letter-spacing:.08em;color:${colors.ocean}">DAY 1</span>`;
+  view.appendChild(head);
+
+  // a couple of compact event rows
+  const rows = [['6:50 AM','Flight to Kauai'], ['1:30 PM','Poipu Beach'], ['5:30 PM','Sunset Dinner']];
+  for (const [time, title] of rows) {
+    const r = document.createElement('div');
+    Object.assign(r.style, { display:'flex', gap:'12px', alignItems:'baseline', padding:'12px 0', borderTop:'1px solid '+colors.border });
+    r.innerHTML = `<span style="width:78px;flex-shrink:0;font:600 13px var(--font);color:${colors.textMuted}">${time}</span>`
+                + `<span style="font:600 15px var(--font);color:${colors.textPrimary}">${title}</span>`;
+    view.appendChild(r);
+  }
+  root.appendChild(view);
+
+  const Y = 12; // pageVariants y offset (design-system value)
+  ANIM['page-transition'] = (t) => {
+    let opacity, y;
+    if (t < 0.32)      { const e = easeOut(t / 0.32);            opacity = e;     y = lerp(Y, 0, e); }
+    else if (t < 0.7)  {                                          opacity = 1;     y = 0; }
+    else               { const e = easeIn((t - 0.7) / 0.3);      opacity = 1 - e; y = lerp(0, -Y, e); }
+    view.style.opacity = opacity;
+    view.style.transform = `translateY(${y}px)`;
+  };
+})();
+
+/* ===========================================================================
+   4. ICON CASCADE — every event icon loops its own signature motion, staggered
+   =========================================================================== */
+(function () {
+  const root = document.getElementById('cascade-root');
+  const items = ICON_TYPES.map((t, i) => {
+    const cell = document.createElement('div'); cell.className = 'cell';
+    const { tile, evm } = makeIconTile(t);
+    evm.style.transformOrigin = t.origin || 'center';
+    const cap = document.createElement('div'); cap.className = 'cap'; cap.textContent = t.label;
+    cell.append(tile, cap); root.appendChild(cell);
+    return { evm, motion: t.motion, off: i * 0.05 };   // stagger → rolling wave
+  });
+  ANIM['icon-cascade'] = (t) => {
+    for (const it of items) {
+      const k = evalKF(KF[it.motion], (t + it.off) % 1);
+      it.evm.style.transform = `translate(${k.x}px,${k.y}px) rotate(${k.r}deg) scale(${k.s}) skewX(${k.sk}deg)`;
+      it.evm.style.opacity = k.o;
+    }
+  };
+})();
+
+/* ===========================================================================
+   5. ICON SELECT — sticker tilt-pop + on-brand confetti burst (picker tap)
+   =========================================================================== */
+(function () {
+  const root = document.getElementById('select-root');
+  const REST = '0 2px 6px rgba(0,0,0,0.18)', PRESS = '4px 7px 12px rgba(0,0,0,0.26)';
+  const items = ['entertainment', 'boat', 'beach'].map((id, idx) => {
+    const t = ICON_TYPES.find((x) => x.id === id);
+    const cell = document.createElement('div'); cell.className = 'cell';
+    const { tile, evm } = makeIconTile(t);
+    evm.style.transformOrigin = t.origin || 'center';   // so the signature motion sways from the right pivot
+    const parts = [];
+    for (let k = 0; k < 12; k++) {
+      const ang = (Math.PI * 2 * k) / 12 + k * 0.137;     // deterministic spread
+      const dist = 36 + ((k * 7) % 26);
+      const c = document.createElement('span'); c.className = 'confetti';
+      c.style.background = (k % 2 === 0) ? t.color : CONFETTI_PALETTE[k % CONFETTI_PALETTE.length];
+      tile.appendChild(c);
+      parts.push({ el: c, tx: Math.cos(ang) * dist, ty: Math.sin(ang) * dist, rot: ((k * 53) % 540) - 270 });
+    }
+    const cap = document.createElement('div'); cap.className = 'cap'; cap.textContent = t.label;
+    cell.append(tile, cap); root.appendChild(cell);
+    return { tile, evm, motion: t.motion, parts, off: idx * 0.18 };
+  });
+  ANIM['icon-select'] = (t) => {
+    for (const it of items) {
+      const u = (t + it.off) % 1;
+      // 1. sticker tilt-pop on the tile
+      let r = 0, s = 1;
+      if (u < 0.10)      { const e = easeOut(u / 0.10);          r = lerp(0, -6, e);    s = lerp(1, 1.1, e); }
+      else if (u < 0.30) { const e = easeOut((u - 0.10) / 0.20); r = -6;                s = lerp(1.1, 1.04, e); }
+      else if (u < 0.75) { r = -6; s = 1.04; }
+      else               { const e = easeIO((u - 0.75) / 0.25);  r = lerp(-6, 0, e);    s = lerp(1.04, 1, e); }
+      it.tile.style.transform = `rotate(${r}deg) scale(${s})`;
+      it.tile.style.boxShadow = (u > 0.05 && u < 0.82) ? PRESS : REST;
+      // 2. the icon itself performs its signature motion (same keyframes as the cascade)
+      const k = evalKF(KF[it.motion], u);
+      it.evm.style.transform = `translate(${k.x}px,${k.y}px) rotate(${k.r}deg) scale(${k.s}) skewX(${k.sk}deg)`;
+      it.evm.style.opacity = k.o;
+      // 3. confetti burst
+      let o = 0, p = 0;
+      if (u < 0.4) { p = easeOut(u / 0.4); o = Math.max(0, Math.min(1, u < 0.04 ? u / 0.04 : 1 - (u - 0.04) / 0.36)); }
+      for (const pt of it.parts) {
+        pt.el.style.opacity = o;
+        pt.el.style.transform = `translate(${pt.tx * p}px,${pt.ty * p}px) scale(${lerp(1, 0.4, p)}) rotate(${pt.rot * p}deg)`;
+      }
+    }
+  };
+})();
+
+/* ===========================================================================
+   6. NAV CYCLE — active-tab indicator slides between tabs, icon+label crossfade
+      grey↔white, active icon grows slightly, Add button glow breathes.
+      Ping-pong Trip→Plan→Day→Status→Day→Plan→(Trip) for a seamless loop.
+   =========================================================================== */
+(function () {
+  const root = document.getElementById('nav-root');
+  const screensWrap = document.getElementById('nav-screens');
+  const CAL = '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>';
+  const CHK = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>';
+  const PLUS = '<path d="M5 12h14"/><path d="M12 5v14"/>';
+  function rawIcon(d, size) {
+    const s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', size); s.setAttribute('height', size);
+    s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2');
+    s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round'); s.innerHTML = d; return s;
+  }
+  function nodeIcon(id, size) { const s = lucideSVG(id); s.setAttribute('width', size); s.setAttribute('height', size); return s; }
+
+  // the four real tab screens (baked-in nav cropped off) — bottom-anchored above the nav, top faded via the wrapper mask
+  const NAV_H = 70;
+  const screenNames = ['trip', 'plan', 'day', 'status'];
+  const screenEls = screenNames.map((n, i) => {
+    const img = document.createElement('img');
+    img.src = `screens/content/${n}.png`;
+    Object.assign(img.style, { position:'absolute', left:'0', bottom: NAV_H + 'px', width:'100%', height:'auto',
+      opacity: i === 0 ? 1 : 0, willChange:'opacity' });
+    screensWrap.appendChild(img); return img;
+  });
+
+  const bar = document.createElement('div');
+  Object.assign(bar.style, { display:'flex', alignItems:'center', width:'100%', background:'#1F2937',
+    borderRadius:'20px 20px 0 0', boxShadow:'0 -2px 20px rgba(0,0,0,.18)', padding:'8px', position:'relative' });
+
+  // sliding indicator (first child → paints behind the Add button as it crosses center)
+  const dot = document.createElement('div');
+  Object.assign(dot.style, { position:'absolute', bottom:'12px', left:'0', width:'20px', height:'3px',
+    borderRadius:'1.5px', background:'#0E7490', willChange:'transform' });
+  bar.appendChild(dot);
+
+  const tabDefs = [
+    { label:'Trip',   icon: nodeIcon('activity', 22) },  // Palmtree
+    { label:'Plan',   icon: rawIcon(CAL, 22) },
+    { label:'Day',    icon: nodeIcon('buffer', 22) },    // Clock
+    { label:'Status', icon: rawIcon(CHK, 22) },
+  ];
+  function makeTab(def) {
+    const t = document.createElement('div');
+    Object.assign(t.style, { flex:'1', minHeight:'54px', display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center', gap:'4px', padding:'4px 0 12px', position:'relative' });
+    const iw = document.createElement('span');
+    Object.assign(iw.style, { display:'block', lineHeight:'0', color:'#9B9B9B', willChange:'transform' });
+    iw.appendChild(def.icon);
+    const lbl = document.createElement('span');
+    Object.assign(lbl.style, { font:'600 13px var(--font)', letterSpacing:'.01em', lineHeight:'1em', color:'#9B9B9B' });
+    lbl.textContent = def.label;
+    t.append(iw, lbl); return { t, iw, lbl, icon: def.icon };
+  }
+  const add = document.createElement('div');
+  Object.assign(add.style, { flex:'1', display:'flex', justifyContent:'center', alignItems:'center', minHeight:'54px' });
+  const circle = document.createElement('div');
+  Object.assign(circle.style, { width:'48px', height:'48px', borderRadius:'9999px', background:'#0E7490',
+    display:'flex', alignItems:'center', justifyContent:'center', willChange:'transform,box-shadow' });
+  const plus = rawIcon(PLUS, 24); plus.setAttribute('stroke-width', '2.5'); plus.style.color = '#fff';
+  circle.appendChild(plus); add.appendChild(circle);
+
+  const T = tabDefs.map(makeTab);
+  bar.append(T[0].t, T[1].t, add, T[2].t, T[3].t);   // visual order: Trip, Plan, [Add], Day, Status
+  root.appendChild(bar);
+
+  // sit the screens flush above the real nav height
+  const navH = bar.offsetHeight || NAV_H;
+  screenEls.forEach(img => { img.style.bottom = navH + 'px'; });
+
+  // cache each tab's center x relative to the bar
+  const barLeft = bar.getBoundingClientRect().left;
+  const centers = T.map(o => { const r = o.t.getBoundingClientRect(); return (r.left + r.right) / 2 - barLeft; });
+
+  const GREY = [155,155,155], WHITE = [255,255,255];
+  const mix = (a,b,e) => `rgb(${Math.round(lerp(a[0],b[0],e))},${Math.round(lerp(a[1],b[1],e))},${Math.round(lerp(a[2],b[2],e))})`;
+
+  const seq = [0,1,2,3,2,1];   // ping-pong; wraps seq[6]→seq[0]=0 for a seamless loop
+  const segEase = (f) => (f < 0.42 ? 0 : f > 0.88 ? 1 : easeIO((f - 0.42) / 0.46));
+
+  ANIM['nav-cycle'] = (t) => {
+    const st = t * seq.length, i = Math.floor(st) % seq.length, frac = st - Math.floor(st);
+    const posF = lerp(seq[i], seq[(i + 1) % seq.length], segEase(frac));
+    // slide the indicator
+    const k = Math.max(0, Math.min(centers.length - 2, Math.floor(posF)));
+    dot.style.transform = `translateX(${lerp(centers[k], centers[k + 1], posF - k) - 10}px)`;
+    // per-tab activeness (1 at the tab, fading to 0 one tab away) — drives both
+    // the tab styling AND the screen crossfade above, so the nav visibly switches views
+    T.forEach((o, idx) => {
+      const act = Math.max(0, Math.min(1, 1 - Math.abs(posF - idx)));
+      const col = mix(GREY, WHITE, act);
+      o.iw.style.color = col; o.lbl.style.color = col;
+      o.icon.setAttribute('stroke-width', (1.5 + 0.5 * act).toFixed(2));
+      o.iw.style.transform = `scale(${(1 + 0.12 * act).toFixed(3)})`;
+      screenEls[idx].style.opacity = act.toFixed(3);
+    });
+    // Add button glow breathing (2 pulses per loop)
+    const pulse = (Math.sin(t * Math.PI * 4) + 1) / 2;
+    circle.style.transform = `scale(${(1 + 0.03 * pulse).toFixed(3)})`;
+    circle.style.boxShadow = `0 4px ${lerp(16,24,pulse).toFixed(1)}px rgba(14,116,144,${lerp(0.4,0.58,pulse).toFixed(3)})`;
+  };
+})();
+
+/* --------------------------------------------------------------------------- */
+window.setAnimFrame = (name, t) => { const fn = ANIM[name]; if (fn) fn(Math.max(0, Math.min(1, t))); };
+Object.keys(ANIM).forEach((n) => ANIM[n](0)); // start on frame 0
+
+/* ---------------------------------------------------------------------------
+   Live preview autoplay — runs in a browser so the page actually animates.
+   capture-anim.js calls window.__stopAutoplay() before stepping frames, so
+   captures remain deterministic (this loop never fights the capture).
+   Loop durations mirror the ANIMS table in capture-anim.js.
+--------------------------------------------------------------------------- */
+const DURATIONS = { 'now-marker': 2400, 'card-press': 2000, 'page-transition': 2600, 'icon-cascade': 3000, 'icon-select': 2400, 'nav-cycle': 3600 };
+let __raf = null, __start = null;
+function __tick(now) {
+  if (__start == null) __start = now;
+  const elapsed = now - __start;
+  for (const name of Object.keys(ANIM)) {
+    const dur = DURATIONS[name] || 2000;
+    window.setAnimFrame(name, (elapsed % dur) / dur);
+  }
+  __raf = requestAnimationFrame(__tick);
+}
+window.__startAutoplay = () => { if (!__raf) __raf = requestAnimationFrame(__tick); };
+window.__stopAutoplay  = () => { if (__raf) { cancelAnimationFrame(__raf); __raf = null; } };
+window.__startAutoplay();
+
+window.__animReady = (async () => { if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} } return true; })();
+</script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Palette + Up Next Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #CACACA;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 56px 40px;
+}
+
+.pair {
+  display: flex; gap: 14px; width: 920px; align-items: stretch;
+}
+
+/* ── LEFT: palette wrapper ───────────────────────────────────── */
+.palette-wrap {
+  flex-shrink: 0;
+  background: #EBEBEB;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── RIGHT: Up Next panel ────────────────────────────────────── */
+.right-panel {
+  flex: 1;
+  background: #EBEBEB;
+  border-radius: 20px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* "Up next" heading — product accurate: typography.title fontWeight:500 */
+.upnext-heading {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 30px;
+  color: #1A1A1A;
+  margin: 0 2px 12px;
+}
+
+/* Two cards side by side — product layout */
+.cards-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+/* Card — matches cleanCard token */
+.card {
+  flex: 1;
+  min-width: 0;
+  background: #FFFFFF;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 6px 18px rgba(40,50,70,0.08);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Top row: sticker + badge */
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Badge — accentSoft bg + ocean text */
+.badge {
+  flex-shrink: 0;
+  background: rgba(14,116,144,0.12);
+  color: #0E7490;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 11px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* Content */
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #1A1A1A;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #6B6B6B;
+  margin-top: 6px;
+}
+.card-meta + .card-meta { margin-top: 2px; }
+
+/* Sticker tile — matches AnimatedEventIcon sticker prop */
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-style: solid;
+  border-color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+}
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 60%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="pair">
+
+  <!-- LEFT: Full palette SVG -->
+  <div class="palette-wrap">
+    <img src="exports/palette-full.svg" width="440" height="440"
+         style="border-radius:14px; display:block;"
+         alt="Travel app color palette"/>
+  </div>
+
+  <!-- RIGHT: Up Next cards (product-accurate) -->
+  <div class="right-panel">
+    <div class="upnext-heading">Up next</div>
+    <div class="cards-row" id="cards-row"></div>
+  </div>
+
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+
+const ICON_NODES = {
+  flight: [["path",{"d":"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"}]],
+  hiking: [["path",{"d":"m8 3 4 8 5-5 5 15H2L8 3z"}]],
+  activity: [["path",{"d":"M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"}],["path",{"d":"M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"}],["path",{"d":"M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"}],["path",{"d":"M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"}]],
+};
+
+const VIZ = {
+  flight:   '#438ADB',
+  hiking:   '#38B242',
+  activity: '#32AE70',
+};
+
+function makeSvg(typeId, size) {
+  const s = document.createElementNS(NS, 'svg');
+  s.setAttribute('viewBox', '0 0 24 24');
+  s.setAttribute('width', size);
+  s.setAttribute('height', size);
+  s.setAttribute('fill', 'none');
+  s.setAttribute('stroke', '#fff');
+  s.setAttribute('stroke-width', '2');
+  s.setAttribute('stroke-linecap', 'round');
+  s.setAttribute('stroke-linejoin', 'round');
+  for (const [tag, attrs] of (ICON_NODES[typeId] || ICON_NODES.flight)) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    s.appendChild(e);
+  }
+  return s;
+}
+
+function stickerTile(typeId, size) {
+  const tile = document.createElement('div');
+  tile.className = 'tile';
+  const r = Math.round(size * 0.29);
+  const bw = Math.max(2, Math.round(size * 0.065));
+  Object.assign(tile.style, {
+    width:        size + 'px',
+    height:       size + 'px',
+    borderRadius: r + 'px',
+    background:   VIZ[typeId] || '#0E7490',
+    borderWidth:  bw + 'px',
+    boxShadow:    '0 3px 10px rgba(0,0,0,0.18)',
+  });
+  const span = document.createElement('span');
+  span.style.display = 'inline-flex';
+  span.style.lineHeight = '0';
+  span.appendChild(makeSvg(typeId, Math.round(size * 0.5)));
+  tile.appendChild(span);
+  return tile;
+}
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+
+// ── Card 1: Up Next event ──────────────────────────────────────
+function makeUpNextCard() {
+  const card = el('div', 'card');
+
+  const top = el('div', 'card-top');
+  top.appendChild(stickerTile('hiking', 42));
+  top.appendChild(el('div', 'badge', 'in 6h'));
+  card.appendChild(top);
+
+  const body = el('div');
+  body.appendChild(el('div', 'card-title', 'Hiking Na Pali Coast'));
+  body.appendChild(el('div', 'card-meta', '9:00 AM'));
+  body.appendChild(el('div', 'card-meta', 'Na Pali Coast, Kauai'));
+  card.appendChild(body);
+
+  return card;
+}
+
+// ── Card 2: Flight ─────────────────────────────────────────────
+function makeFlightCard() {
+  const card = el('div', 'card');
+
+  // flight card has NO badge — just sticker then content below
+  card.appendChild(stickerTile('flight', 42));
+
+  const body = el('div');
+  body.appendChild(el('div', 'card-title', 'Chicago → Kauai'));
+  body.appendChild(el('div', 'card-meta', 'ORD → LIH'));
+  body.appendChild(el('div', 'card-meta', 'Jul 4 · 7:50 AM'));
+  card.appendChild(body);
+
+  return card;
+}
+
+const row = document.getElementById('cards-row');
+row.appendChild(makeUpNextCard());
+row.appendChild(makeFlightCard());
+</script>
+</body>
+</html>

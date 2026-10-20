@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Island color options</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, sans-serif; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: #F2F3F5; color: #1A1A1A; padding: 40px 24px 90px; }
+  h1 { font-size: 26px; font-weight: 700; text-align: center; }
+  .sub { text-align: center; font-size: 14px; font-weight: 500; color: #6B6B6B; margin: 6px 0 36px; max-width: 620px; margin-left:auto; margin-right:auto; line-height:1.5; }
+  .options { display: flex; flex-direction: column; gap: 22px; max-width: 920px; margin: 0 auto; }
+  .opt { background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 20px; padding: 22px 24px; box-shadow: 0 6px 18px rgba(40,50,70,.07); }
+  .opt.cur { opacity: .85; }
+  .ohead { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+  .oname { font-size: 18px; font-weight: 700; }
+  .onote { font-size: 13px; font-weight: 500; color: #9B9B9B; }
+
+  .islands { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .isl { border-radius: 16px; padding: 16px; }
+  .islhead { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  .sq { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+  .islname { font-size: 15px; font-weight: 700; }
+  .card { background: #fff; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,.08); display:flex; align-items:center; gap:10px; }
+  .card .cdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .card .ct { font: 600 14px var(--font); color: #1A1A1A; }
+  .card .cs { font: 500 12px var(--font); color: #6B6B6B; }
+  .hex { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .hex span { font: 600 11px var(--font); color: #6B6B6B; display:flex; align-items:center; gap:5px; }
+  .chip { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,.08); }
+
+  /* island switcher preview */
+  .seg { display: inline-flex; background: rgba(60,70,90,.10); border-radius: 9999px; padding: 4px; gap: 4px; margin-top: 16px; }
+  .seg .s { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 9999px; font: 600 14px var(--font); }
+  .seg .s.active { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.12); color: #1A1A1A; }
+  .seg .s.idle { color: #6B6B6B; }
+  svg { display:block; }
+</style>
+</head>
+<body>
+  <h1>Island colors — options</h1>
+  <p class="sub">Each card shows both islands: the Day-tab background, an event card with the accent dot, the calendar legend shape, and the island switcher. Pick a direction (or mix Kauai from one, Maui from another).</p>
+  <div class="options" id="options"></div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+function pin(color){const s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('width',16);s.setAttribute('height',16);s.setAttribute('fill','none');s.setAttribute('stroke',color);s.setAttribute('stroke-width',2.5);s.setAttribute('stroke-linecap','round');s.setAttribute('stroke-linejoin','round');s.innerHTML='<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';return s;}
+
+const PALETTES = [
+  { name:'Current', note:'blue & gold — what you have now', cur:true,
+    kauai:{ accent:'#0A8F8F', bg:'#DBE2EC', tint:'#D6F0EE' },
+    maui: { accent:'#C4A265', bg:'#ECE5D6', tint:'#F5EDD8' } },
+  { name:'A · Coral & Palm', note:'warm coral vs lush green — high contrast, very tropical',
+    kauai:{ accent:'#E2654C', bg:'#FBEAE4', tint:'#FCE6E0' },
+    maui: { accent:'#2E9E6E', bg:'#E4F2EA', tint:'#DEF3E8' } },
+  { name:'B · Orchid & Lagoon', note:'pink-orchid vs green-leaning teal',
+    kauai:{ accent:'#C0568F', bg:'#F7E9F1', tint:'#F8E6F0' },
+    maui: { accent:'#1E9C9C', bg:'#E1F1EF', tint:'#D9F2F0' } },
+  { name:'C · Plum & Sunset', note:'plum purple vs sunset coral-orange',
+    kauai:{ accent:'#8A57A6', bg:'#F1E9F6', tint:'#F0E7F6' },
+    maui: { accent:'#E27A4A', bg:'#FBEDE1', tint:'#FCE9D9' } },
+];
+
+function island(name, shape, c){
+  const wrap = document.createElement('div'); wrap.className='isl'; wrap.style.background=c.bg;
+  const head = document.createElement('div'); head.className='islhead';
+  const sh = document.createElement('div'); sh.className = shape==='circle'?'dot':'sq'; sh.style.background=c.accent;
+  head.append(sh, Object.assign(document.createElement('div'),{className:'islname',textContent:name}));
+  const card = document.createElement('div'); card.className='card';
+  const cdot = document.createElement('div'); cdot.className='cdot'; cdot.style.background=c.accent;
+  const txt = document.createElement('div'); txt.style.flex='1';
+  txt.innerHTML = `<div class="ct">Na Pali Coast Tour</div><div class="cs">8:00 AM · Boat</div>`;
+  card.append(cdot, txt);
+  const hex = document.createElement('div'); hex.className='hex';
+  hex.innerHTML = `<span><i class="chip" style="background:${c.accent}"></i>accent ${c.accent}</span>`
+                + `<span><i class="chip" style="background:${c.bg}"></i>bg ${c.bg}</span>`;
+  wrap.append(head, card, hex);
+  return wrap;
+}
+function switcher(p){
+  const s = document.createElement('div'); s.className='seg';
+  const a = document.createElement('div'); a.className='s active'; a.appendChild(pin(p.kauai.accent)); a.append('Kauai');
+  const b = document.createElement('div'); b.className='s idle'; b.appendChild(pin(p.maui.accent)); b.append('Maui');
+  s.append(a,b); return s;
+}
+
+const root = document.getElementById('options');
+for (const p of PALETTES) {
+  const o = document.createElement('div'); o.className='opt'+(p.cur?' cur':'');
+  const h = document.createElement('div'); h.className='ohead';
+  h.innerHTML = `<div class="oname">${p.name}</div><div class="onote">${p.note}</div>`;
+  const islands = document.createElement('div'); islands.className='islands';
+  islands.append(island('Kauai','circle',p.kauai), island('Maui','square',p.maui));
+  o.append(h, islands, switcher(p));
+  root.appendChild(o);
+}
+</script>
+</body>
+</html>

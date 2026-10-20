@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kauai Day-tab background options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;}
+  body{font-family:'DM Sans',sans-serif;font-weight:500;background:#cfd8e2;padding:24px 12px 60px;color:#1A1A1A;}
+  h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px;}
+  .sub{font-size:14px;color:#475569;text-align:center;margin-bottom:26px;}
+  .row{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;}
+  .opt{width:250px;}
+  .label{text-align:center;margin-bottom:10px;}
+  .label .tag{display:inline-block;background:#0E7490;color:#fff;font-size:12px;font-weight:700;padding:3px 11px;border-radius:9999px;margin-bottom:6px;}
+  .label .name{font-size:15px;font-weight:700;}
+  .label .hex{font-size:12px;color:#64748b;font-family:monospace;}
+  .phone{width:250px;height:380px;border-radius:30px;overflow:hidden;border:8px solid #0d0d0f;box-shadow:0 16px 40px rgba(0,0,0,.25);}
+  .screen{height:100%;overflow:hidden;display:flex;flex-direction:column;}
+  /* header */
+  .hdr{padding:12px 14px 12px;}
+  .hdr .meta{text-align:center;font-size:11px;font-weight:700;letter-spacing:.04em;color:#6B6B6B;text-transform:uppercase;}
+  .hdr .date{text-align:center;font-size:17px;font-weight:700;margin:1px 0 10px;}
+  .seg{display:flex;gap:4px;padding:4px;background:rgba(60,70,90,.10);border-radius:9999px;}
+  .seg .s{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 6px;border-radius:9999px;font-size:14px;font-weight:600;color:#6B6B6B;}
+  .seg .s.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);color:#1A1A1A;font-weight:700;}
+  .dot{width:10px;height:10px;border-radius:50%;background:#0A8F8F;}
+  .dot.m{border-radius:2px;background:#C4A265;}
+  /* cards */
+  .cards{padding:6px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+  .card{background:#fff;border:1px solid rgba(0,0,0,.05);box-shadow:0 6px 18px rgba(40,50,70,.08);border-radius:16px;padding:14px;}
+  .card .t{font-size:16px;font-weight:700;}
+  .card .s{font-size:14px;color:#6B6B6B;margin-top:3px;}
+  .buf{background:#F6F8FC;border:1.5px dashed #B6C2D1;border-radius:12px;padding:12px;}
+  .buf .t{font-size:13px;color:#1A1A1A;font-weight:600;}
+  .buf .s{font-size:14px;color:#1A1A1A;margin-top:3px;}
+</style>
+</head>
+<body>
+<h1>Kauai — Day tab background options</h1>
+<div class="sub">Same header + white cards on each. Pick the one you like (or describe a tweak).</div>
+<div class="row" id="row"></div>
+<script>
+  const opts = [
+    {tag:'CURRENT', name:'Mint / teal', hex:'#D6F0EE'},
+    {tag:'A', name:'Soft sky blue', hex:'#DCEAF7'},
+    {tag:'B', name:'Powder blue-grey', hex:'#E7EDF5'},
+    {tag:'C', name:'Ocean blue (deeper)', hex:'#CFE2F2'},
+    {tag:'D', name:'Pale aqua', hex:'#E2F1F0'},
+    {tag:'E', name:'Cloud (almost white)', hex:'#EEF3F8'},
+  ];
+  const row = document.getElementById('row');
+  opts.forEach(o=>{
+    row.insertAdjacentHTML('beforeend', `
+      <div class="opt">
+        <div class="label">
+          <span class="tag">${o.tag}</span>
+          <div class="name">${o.name}</div>
+          <div class="hex">${o.hex}</div>
+        </div>
+        <div class="phone"><div class="screen" style="background:${o.hex}">
+          <div class="hdr">
+            <div class="meta">Day 1 of 9</div>
+            <div class="date">Sat, July 4</div>
+            <div class="seg">
+              <div class="s on"><span class="dot"></span>Kauai</div>
+              <div class="s"><span class="dot m"></span>Maui</div>
+            </div>
+          </div>
+          <div class="cards">
+            <div class="buf"><div class="t">4:00 – 4:30 AM</div><div class="s">~30 min buffer</div></div>
+            <div class="card"><div class="t">Uber to O'Hare</div><div class="s">4:30 AM · O'Hare (ORD)</div></div>
+            <div class="card"><div class="t">Flight to Kauai</div><div class="s">United 1147 · Seat 22F</div></div>
+          </div>
+        </div></div>
+      </div>`);
+  });
+</script>
+</body>
+</html>

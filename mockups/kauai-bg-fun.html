@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kauai Day-tab — fun backgrounds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;}
+  body{font-family:'DM Sans',sans-serif;font-weight:500;background:#cfd8e2;padding:24px 12px 60px;color:#1A1A1A;}
+  h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px;}
+  .sub{font-size:14px;color:#475569;text-align:center;margin-bottom:26px;}
+  .row{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;}
+  .opt{width:256px;}
+  .label{text-align:center;margin-bottom:10px;}
+  .label .tag{display:inline-block;background:#0E7490;color:#fff;font-size:12px;font-weight:700;padding:3px 11px;border-radius:9999px;margin-bottom:6px;}
+  .label .name{font-size:15px;font-weight:700;}
+  .label .d{font-size:12px;color:#64748b;}
+  .phone{width:256px;height:400px;border-radius:30px;overflow:hidden;border:8px solid #0d0d0f;box-shadow:0 16px 40px rgba(0,0,0,.25);}
+  .screen{height:100%;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+  .screen>*{position:relative;z-index:1;}
+  .hdr{padding:12px 14px 12px;}
+  .hdr .meta{text-align:center;font-size:11px;font-weight:700;letter-spacing:.04em;color:#6B6B6B;text-transform:uppercase;}
+  .hdr .date{text-align:center;font-size:17px;font-weight:700;margin:1px 0 10px;}
+  .seg{display:flex;gap:4px;padding:4px;background:rgba(60,70,90,.10);border-radius:9999px;}
+  .seg .s{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 6px;border-radius:9999px;font-size:14px;font-weight:600;color:#6B6B6B;}
+  .seg .s.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);color:#1A1A1A;font-weight:700;}
+  .dot{width:10px;height:10px;border-radius:50%;background:#0A8F8F;}
+  .dot.m{border-radius:2px;background:#C4A265;}
+  .cards{padding:6px 14px;display:flex;flex-direction:column;gap:10px;}
+  .card{background:#fff;border:1px solid rgba(0,0,0,.05);box-shadow:0 6px 18px rgba(40,50,70,.08);border-radius:16px;padding:14px;}
+  .card .t{font-size:16px;font-weight:700;}
+  .card .s{font-size:14px;color:#6B6B6B;margin-top:3px;}
+  .buf{background:#F6F8FC;border:1.5px dashed #B6C2D1;border-radius:12px;padding:12px;}
+  .buf .t{font-size:13px;color:#1A1A1A;font-weight:600;}
+  .buf .s{font-size:14px;color:#1A1A1A;margin-top:3px;}
+
+  /* ---- the 4 fun backgrounds ---- */
+  .bg-grad{background:linear-gradient(165deg,#DCEAF8 0%,#CDEAE2 100%);}
+  .bg-blobs{
+    background:
+      radial-gradient(420px circle at 12% 8%, rgba(13,143,143,.22), transparent 60%),
+      radial-gradient(400px circle at 92% 28%, rgba(14,116,144,.16), transparent 60%),
+      radial-gradient(380px circle at 60% 100%, rgba(196,162,101,.18), transparent 55%),
+      #E9F1F3;
+  }
+  .bg-wave::before{
+    content:"";position:absolute;inset:0;z-index:0;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='40' viewBox='0 0 80 40'%3E%3Cpath d='M0 20 Q 20 6 40 20 T 80 20' fill='none' stroke='%230A8F8F' stroke-opacity='0.18' stroke-width='2'/%3E%3C/svg%3E");
+    background-size:80px 40px;
+  }
+  .bg-wave{background:#DBEAF6;}
+  .bg-sun{background:#DCEAF7;}
+  .bg-sun::before{
+    content:"";position:absolute;inset:0;z-index:0;
+    background:
+      radial-gradient(circle at 88% 6%, rgba(255,206,112,.7) 0%, rgba(255,206,112,.25) 9%, transparent 20%),
+      radial-gradient(circle at 88% 6%, rgba(255,176,80,.18) 0%, transparent 32%);
+  }
+</style>
+</head>
+<body>
+<h1>Kauai — "make it fun" backgrounds</h1>
+<div class="sub">Same Day header + white cards. Which vibe?</div>
+<div class="row" id="row"></div>
+<script>
+  const opts = [
+    {tag:'1', name:'Soft gradient', d:'sky-blue → seafoam', cls:'bg-grad'},
+    {tag:'2', name:'Color blobs', d:'mesh: teal · blue · gold', cls:'bg-blobs'},
+    {tag:'3', name:'Wave pattern', d:'faint repeating waves', cls:'bg-wave'},
+    {tag:'4', name:'Sun corner', d:'warm sun glow, postcard', cls:'bg-sun'},
+  ];
+  const row=document.getElementById('row');
+  opts.forEach(o=>{
+    row.insertAdjacentHTML('beforeend',`
+      <div class="opt">
+        <div class="label"><span class="tag">${o.tag}</span><div class="name">${o.name}</div><div class="d">${o.d}</div></div>
+        <div class="phone"><div class="screen ${o.cls}">
+          <div class="hdr">
+            <div class="meta">Day 1 of 9</div>
+            <div class="date">Sat, July 4</div>
+            <div class="seg"><div class="s on"><span class="dot"></span>Kauai</div><div class="s"><span class="dot m"></span>Maui</div></div>
+          </div>
+          <div class="cards">
+            <div class="buf"><div class="t">4:00 – 4:30 AM</div><div class="s">~30 min buffer</div></div>
+            <div class="card"><div class="t">Uber to O'Hare</div><div class="s">4:30 AM · O'Hare (ORD)</div></div>
+            <div class="card"><div class="t">Flight to Kauai</div><div class="s">United 1147 · Seat 22F</div></div>
+          </div>
+        </div></div>
+      </div>`);
+  });
+</script>
+</body>
+</html>

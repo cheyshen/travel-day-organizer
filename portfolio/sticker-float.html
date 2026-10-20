@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: transparent; width: 1920px; height: 900px; overflow: hidden; }
+  .sticker {
+    position: absolute;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: inherit;
+    border: solid white;
+    flex-shrink: 0;
+  }
+  .sticker::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(145deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.04) 45%, rgba(0,0,0,0.06) 100%);
+    pointer-events: none;
+  }
+  .sticker svg { display: block; }
+</style>
+</head>
+<body>
+<div id="stage" style="position:relative;width:1920px;height:900px;"></div>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const ICONS = {"flight":[["path",{"d":"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"}]],"ground_transport":[["path",{"d":"M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"}],["circle",{"cx":"7","cy":"17","r":"2"}],["path",{"d":"M9 17h6"}],["circle",{"cx":"17","cy":"17","r":"2"}]],"hotel":[["path",{"d":"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"}],["path",{"d":"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"}],["path",{"d":"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"}],["path",{"d":"M10 6h4"}],["path",{"d":"M10 10h4"}],["path",{"d":"M10 14h4"}],["path",{"d":"M10 18h4"}]],"activity":[["path",{"d":"M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"}],["path",{"d":"M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"}],["path",{"d":"M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"}],["path",{"d":"M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"}]],"dining":[["path",{"d":"m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"}],["path",{"d":"M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"}],["path",{"d":"m2.1 21.8 6.4-6.3"}],["path",{"d":"m19 5-7 7"}]],"buffer":[["circle",{"cx":"12","cy":"12","r":"10"}],["polyline",{"points":"12 6 12 12 16 14"}]],"boat":[["path",{"d":"M12 10.189V14"}],["path",{"d":"M12 2v3"}],["path",{"d":"M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"}],["path",{"d":"M19.38 20A11.6 11.6 0 0 0 21 14l-8.188-3.639a2 2 0 0 0-1.624 0L3 14a11.6 11.6 0 0 0 2.81 7.76"}],["path",{"d":"M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"sunrise":[["path",{"d":"M12 2v8"}],["path",{"d":"m4.93 10.93 1.41 1.41"}],["path",{"d":"M2 18h2"}],["path",{"d":"M20 18h2"}],["path",{"d":"m19.07 10.93-1.41 1.41"}],["path",{"d":"M22 22H2"}],["path",{"d":"m8 6 4-4 4 4"}],["path",{"d":"M16 18a4 4 0 0 0-8 0"}]],"sightseeing":[["path",{"d":"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"}],["circle",{"cx":"12","cy":"13","r":"3"}]],"beach":[["path",{"d":"M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"hiking":[["path",{"d":"m8 3 4 8 5-5 5 15H2L8 3z"}]],"shopping":[["path",{"d":"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"}],["path",{"d":"M3 6h18"}],["path",{"d":"M16 10a4 4 0 0 1-8 0"}]],"entertainment":[["path",{"d":"M5.8 11.3 2 22l10.7-3.79"}],["path",{"d":"M4 3h.01"}],["path",{"d":"M22 8h.01"}],["path",{"d":"M15 2h.01"}],["path",{"d":"M22 20h.01"}],["path",{"d":"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"}],["path",{"d":"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"}],["path",{"d":"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"}],["path",{"d":"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"}]]};
+const VIZ = {flight:'#438ADB',ground_transport:'#725ED4',hotel:'#A35CCC',activity:'#32AE70',dining:'#DB5743',buffer:'#A8A094',boat:'#2AA5CB',sunrise:'#DB8F43',sightseeing:'#D5B534',beach:'#29AEA0',hiking:'#38B242',shopping:'#DD4B94',entertainment:'#D256D2'};
+
+function makeSticker(id, size, opacity, blur) {
+  const br = Math.round(size * 0.29);
+  const bw = Math.max(2, Math.round(size * 0.065));
+  const iconSize = Math.round(size * 0.5);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'sticker';
+  Object.assign(wrap.style, {
+    width: size + 'px', height: size + 'px',
+    borderRadius: br + 'px',
+    background: VIZ[id],
+    borderWidth: bw + 'px',
+    opacity: opacity,
+    filter: blur ? `blur(${blur}px)` : 'none',
+    boxShadow: blur ? 'none' : `0 ${Math.round(size*0.08)}px ${Math.round(size*0.22)}px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.14)`,
+  });
+
+  const s = document.createElementNS(NS, 'svg');
+  s.setAttribute('viewBox','0 0 24 24');
+  s.setAttribute('width', iconSize);
+  s.setAttribute('height', iconSize);
+  s.setAttribute('fill','none');
+  s.setAttribute('stroke','#fff');
+  s.setAttribute('stroke-width','2');
+  s.setAttribute('stroke-linecap','round');
+  s.setAttribute('stroke-linejoin','round');
+  for (const [tag, attrs] of ICONS[id]) {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    s.appendChild(el);
+  }
+  wrap.appendChild(s);
+  return wrap;
+}
+
+function place(el, x, y, rot) {
+  Object.assign(el.style, {
+    left: x + 'px', top: y + 'px',
+    transform: `rotate(${rot}deg)`,
+  });
+  document.getElementById('stage').appendChild(el);
+}
+
+// Center zone to keep clear: x 520–1400, y 80–820
+// Stickers live on left strip, right strip, and corners only
+
+// Foreground — large, sharp, hugging the edges
+const fg = [
+  // Left column (top → bottom)
+  { id:'flight',          x:  28, y:  36, size:104, rot: -8  },
+  { id:'ground_transport',x:  52, y: 200, size: 92, rot:  9  },
+  { id:'sunrise',         x:  24, y: 370, size: 96, rot:  4  },
+  { id:'dining',          x:  58, y: 548, size:100, rot:-10  },
+  { id:'beach',           x:  28, y: 730, size:104, rot:  8  },
+  // Right column (top → bottom)
+  { id:'hotel',           x:1788, y:  42, size:100, rot:-11  },
+  { id:'hiking',          x:1800, y: 218, size: 90, rot: -9  },
+  { id:'boat',            x:1788, y: 400, size: 96, rot: -7  },
+  { id:'shopping',        x:1796, y: 578, size: 92, rot:  6  },
+  { id:'activity',        x:1790, y: 754, size: 96, rot: -5  },
+  // Top corners (outside center)
+  { id:'sightseeing',     x: 230, y:  20, size: 90, rot: 12  },
+  { id:'entertainment',   x:1560, y:  24, size: 88, rot:-13  },
+  // Bottom center-ish but outside clear zone
+  { id:'buffer',          x: 300, y: 786, size: 86, rot: -4  },
+];
+
+// Background — small, blurred, same perimeter zones
+const bg = [
+  // Left strip
+  { id:'boat',            x:  18, y: 116, size: 50, rot:  14, blur: 3 },
+  { id:'beach',           x: 150, y: 290, size: 46, rot:   6, blur: 4 },
+  { id:'dining',          x:  30, y: 466, size: 52, rot: -11, blur: 3 },
+  { id:'hotel',           x: 160, y: 640, size: 44, blur: 3,  rot:  9 },
+  // Right strip
+  { id:'flight',          x:1860, y: 130, size: 48, rot:  -9, blur: 3 },
+  { id:'hiking',          x:1720, y: 312, size: 50, rot: -15, blur: 3 },
+  { id:'shopping',        x:1850, y: 492, size: 52, blur: 4,  rot: -10},
+  { id:'activity',        x:1700, y: 680, size: 46, blur: 3,  rot:  12},
+  // Top corners
+  { id:'entertainment',   x: 120, y:  22, size: 44, blur: 3,  rot:  13},
+  { id:'sunrise',         x: 390, y:  18, size: 48, blur: 4,  rot:  -7},
+  { id:'sightseeing',     x:1720, y:  16, size: 46, blur: 3,  rot:   5},
+  // Bottom corners
+  { id:'ground_transport',x: 130, y: 840, size: 48, blur: 3,  rot:   9},
+  { id:'buffer',          x:1760, y: 836, size: 44, blur: 4,  rot: -16},
+];
+
+for (const s of fg)  place(makeSticker(s.id, s.size, 1.0,  null),   s.x, s.y, s.rot);
+for (const s of bg)  place(makeSticker(s.id, s.size, 0.45, s.blur),  s.x, s.y, s.rot);
+
+window.__done = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Travel — Component board (mobile)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: transparent; }
+
+  /* Portrait mobile board: 2 columns, each 358px (true product content width).
+     Transparent by default — set --panel-bg or BOARD_BG env to bake a color. */
+  #panel { width: 820px; background: var(--panel-bg, transparent);
+           display: flex; align-items: flex-start; justify-content: center;
+           padding: 32px; overflow: hidden; }
+  .board { display: flex; gap: 24px; align-items: flex-start; width: 100%; }
+  .bcol  { display: flex; flex-direction: column; gap: 24px; align-items: center; flex: 1; }
+
+  .card { background: #FFFFFF; border: 1px solid rgba(0,0,0,.05);
+          box-shadow: 0 6px 18px rgba(40,50,70,.08); }
+  .cap  { font: 600 13px/16px var(--font); text-transform: uppercase; letter-spacing: .05em; }
+</style>
+</head>
+<body>
+<div id="panel"><div class="board" id="board"></div></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const ICONS = {
+  beach:    '<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  clock:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  pencil:   '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+  trash:    '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  chev:     '<path d="m9 18 6-6-6-6"/>',
+  check:    '<path d="M20 6 9 17l-5-5"/>',
+  arrow:    '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  plus:     '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  upload:   '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+  plane:    '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  building: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+  x:        '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  sun:      '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  cloudsun: '<path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>',
+  cloudrain:'<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>',
+  mappin:   '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  sunrise:  '<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>',
+};
+function svg(name, size, color, sw) {
+  const s = document.createElementNS(NS,'svg');
+  s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('width',size); s.setAttribute('height',size);
+  s.setAttribute('fill','none'); s.setAttribute('stroke',color); s.setAttribute('stroke-width',sw||2);
+  s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+  s.innerHTML = ICONS[name]; return s;
+}
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+const W = 358; // product content width (390 viewport − 2×16 padding)
+
+/* ── LEFT COLUMN: planning + itinerary ───────────────────────────────────── */
+
+function destCard() {
+  const c = el('div'); Object.assign(c.style,{ width:W+'px', height:'144px', borderRadius:'18px',
+    overflow:'hidden', position:'relative', background:'linear-gradient(135deg,#0A8F8F,#064e4e)',
+    boxShadow:'0 6px 18px rgba(40,50,70,.08)' });
+  c.innerHTML =
+    `<div style="position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=760&q=80&auto=format&fit=crop');background-size:cover;background-position:center"></div>
+     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.62) 100%)"></div>
+     <div id="ov1" style="position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+       <div style="min-width:0">
+         <h3 style="margin:0;font:700 30px/36px var(--font);color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.4)">Kauai</h3>
+         <p style="margin:4px 0 0;font:500 15px var(--font);color:rgba(255,255,255,.92);text-shadow:0 1px 8px rgba(0,0,0,.35)">Jul 4 – Jul 8 · 4 days</p>
+       </div>
+     </div>`;
+  const chev = svg('chev',22,'#fff',2); chev.style.flexShrink='0'; chev.style.opacity='.95';
+  c.querySelector('#ov1').appendChild(chev);
+  return c;
+}
+
+function statTiles() {
+  const row = el('div'); Object.assign(row.style,{ display:'flex', gap:'12px', width:W+'px' });
+  for (const [v,l] of [['9','Days'],['38','Events'],['2','Islands']]) {
+    const t = el('div','card'); Object.assign(t.style,{ flex:'1', borderRadius:'16px', padding:'16px', textAlign:'center' });
+    t.appendChild(el('div',null,`<span style="font:700 24px/30px var(--font);color:#1A1A1A">${v}</span>`));
+    t.appendChild(el('div',null,`<span style="font:500 15px/20px var(--font);color:#6B6B6B;display:block;margin-top:2px">${l}</span>`));
+    row.appendChild(t);
+  }
+  return row;
+}
+
+function eventCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', overflow:'hidden', position:'relative' });
+  c.innerHTML =
+    `<div style="position:relative;height:125px;background:linear-gradient(135deg,#0891B2,#67E8F9)">
+       <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=760&h=300&fit=crop&auto=format" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
+       <div style="position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(to top,rgba(0,0,0,.5),transparent)"></div>
+     </div>
+     <div class="ebody2" style="padding:12px 14px;display:flex;align-items:center;gap:10px">
+       <div style="flex:1;min-width:0">
+         <p style="font:600 18px/24px var(--font);color:#1A1A1A">Poipu Beach Afternoon</p>
+         <p style="margin-top:2px;font:500 16px/22px var(--font);color:#6B6B6B">Snorkel + sunbathe</p>
+       </div>
+     </div>`;
+  const badge = el('div'); Object.assign(badge.style,{ position:'absolute', top:'89px', left:'8px',
+    display:'flex', alignItems:'center', gap:'6px', background:'rgba(0,0,0,.6)',
+    backdropFilter:'blur(8px)', padding:'4px 10px', borderRadius:'8px', color:'#fff' });
+  badge.appendChild(svg('beach',14,'#fff',2.5));
+  badge.appendChild(el('span',null,'<span style="font:600 13px var(--font);letter-spacing:.01em;color:#fff">Beach</span>'));
+  c.appendChild(badge);
+  const edit = el('div'); Object.assign(edit.style,{ position:'absolute', top:'8px', right:'8px',
+    width:'28px', height:'28px', borderRadius:'14px', background:'rgba(0,0,0,.35)',
+    backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center' });
+  edit.appendChild(svg('pencil',13,'#fff',2)); c.appendChild(edit);
+  const det = el('div'); Object.assign(det.style,{ height:'34px', padding:'0 10px 0 12px', borderRadius:'8px',
+    background:'rgba(14,116,144,.12)', display:'inline-flex', alignItems:'center', gap:'4px',
+    font:'600 14px var(--font)', color:'#0E7490', flexShrink:'0' });
+  det.append('Details'); det.appendChild(svg('chev',16,'#0E7490',2.5));
+  c.querySelector('.ebody2').appendChild(det);
+  return c;
+}
+
+function bufferCard() {
+  const c = el('div'); Object.assign(c.style,{ width:W+'px', borderRadius:'12px', background:'#F6F8FC',
+    border:'1.5px dashed #B6C2D1', padding:'24px', display:'flex', flexDirection:'column', gap:'6px' });
+  c.appendChild(el('span',null,'<span style="font:600 15px var(--font);color:#6B6B6B">11:15 AM – 12:00 PM</span>'));
+  const row = el('div'); Object.assign(row.style,{ display:'flex', alignItems:'center', gap:'8px' });
+  row.appendChild(svg('clock',18,'#6B6B6B',2.5));
+  row.appendChild(el('p',null,'<span style="font:600 16px var(--font);color:#1A1A1A">~45 min buffer</span>'));
+  c.appendChild(row);
+  c.appendChild(el('p',null,'<span style="font:500 16px/22px var(--font);color:#6B6B6B">Deplane + baggage + rental car</span>'));
+  return c;
+}
+
+function highlightCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', overflow:'hidden' });
+  const img = el('div'); Object.assign(img.style,{ height:'130px', position:'relative',
+    backgroundImage:"url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=760&q=80')",
+    backgroundSize:'cover', backgroundPosition:'center' });
+  img.appendChild(el('div',null,'')).style.cssText = 'position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(28,25,23,.75) 100%)';
+  const foot = el('div'); Object.assign(foot.style,{ position:'absolute', bottom:'10px', left:'12px',
+    right:'12px', display:'flex', alignItems:'center', justifyContent:'space-between' });
+  const tag = el('div'); Object.assign(tag.style,{ display:'flex', alignItems:'center', gap:'6px' });
+  tag.appendChild(svg('sunrise',14,'#fff',2));
+  const tagLabel = el('span','cap','<span style="color:#fff">Highlight</span>');
+  tagLabel.style.letterSpacing = '.06em'; tag.appendChild(tagLabel);
+  const pill = el('div'); Object.assign(pill.style,{ background:'rgba(255,255,255,.2)',
+    backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,.3)', borderRadius:'9999px',
+    padding:'4px 8px', display:'flex', alignItems:'center', gap:'4px' });
+  const pc = svg('clock',11,'#fff',2); pc.style.display='block'; pc.style.flexShrink='0';
+  pill.appendChild(pc);
+  const pt = el('span'); pt.textContent='Day 8';
+  Object.assign(pt.style,{ font:'500 13px/13px var(--font)', color:'#fff', display:'block' });
+  pill.appendChild(pt);
+  foot.append(tag,pill); img.appendChild(foot); c.appendChild(img);
+  const body = el('div'); body.style.padding='24px';
+  body.appendChild(el('h3',null,'<span style="font:600 18px/24px var(--font);color:#1A1A1A">Haleakala Sunrise</span>'));
+  const meta = el('div'); Object.assign(meta.style,{ display:'flex', alignItems:'center', gap:'6px', margin:'8px 0' });
+  meta.appendChild(svg('mappin',13,'#6B6B6B',2));
+  meta.appendChild(el('span',null,'<span style="font:500 15px var(--font);color:#6B6B6B">Maui</span>'));
+  meta.appendChild(el('span',null,'<span style="font:500 15px var(--font);color:#9B9B9B">·</span>'));
+  meta.appendChild(svg('clock',13,'#6B6B6B',2));
+  meta.appendChild(el('span',null,'<span style="font:500 15px var(--font);color:#6B6B6B">5:30 AM – 7:30 AM</span>'));
+  body.appendChild(meta);
+  body.appendChild(el('p',null,'<span style="font:500 15px/20px var(--font);color:#6B6B6B;display:block">Watch the sunrise from 10,023 feet above Maui\'s dormant volcano crater.</span>'));
+  c.appendChild(body);
+  return c;
+}
+
+/* ── RIGHT COLUMN: day + status ──────────────────────────────────────────── */
+
+function dayHeader() {
+  const c = el('div'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', background:'#F9F0E6',
+    padding:'16px', textAlign:'center', boxShadow:'0 6px 18px rgba(40,50,70,.08)' });
+  c.appendChild(el('p','cap','<span style="color:#6B6B6B">Day 1 of 9</span>'));
+  const h = el('h2',null,'Saturday, July 4');
+  Object.assign(h.style,{ margin:'4px 0 0', font:'700 24px/30px var(--font)', color:'#1A1A1A' });
+  c.appendChild(h);
+  const route = el('p'); Object.assign(route.style,{ margin:'4px 0 0', display:'inline-flex',
+    alignItems:'center', gap:'6px', font:'500 15px/20px var(--font)', color:'#6B6B6B' });
+  route.append('Chicago'); route.appendChild(svg('arrow',14,'#9B9B9B',2.2)); route.append('Kauai');
+  c.appendChild(route);
+  return c;
+}
+
+function weatherSection() {
+  const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', padding:'24px' });
+  const top = el('div'); Object.assign(top.style,{ display:'flex', alignItems:'center',
+    justifyContent:'space-between', marginBottom:'12px' });
+  top.appendChild(el('span',null,'<span style="font:600 18px/24px var(--font);color:#1A1A1A">Weather Forecast</span>'));
+  top.appendChild(el('span',null,'<span style="font:500 15px/20px var(--font);color:#9B9B9B">Swipe to browse</span>'));
+  c.appendChild(top);
+  const inrow = el('div'); Object.assign(inrow.style,{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'14px' });
+  const input = el('div',null,'Zip code for weather');
+  Object.assign(input.style,{ flex:'1', minWidth:'0', padding:'10px 12px', borderRadius:'10px',
+    border:'1px solid rgba(0,0,0,.14)', backgroundColor:'rgba(0,0,0,.04)',
+    font:'500 16px var(--font)', color:'#9B9B9B', whiteSpace:'nowrap', overflow:'hidden' });
+  const btn = el('div',null,'Get Weather');
+  Object.assign(btn.style,{ padding:'8px 14px', borderRadius:'10px', backgroundColor:'#0E7490',
+    color:'#fff', font:'600 15px/20px var(--font)', whiteSpace:'nowrap' });
+  inrow.append(input,btn); c.appendChild(inrow);
+  const chips = el('div'); Object.assign(chips.style,{ display:'flex', gap:'10px', overflow:'hidden', paddingBottom:'4px' });
+  const DAYS = [
+    ['Sat','4','sun','#C05D10','82°'],['Sun','5','cloudsun','#B45309','79°'],
+    ['Mon','6','sun','#C05D10','81°'],['Tue','7','cloudrain','#2B7A9E','77°'],
+    ['Wed','8','sun','#C05D10','80°'],['Thu','9','cloudsun','#B45309','78°'],
+  ];
+  for (const [dow,num,icon,color,temp] of DAYS) {
+    const chip = el('div'); Object.assign(chip.style,{ display:'flex', flexDirection:'column',
+      alignItems:'center', padding:'10px 12px 8px', backgroundColor:'rgba(0,0,0,0.03)',
+      borderRadius:'14px', minWidth:'56px', flexShrink:'0' });
+    chip.appendChild(el('span',null,`<span style="font:600 13px var(--font);letter-spacing:.06em;text-transform:uppercase;color:#6B6B6B;margin-bottom:3px">${dow}</span>`));
+    chip.appendChild(el('span',null,`<span style="font:700 18px/24px var(--font);color:#1A1A1A">${num}</span>`));
+    const w = svg(icon,20,color,1.5); w.style.marginTop='5px'; chip.appendChild(w);
+    chip.appendChild(el('span',null,`<span style="font:600 16px var(--font);color:#1A1A1A;margin-top:4px">${temp}</span>`));
+    chips.appendChild(chip);
+  }
+  c.appendChild(chips);
+  return c;
+}
+
+function progressCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', padding:'16px' });
+  const top = el('div'); Object.assign(top.style,{ display:'flex', alignItems:'center',
+    justifyContent:'space-between', marginBottom:'8px' });
+  top.appendChild(el('span',null,'<span style="font:700 24px/30px var(--font);color:#1A1A1A">Checklist</span>'));
+  const add = el('div'); Object.assign(add.style,{ height:'36px', padding:'0 16px', borderRadius:'9999px',
+    background:'#0E7490', color:'#fff', display:'inline-flex', alignItems:'center', gap:'4px',
+    font:'600 15px var(--font)', boxShadow:'0 2px 8px rgba(14,116,144,.25)' });
+  add.appendChild(svg('plus',14,'#fff',2.5)); add.append('Add');
+  top.appendChild(add); c.appendChild(top);
+  const bar = el('div'); Object.assign(bar.style,{ display:'flex', alignItems:'center', gap:'12px' });
+  const track = el('div'); Object.assign(track.style,{ flex:'1', height:'6px', borderRadius:'3px',
+    background:'rgba(14,116,144,.12)', overflow:'hidden' });
+  const fill = el('div'); Object.assign(fill.style,{ width:'62.5%', height:'100%', borderRadius:'3px', background:'#0E7490' });
+  track.appendChild(fill); bar.appendChild(track);
+  bar.appendChild(el('span','cap','<span style="color:#6B6B6B">5/8</span>'));
+  bar.lastChild.style.cssText += 'min-width:40px;text-align:right';
+  c.appendChild(bar);
+  return c;
+}
+
+function checklistRow(done) {
+  const r = el('div','card'); Object.assign(r.style,{ width:W+'px', display:'flex', alignItems:'center',
+    gap:'12px', borderRadius:'12px', padding:'12px 16px' });
+  const box = el('div'); Object.assign(box.style,{ width:'22px', height:'22px', borderRadius:'6px', flexShrink:'0',
+    border: done ? 'none' : '3px solid #0E749040', backgroundColor: done ? '#0E7490' : 'transparent',
+    display:'flex', alignItems:'center', justifyContent:'center' });
+  if (done) box.appendChild(svg('check',13,'#fff',3));
+  r.appendChild(box);
+  const t = el('span',null,'Pack sunscreen');
+  Object.assign(t.style,{ flex:'1', font:'500 16px/22px var(--font)', minWidth:'0',
+    overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+    color: done ? '#9B9B9B' : '#1A1A1A', textDecoration: done ? 'line-through' : 'none' });
+  r.appendChild(t);
+  const acts = el('div'); Object.assign(acts.style,{ display:'flex', gap:'4px', flexShrink:'0' });
+  const e1 = el('div'); Object.assign(e1.style,{ width:'40px', height:'40px', borderRadius:'10px',
+    background:'rgba(255,255,255,.5)', display:'flex', alignItems:'center', justifyContent:'center' });
+  e1.appendChild(svg('pencil',14,'#9B9B9B',2));
+  const e2 = el('div'); Object.assign(e2.style,{ width:'40px', height:'40px', borderRadius:'10px',
+    background:'#FDECEA', display:'flex', alignItems:'center', justifyContent:'center' });
+  e2.appendChild(svg('trash',14,'#C0392B',2));
+  acts.append(e1,e2); r.appendChild(acts);
+  return r;
+}
+
+function docPair() {
+  const row = el('div'); Object.assign(row.style,{ display:'flex', gap:'12px', width:W+'px' });
+  const DOCS = [
+    ['plane','#2B7A9E','#E0F1F8','HA 17 Boarding.pdf','Boarding Pass · 1.2 MB'],
+    ['building','#9E7C2E','#F5EDD8','Andaz Maui.pdf','Hotel · 0.8 MB'],
+  ];
+  for (const [icon,color,bg,name,meta] of DOCS) {
+    const c = el('div','card'); Object.assign(c.style,{ flex:'1', borderRadius:'12px', overflow:'hidden' });
+    const prev = el('div'); Object.assign(prev.style,{ height:'100px', backgroundColor:bg,
+      display:'flex', alignItems:'center', justifyContent:'center' });
+    prev.appendChild(svg(icon,32,color,1.5)); c.appendChild(prev);
+    const body = el('div'); body.style.padding='16px';
+    body.appendChild(el('p',null,`<span style="font:500 16px/22px var(--font);color:#1A1A1A;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</span>`));
+    const r2 = el('div'); Object.assign(r2.style,{ display:'flex', alignItems:'center',
+      justifyContent:'space-between', marginTop:'4px' });
+    r2.appendChild(el('span','cap',`<span style="color:#9B9B9B">${meta}</span>`));
+    const del = el('div'); Object.assign(del.style,{ width:'28px', height:'28px', borderRadius:'6px',
+      background:'#FDECEA', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:'0' });
+    del.appendChild(svg('trash',12,'#C0392B',2)); r2.appendChild(del);
+    body.appendChild(r2); c.appendChild(body); row.appendChild(c);
+  }
+  return row;
+}
+
+function deleteConfirm() {
+  const c = el('div'); Object.assign(c.style,{ width:W+'px', padding:'16px', backgroundColor:'#FDECEA',
+    borderRadius:'12px', textAlign:'center', boxShadow:'0 6px 18px rgba(40,50,70,.08)' });
+  c.appendChild(el('p',null,'<span style="font:500 16px/22px var(--font);color:#C0392B">Delete "Sunset Sail"?</span>'));
+  const row = el('div'); Object.assign(row.style,{ display:'flex', gap:'12px', marginTop:'12px' });
+  const cancel = el('div',null,'Cancel'); Object.assign(cancel.style,{ flex:'1', padding:'12px',
+    background:'#FFFFFF', color:'#6B6B6B', border:'1px solid #E2E0DB', borderRadius:'8px',
+    font:'500 15px var(--font)', textAlign:'center' });
+  const del = el('div',null,'Delete'); Object.assign(del.style,{ flex:'1', padding:'12px',
+    background:'#C0392B', color:'#fff', borderRadius:'8px', font:'600 15px var(--font)', textAlign:'center' });
+  row.append(cancel,del); c.appendChild(row);
+  return c;
+}
+
+/* assemble — 2 top-aligned columns ---------------------------------------- */
+const COLS = [
+  { items: [destCard, statTiles, eventCard, bufferCard, highlightCard] },
+  { items: [dayHeader, weatherSection, progressCard, () => checklistRow(false), () => checklistRow(true), docPair, deleteConfirm] },
+];
+const board = document.getElementById('board');
+for (const col of COLS) {
+  const c = el('div','bcol');
+  for (const make of col.items) c.appendChild(make());
+  board.appendChild(c);
+}
+
+window.__ready = document.fonts.ready.then(() => true);
+</script>
+</body>
+</html>

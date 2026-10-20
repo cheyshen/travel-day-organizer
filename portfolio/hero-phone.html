@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Travel — Phone Hero</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: transparent; }
+
+  #panel {
+    position: relative;
+    width: 560px; height: 960px;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  /* phone wrapper: overflow visible so stickers bleed beyond bezel */
+  #phone-wrap {
+    position: absolute;
+    top: 48px; left: 75px;
+    width: 410px; height: 864px;
+    overflow: visible;
+  }
+
+  /* bezel — matches triptych exactly */
+  .phone-bezel {
+    width: 410px; height: 864px;
+    border-radius: 44px;
+    background: #14181F;
+    padding: 10px;
+    box-shadow:
+      0 32px 80px rgba(20,28,40,.30),
+      0 8px 24px  rgba(20,28,40,.18),
+      inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .phone-screen {
+    width: 390px; height: 844px;
+    border-radius: 34px;
+    overflow: hidden;
+    background: url('screens/trip.png') center top / 390px 844px no-repeat, #14181F;
+  }
+
+  /* ── stickers ───────────────────────────────────────────── */
+  .sticker {
+    position: absolute;
+    width: 90px; height: 90px;
+    border-radius: 18px;
+    border: 4px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow:
+      0 8px 24px rgba(0,0,0,.22),
+      0 2px 6px  rgba(0,0,0,.14);
+    overflow: hidden;
+  }
+  /* gloss sheen — same as product AnimatedEventIcon */
+  .sticker::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 55%);
+    pointer-events: none;
+  }
+
+  /* palm tree — activity color */
+  .sticker-sunrise {
+    background: #32AE70;
+    top: -32px; right: -44px;
+    transform: rotate(14deg);
+  }
+  /* ground transport — ground_transport color */
+  .sticker-beach {
+    background: #725ED4;
+    bottom: 108px; left: -46px;
+    transform: rotate(-10deg);
+  }
+</style>
+</head>
+<body>
+<div id="panel">
+  <div id="phone-wrap">
+    <div class="phone-bezel">
+      <div class="phone-screen"></div>
+    </div>
+
+    <!-- sticker 1: Sunrise — upper right, tilted clockwise -->
+    <div class="sticker sticker-sunrise" id="s-sunrise"></div>
+
+    <!-- sticker 2: Beach — lower left, tilted counter-clockwise -->
+    <div class="sticker sticker-beach" id="s-beach"></div>
+  </div>
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+function svg(paths, size) {
+  const s = document.createElementNS(NS, 'svg');
+  s.setAttribute('viewBox', '0 0 24 24');
+  s.setAttribute('width', size); s.setAttribute('height', size);
+  s.setAttribute('fill', 'none'); s.setAttribute('stroke', '#fff');
+  s.setAttribute('stroke-width', '1.8');
+  s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+  s.innerHTML = paths;
+  return s;
+}
+
+// palm tree (Lucide Palmtree / TreePalm) — exact product paths
+const PALM_PATH = '<path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>';
+// car / ground transport (Lucide Car) — exact product paths
+const CAR_PATH  = '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>';
+
+document.getElementById('s-sunrise').appendChild(svg(PALM_PATH, 44));
+document.getElementById('s-beach').appendChild(svg(CAR_PATH, 44));
+
+window.__ready = document.fonts.ready.then(() => true);
+</script>
+</body>
+</html>

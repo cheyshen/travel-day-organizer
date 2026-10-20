@@ -140,33 +140,36 @@ function calStrip() {
 
 /* TimeBlock event card — image 125, badge radius.sm 4px/10px, body per gallery */
 function eventCard() {
+  // mirrors TimeBlock.jsx: radius.lg(16), image 125, badge bottom/left spacing.sm(8),
+  // content padding spacing.xl(24) + gap spacing.sm(8), Details helper(15)/600
   const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', overflow:'hidden', position:'relative' });
-  c.innerHTML =
-    `<div style="position:relative;height:125px;background:linear-gradient(135deg,#0891B2,#67E8F9)">
-       <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=760&h=300&fit=crop&auto=format" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
-       <div style="position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(to top,rgba(0,0,0,.5),transparent)"></div>
-     </div>
-     <div class="ebody" style="padding:12px 14px;display:flex;align-items:center;gap:10px">
-       <div style="flex:1;min-width:0">
-         <p style="font:600 18px/24px var(--font);color:#1A1A1A">Poipu Beach Afternoon</p>
-         <p style="margin-top:2px;font:500 16px/22px var(--font);color:#6B6B6B">Snorkel + sunbathe</p>
-       </div>
-     </div>`;
-  const badge = el('div'); Object.assign(badge.style,{ position:'absolute', top:'89px', left:'8px', display:'flex',
+  const img = el('div'); Object.assign(img.style,{ position:'relative', height:'125px',
+    background:'linear-gradient(135deg,#0891B2,#67E8F9)', overflow:'hidden' });
+  img.innerHTML =
+    `<img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=760&h=300&fit=crop&auto=format" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
+     <div style="position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(to top,rgba(0,0,0,.5),transparent)"></div>`;
+  const badge = el('div'); Object.assign(badge.style,{ position:'absolute', bottom:'8px', left:'8px', display:'flex',
     alignItems:'center', gap:'6px', background:'rgba(0,0,0,.6)', backdropFilter:'blur(8px)',
     padding:'4px 10px', borderRadius:'8px', color:'#fff' });
   badge.appendChild(svg('beach', 14, '#fff', 2.5));
   badge.appendChild(el('span',null,'<span style="font:600 13px var(--font);letter-spacing:.01em;color:#fff">Beach</span>'));
-  c.appendChild(badge);
+  img.appendChild(badge);
   const edit = el('div'); Object.assign(edit.style,{ position:'absolute', top:'8px', right:'8px', width:'28px',
     height:'28px', borderRadius:'14px', background:'rgba(0,0,0,.35)', backdropFilter:'blur(8px)',
     display:'flex', alignItems:'center', justifyContent:'center' });
-  edit.appendChild(svg('pencil', 13, '#fff', 2)); c.appendChild(edit);
+  edit.appendChild(svg('pencil', 13, '#fff', 2)); img.appendChild(edit);
+  c.appendChild(img);
+  const body = el('div'); Object.assign(body.style,{ padding:'24px', display:'flex', alignItems:'center', gap:'8px' });
+  const t = el('div'); Object.assign(t.style,{ flex:'1', minWidth:'0' });
+  t.appendChild(el('p',null,'<span style="font:600 18px/24px var(--font);color:#1A1A1A">Poipu Beach Afternoon</span>'));
+  t.appendChild(el('p',null,'<span style="font:500 16px/22px var(--font);color:#6B6B6B;display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Snorkel + sunbathe</span>'));
+  body.appendChild(t);
   const det = el('div'); Object.assign(det.style,{ height:'34px', padding:'0 10px 0 12px', borderRadius:'8px',
     background:'rgba(14,116,144,.12)', display:'inline-flex', alignItems:'center', gap:'4px',
-    font:'600 14px var(--font)', color:'#0E7490', flexShrink:'0' });
-  det.append('Details'); det.appendChild(svg('chev', 16, '#0E7490', 2.5));
-  c.querySelector('.ebody').appendChild(det);
+    font:'600 15px var(--font)', color:'#0E7490', flexShrink:'0' });
+  det.append('Details'); det.appendChild(svg('chev', 16, '#0E7490', 2));
+  body.appendChild(det);
+  c.appendChild(body);
   return c;
 }
 /* TimeBlock buffer — padding xl 24, clock textMedium (v204), body 16/500 */
@@ -254,6 +257,8 @@ function weatherSection() {
      edge like the app does; the cut chip is the scroll affordance */
   const chips = el('div'); Object.assign(chips.style,{ display:'flex', gap:'10px',
     overflow:'hidden', paddingBottom:'4px' });
+  /* one chip per trip day (9, Jul 4–12 — product maps tripDates); the row
+     clips so the last chip peeks, the real "Swipe to browse" scroll affordance */
   const DAYS = [
     ['Sat','4','sun','#C05D10','82°'],
     ['Sun','5','cloudsun','#B45309','79°'],
@@ -261,6 +266,9 @@ function weatherSection() {
     ['Tue','7','cloudrain','#2B7A9E','77°'],
     ['Wed','8','sun','#C05D10','80°'],
     ['Thu','9','cloudsun','#B45309','78°'],
+    ['Fri','10','sun','#C05D10','83°'],
+    ['Sat','11','cloudsun','#B45309','81°'],
+    ['Sun','12','sun','#C05D10','82°'],
   ];
   for (const [dow, num, icon, color, temp] of DAYS) {
     const chip = el('div'); Object.assign(chip.style,{ display:'flex', flexDirection:'column',
@@ -326,21 +334,28 @@ function progressCard() {
 }
 /* DocumentCard pair — the Status 2-col grid (173px each), caption meta row */
 function docPair() {
-  const row = el('div'); Object.assign(row.style,{ display:'flex', gap:'12px', width:W+'px' });
+  const row = el('div'); Object.assign(row.style,{ display:'flex', gap:'12px', width:W+'px', alignItems:'stretch' });
   const DOCS = [
-    ['plane', '#2B7A9E', '#E0F1F8', 'HA 17 Boarding.pdf', 'Boarding Pass · 1.2 MB'],
-    ['building', '#9E7C2E', '#F5EDD8', 'Andaz Maui.pdf', 'Hotel · 0.8 MB'],
+    ['plane', '#2B7A9E', '#E0F1F8', 'HA 17 Boarding.pdf', 'Boarding Pass', '1.2 MB'],
+    ['building', '#9E7C2E', '#F5EDD8', 'Andaz Maui.pdf', 'Hotel Confirmation', '0.8 MB'],
   ];
-  for (const [icon, color, bg, name, meta] of DOCS) {
-    const c = el('div','card'); Object.assign(c.style,{ flex:'1', borderRadius:'12px', overflow:'hidden' });
-    const prev = el('div'); Object.assign(prev.style,{ height:'100px', backgroundColor:bg,
+  for (const [icon, color, bg, name, label, size] of DOCS) {
+    const c = el('div','card'); Object.assign(c.style,{ flex:'1', borderRadius:'12px', overflow:'hidden', display:'flex', flexDirection:'column' });
+    const prev = el('div'); Object.assign(prev.style,{ height:'100px', backgroundColor:bg, flexShrink:'0',
       display:'flex', alignItems:'center', justifyContent:'center' });
     prev.appendChild(svg(icon, 32, color, 1.5)); c.appendChild(prev);
-    const body = el('div'); body.style.padding = '16px';
+    const body = el('div'); Object.assign(body.style,{ padding:'16px', flex:'1', display:'flex', flexDirection:'column' });
     body.appendChild(el('p',null,`<span style="font:500 16px/22px var(--font);color:#1A1A1A;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</span>`));
+    /* UPPERCASE caption (product textTransform); label on its own line(s) —
+       "HOTEL CONFIRMATION" is wider than the 173px card so it wraps; a 2-line
+       min-height keeps the pair aligned */
+    const lab = el('span','cap',`<span style="color:#9B9B9B">${label}</span>`);
+    Object.assign(lab.style,{ display:'block', marginTop:'4px', minHeight:'32px' });
+    body.appendChild(lab);
+    /* size + trash on their own bottom row so the delete button has clear space */
     const r2 = el('div'); Object.assign(r2.style,{ display:'flex', alignItems:'center',
-      justifyContent:'space-between', marginTop:'4px' });
-    r2.appendChild(el('span','cap',`<span style="color:#9B9B9B">${meta}</span>`));
+      justifyContent:'space-between', marginTop:'auto' });
+    r2.appendChild(el('span','cap',`<span style="color:#9B9B9B">· ${size}</span>`));
     const del = el('div'); Object.assign(del.style,{ width:'28px', height:'28px', borderRadius:'6px',
       background:'#FDECEA', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:'0' });
     del.appendChild(svg('trash', 12, '#C0392B', 2)); r2.appendChild(del);

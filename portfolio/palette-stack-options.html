@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Palette Stack Options</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #CACACA;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  align-items: center;
+}
+.option {
+  width: 900px;
+  background: #EBEBEB;
+  border-radius: 20px;
+  padding: 28px 28px 24px;
+}
+.option-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: #ABABAB; margin-bottom: 18px;
+}
+.group-label {
+  font-size: 9px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: #C0C0C0; margin-bottom: 5px;
+}
+.row { display: flex; gap: 4px; }
+.sw {
+  border-radius: 9px; flex-shrink: 0;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 7px 9px;
+}
+.lx { font-size: 9px; font-weight: 600; color: rgba(255,255,255,.45); font-variant-numeric: tabular-nums; margin-top:2px; }
+.lxd { font-size: 9px; font-weight: 600; color: rgba(0,0,0,.28); font-variant-numeric: tabular-nums; margin-top:2px; }
+.nm { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.8); }
+.nmd { font-size: 10px; font-weight: 700; color: rgba(0,0,0,.38); }
+.gap { height: 6px; }
+.gap8 { height: 8px; }
+
+/* Event sticker colors in hue order */
+/* blue, cyan-blue, teal, green, green2, yellow, orange, red-orange, pink, magenta, purple, violet, gray, gray2 */
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ OPTION A ══════════════════════════
+     Stacked rows grouped by function, proportional widths
+     ═════════════════════════════════════════════════════════════ -->
+<div class="option">
+  <div class="option-label">Option A — Grouped rows</div>
+
+  <div class="group-label">Shell</div>
+  <div class="row">
+    <div class="sw" style="background:#1F2937; height:72px; flex:1.4;"><div class="nm">Nav</div><div class="lx">#1F2937</div></div>
+    <div class="sw" style="background:#0E7490; height:72px; flex:2;"><div class="nm">Ocean</div><div class="lx">#0E7490</div></div>
+    <div class="sw" style="background:#F2F3F5; height:72px; flex:1.1; border:1px solid rgba(0,0,0,.07);"><div class="nmd">Page</div><div class="lxd">#F2F3F5</div></div>
+    <div class="sw" style="background:#EDEAE5; height:72px; flex:.9; border:1px solid rgba(0,0,0,.06);"><div class="nmd">Warm</div><div class="lxd">#EDEAE5</div></div>
+    <div class="sw" style="background:#FFFFFF; height:72px; flex:1; border:1px solid rgba(0,0,0,.08);"><div class="nmd">Surface</div><div class="lxd">#FFFFFF</div></div>
+  </div>
+  <div class="gap8"></div>
+
+  <div class="group-label">Event palette — 14 types</div>
+  <div class="row">
+    <div class="sw" style="background:#438ADB; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#2AA5CB; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#29AEA0; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#32AE70; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#38B242; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#D5B534; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#DB8F43; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#DB5743; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#DD4B94; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#D256D2; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#A35CCC; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#725ED4; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#A8A094; height:52px; flex:1;"></div>
+    <div class="sw" style="background:#9E9E9E; height:52px; flex:1;"></div>
+  </div>
+  <div class="gap8"></div>
+
+  <div class="group-label">Destinations</div>
+  <div class="row">
+    <div class="sw" style="background:#DB8F43; height:44px; flex:1.6;"><div class="nm">Kauai</div><div class="lx">#DB8F43</div></div>
+    <div class="sw" style="background:#F9F0E6; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#F9F0E6</div></div>
+    <div class="sw" style="background:#2AA5CB; height:44px; flex:1.6;"><div class="nm">Maui</div><div class="lx">#2AA5CB</div></div>
+    <div class="sw" style="background:#E7F4F8; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#E7F4F8</div></div>
+  </div>
+  <div class="gap8"></div>
+
+  <div class="group-label">Semantic</div>
+  <div class="row">
+    <div class="sw" style="background:#27815B; height:44px; flex:1.6;"><div class="lx">#27815B</div></div>
+    <div class="sw" style="background:#E8F5E9; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#E8F5E9</div></div>
+    <div class="sw" style="background:#D97B2B; height:44px; flex:1.6;"><div class="lx">#D97B2B</div></div>
+    <div class="sw" style="background:#FFF3E0; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#FFF3E0</div></div>
+    <div class="sw" style="background:#C0392B; height:44px; flex:1.6;"><div class="lx">#C0392B</div></div>
+    <div class="sw" style="background:#FDECEA; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#FDECEA</div></div>
+    <div class="sw" style="background:#2B7A9E; height:44px; flex:1.6;"><div class="lx">#2B7A9E</div></div>
+    <div class="sw" style="background:#E0F1F8; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#E0F1F8</div></div>
+  </div>
+  <div class="gap8"></div>
+
+  <div class="group-label">Category chips</div>
+  <div class="row">
+    <div class="sw" style="background:#0E7490; height:36px; flex:1.4;"><div class="lx">#0E7490</div></div>
+    <div class="sw" style="background:#E0F7FA; height:36px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+    <div class="sw" style="background:#C74534; height:36px; flex:1.4;"><div class="lx">#C74534</div></div>
+    <div class="sw" style="background:#FDE8E3; height:36px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+    <div class="sw" style="background:#9E7C2E; height:36px; flex:1.4;"><div class="lx">#9E7C2E</div></div>
+    <div class="sw" style="background:#F5EDD8; height:36px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+    <div class="sw" style="background:#2D7D46; height:36px; flex:1.4;"><div class="lx">#2D7D46</div></div>
+    <div class="sw" style="background:#E0F2E5; height:36px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+    <div class="sw" style="background:#6D28D9; height:36px; flex:1.4;"><div class="lx">#6D28D9</div></div>
+    <div class="sw" style="background:#EDE9FE; height:36px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+    <div class="sw" style="background:#2B7A9E; height:36px; flex:1.4;"><div class="lx">#2B7A9E</div></div>
+    <div class="sw" style="background:#E0F1F8; height:36px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+  </div>
+  <div class="gap8"></div>
+
+  <div class="group-label">Text & borders</div>
+  <div class="row">
+    <div class="sw" style="background:#1A1A1A; height:32px; flex:1;"><div class="lx">#1A1A1A</div></div>
+    <div class="sw" style="background:#6B6B6B; height:32px; flex:1;"><div class="lx">#6B6B6B</div></div>
+    <div class="sw" style="background:#9B9B9B; height:32px; flex:1;"><div class="lx">#9B9B9B</div></div>
+    <div class="sw" style="background:#E2E0DB; height:32px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#E2E0DB</div></div>
+    <div class="sw" style="background:#F0EFEA; height:32px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#F0EFEA</div></div>
+    <div class="sw" style="background:#D6D3CE; height:32px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#D6D3CE</div></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════ OPTION B ══════════════════════════
+     Event palette full-width at top, functional below in columns
+     ═════════════════════════════════════════════════════════════ -->
+<div class="option">
+  <div class="option-label">Option B — Event palette dominant, functional columns below</div>
+
+  <div class="group-label">Event palette — 14 types</div>
+  <div class="row" style="margin-bottom:8px;">
+    <div class="sw" style="background:#438ADB; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#2AA5CB; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#29AEA0; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#32AE70; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#38B242; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#D5B534; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#DB8F43; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#DB5743; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#DD4B94; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#D256D2; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#A35CCC; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#725ED4; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#A8A094; height:88px; flex:1;"></div>
+    <div class="sw" style="background:#9E9E9E; height:88px; flex:1;"></div>
+  </div>
+
+  <div style="display:flex; gap:8px;">
+    <!-- Shell column -->
+    <div style="flex:1.4; display:flex; flex-direction:column; gap:4px;">
+      <div class="group-label">Shell</div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#1F2937; height:52px; flex:1;"><div class="lx">#1F2937</div></div>
+        <div class="sw" style="background:#0E7490; height:52px; flex:1;"><div class="lx">#0E7490</div></div>
+      </div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#F2F3F5; height:36px; flex:1; border:1px solid rgba(0,0,0,.07);"><div class="lxd">#F2F3F5</div></div>
+        <div class="sw" style="background:#FFFFFF; height:36px; flex:1; border:1px solid rgba(0,0,0,.08);"><div class="lxd">#FFFFFF</div></div>
+        <div class="sw" style="background:#EDEAE5; height:36px; flex:1; border:1px solid rgba(0,0,0,.06);"><div class="lxd">#EDEAE5</div></div>
+      </div>
+    </div>
+
+    <!-- Islands column -->
+    <div style="flex:1.2; display:flex; flex-direction:column; gap:4px;">
+      <div class="group-label">Islands</div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#DB8F43; height:52px; flex:1.4;"><div class="lx">#DB8F43</div></div>
+        <div class="sw" style="background:#F9F0E6; height:52px; flex:1; border:1px solid rgba(0,0,0,.07);"></div>
+      </div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#2AA5CB; height:36px; flex:1.4;"><div class="lx">#2AA5CB</div></div>
+        <div class="sw" style="background:#E7F4F8; height:36px; flex:1; border:1px solid rgba(0,0,0,.07);"></div>
+      </div>
+    </div>
+
+    <!-- Semantic column -->
+    <div style="flex:1.4; display:flex; flex-direction:column; gap:4px;">
+      <div class="group-label">Semantic</div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#27815B; height:44px; flex:1.4;"></div>
+        <div class="sw" style="background:#E8F5E9; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+        <div class="sw" style="background:#D97B2B; height:44px; flex:1.4;"></div>
+        <div class="sw" style="background:#FFF3E0; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+      </div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#C0392B; height:44px; flex:1.4;"></div>
+        <div class="sw" style="background:#FDECEA; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+        <div class="sw" style="background:#2B7A9E; height:44px; flex:1.4;"></div>
+        <div class="sw" style="background:#E0F1F8; height:44px; flex:1; border:1px solid rgba(0,0,0,.06);"></div>
+      </div>
+    </div>
+
+    <!-- Text + borders column -->
+    <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+      <div class="group-label">Text & borders</div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#1A1A1A; height:44px; flex:1;"></div>
+        <div class="sw" style="background:#6B6B6B; height:44px; flex:1;"></div>
+        <div class="sw" style="background:#9B9B9B; height:44px; flex:1;"></div>
+      </div>
+      <div class="row" style="gap:4px;">
+        <div class="sw" style="background:#E2E0DB; height:44px; flex:1; border:1px solid rgba(0,0,0,.07);"></div>
+        <div class="sw" style="background:#F0EFEA; height:44px; flex:1; border:1px solid rgba(0,0,0,.07);"></div>
+        <div class="sw" style="background:#D6D3CE; height:44px; flex:1; border:1px solid rgba(0,0,0,.07);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════ OPTION C ══════════════════════════
+     Three-zone: dark left, event centre, light right
+     ═════════════════════════════════════════════════════════════ -->
+<div class="option">
+  <div class="option-label">Option C — Three zones</div>
+  <div style="display:flex; gap:6px; height:320px;">
+
+    <!-- Left zone: shell + text (dark anchors) -->
+    <div style="width:148px; flex-shrink:0; display:flex; flex-direction:column; gap:5px;">
+      <div class="group-label">Shell</div>
+      <div style="background:#1F2937; border-radius:9px; flex:2; display:flex; flex-direction:column; justify-content:flex-end; padding:8px 10px;">
+        <div class="nm">Nav</div><div class="lx">#1F2937</div>
+      </div>
+      <div style="background:#0E7490; border-radius:9px; flex:2; display:flex; flex-direction:column; justify-content:flex-end; padding:8px 10px;">
+        <div class="nm">Ocean</div><div class="lx">#0E7490</div>
+      </div>
+      <div style="background:#F2F3F5; border-radius:9px; flex:1; border:1px solid rgba(0,0,0,.08); display:flex; flex-direction:column; justify-content:flex-end; padding:6px 8px;">
+        <div class="lxd">#F2F3F5</div>
+      </div>
+      <div class="group-label" style="margin-top:4px;">Text</div>
+      <div style="display:flex; gap:4px; flex:1;">
+        <div style="background:#1A1A1A; border-radius:9px; flex:1;"></div>
+        <div style="background:#6B6B6B; border-radius:9px; flex:1;"></div>
+        <div style="background:#9B9B9B; border-radius:9px; flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- Centre zone: event palette + islands -->
+    <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+      <div class="group-label">Event palette — 14 types</div>
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:1fr 1fr; gap:5px; flex:1;">
+        <div style="background:#438ADB; border-radius:9px;"></div>
+        <div style="background:#2AA5CB; border-radius:9px;"></div>
+        <div style="background:#29AEA0; border-radius:9px;"></div>
+        <div style="background:#32AE70; border-radius:9px;"></div>
+        <div style="background:#38B242; border-radius:9px;"></div>
+        <div style="background:#D5B534; border-radius:9px;"></div>
+        <div style="background:#DB8F43; border-radius:9px;"></div>
+        <div style="background:#DB5743; border-radius:9px;"></div>
+        <div style="background:#DD4B94; border-radius:9px;"></div>
+        <div style="background:#D256D2; border-radius:9px;"></div>
+        <div style="background:#A35CCC; border-radius:9px;"></div>
+        <div style="background:#725ED4; border-radius:9px;"></div>
+        <div style="background:#A8A094; border-radius:9px;"></div>
+        <div style="background:#9E9E9E; border-radius:9px;"></div>
+      </div>
+      <div class="group-label" style="margin-top:4px;">Islands</div>
+      <div style="display:flex; gap:5px; height:52px;">
+        <div style="background:#DB8F43; border-radius:9px; flex:1.4; display:flex; align-items:flex-end; padding:6px 8px;"><div class="lx">#DB8F43 Kauai</div></div>
+        <div style="background:#F9F0E6; border-radius:9px; flex:1; border:1px solid rgba(0,0,0,.07);"></div>
+        <div style="background:#2AA5CB; border-radius:9px; flex:1.4; display:flex; align-items:flex-end; padding:6px 8px;"><div class="lx">#2AA5CB Maui</div></div>
+        <div style="background:#E7F4F8; border-radius:9px; flex:1; border:1px solid rgba(0,0,0,.07);"></div>
+      </div>
+    </div>
+
+    <!-- Right zone: semantic + categories -->
+    <div style="width:160px; flex-shrink:0; display:flex; flex-direction:column; gap:5px;">
+      <div class="group-label">Semantic</div>
+      <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:4px; flex:1;">
+        <div style="background:#27815B; border-radius:9px;"></div>
+        <div style="background:#E8F5E9; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+        <div style="background:#D97B2B; border-radius:9px;"></div>
+        <div style="background:#FFF3E0; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+        <div style="background:#C0392B; border-radius:9px;"></div>
+        <div style="background:#FDECEA; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+        <div style="background:#2B7A9E; border-radius:9px;"></div>
+        <div style="background:#E0F1F8; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+      </div>
+      <div class="group-label" style="margin-top:4px;">Categories</div>
+      <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:4px; height:90px;">
+        <div style="background:#C74534; border-radius:9px;"></div>
+        <div style="background:#FDE8E3; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+        <div style="background:#9E7C2E; border-radius:9px;"></div>
+        <div style="background:#F5EDD8; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+        <div style="background:#2D7D46; border-radius:9px;"></div>
+        <div style="background:#E0F2E5; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+        <div style="background:#6D28D9; border-radius:9px;"></div>
+        <div style="background:#EDE9FE; border-radius:9px; border:1px solid rgba(0,0,0,.06);"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

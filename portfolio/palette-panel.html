@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Travel — Color Palette</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #E2E2E2;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+}
+
+.pair {
+  display: flex;
+  gap: 14px;
+  width: 900px;
+}
+
+/* ---- LEFT: color palette ---- */
+.card-left {
+  flex: 1;
+  background: #EBEBEB;
+  border-radius: 20px;
+  padding: 22px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8A8A8A;
+  letter-spacing: .02em;
+  margin-bottom: 6px;
+}
+.swrow { display: flex; gap: 5px; }
+.sw { border-radius: 7px; flex: 1; }
+
+/* ---- RIGHT: island split ---- */
+.card-right {
+  flex: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+}
+
+.island-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 28px 26px;
+}
+.island-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  margin-bottom: 5px;
+}
+.island-name {
+  font-size: 30px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+.island-hex {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.45);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+.island-divider {
+  width: 1px;
+  background: rgba(255,255,255,.15);
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="pair">
+
+  <!-- LEFT: Colors -->
+  <div class="card-left">
+    <div class="card-label">Colors</div>
+
+    <!-- neutrals -->
+    <div class="swrow">
+      <div class="sw" style="height:60px; background:#1F2937"></div>
+      <div class="sw" style="height:60px; background:#1A1A1A"></div>
+      <div class="sw" style="height:60px; background:#6B6B6B"></div>
+      <div class="sw" style="height:60px; background:#9B9B9B"></div>
+      <div class="sw" style="height:60px; background:#F2F3F5; border:1px solid rgba(0,0,0,.07)"></div>
+      <div class="sw" style="height:60px; background:#FFFFFF; border:1px solid rgba(0,0,0,.09)"></div>
+    </div>
+
+    <!-- brand + islands -->
+    <div class="swrow">
+      <div class="sw" style="height:42px; background:#0E7490; flex:1.5"></div>
+      <div class="sw" style="height:42px; background:#DB8F43"></div>
+      <div class="sw" style="height:42px; background:#F9F0E6; border:1px solid rgba(0,0,0,.07); flex:.6"></div>
+      <div class="sw" style="height:42px; background:#2AA5CB"></div>
+      <div class="sw" style="height:42px; background:#E7F4F8; border:1px solid rgba(0,0,0,.07); flex:.6"></div>
+    </div>
+
+    <!-- events row 1 -->
+    <div class="swrow">
+      <div class="sw" style="height:34px; background:#438ADB"></div>
+      <div class="sw" style="height:34px; background:#725ED4"></div>
+      <div class="sw" style="height:34px; background:#2AA5CB"></div>
+      <div class="sw" style="height:34px; background:#32AE70"></div>
+      <div class="sw" style="height:34px; background:#29AEA0"></div>
+      <div class="sw" style="height:34px; background:#38B242"></div>
+    </div>
+
+    <!-- events row 2 -->
+    <div class="swrow">
+      <div class="sw" style="height:34px; background:#DB8F43"></div>
+      <div class="sw" style="height:34px; background:#D5B534"></div>
+      <div class="sw" style="height:34px; background:#DB5743"></div>
+      <div class="sw" style="height:34px; background:#DD4B94"></div>
+      <div class="sw" style="height:34px; background:#A35CCC"></div>
+      <div class="sw" style="height:34px; background:#D256D2"></div>
+    </div>
+
+    <!-- status -->
+    <div class="swrow">
+      <div class="sw" style="height:28px; background:#27815B"></div>
+      <div class="sw" style="height:28px; background:#D97B2B"></div>
+      <div class="sw" style="height:28px; background:#C0392B"></div>
+      <div class="sw" style="height:28px; background:#2B7A9E"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Island identities -->
+  <div class="card-right">
+    <div class="island-half" style="background:#DB8F43">
+      <div class="island-tag">Island 01</div>
+      <div class="island-name">Kauai</div>
+      <div class="island-hex">#DB8F43</div>
+    </div>
+    <div class="island-divider"></div>
+    <div class="island-half" style="background:#2AA5CB">
+      <div class="island-tag">Island 02</div>
+      <div class="island-name">Maui</div>
+      <div class="island-hex">#2AA5CB</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Type Picker — fun explorations</title>
+<script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root { font-family: 'DM Sans', system-ui, -apple-system, sans-serif; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 20px 80px;
+    background: #F2F3F5; color: #1A1A1A;
+    -webkit-font-smoothing: antialiased;
+  }
+  .pagehead { max-width: 1240px; margin: 0 auto 28px; }
+  .pagehead h1 { font-size: 26px; font-weight: 700; margin: 0 0 6px; }
+  .pagehead p { font-size: 15px; font-weight: 500; color: #6B6B6B; margin: 0; max-width: 640px; line-height: 1.5; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; max-width: 1240px; margin: 0 auto; }
+
+  .panel {
+    flex: 1 1 360px; max-width: 392px;
+    background: #FFFFFF; border-radius: 20px;
+    padding: 22px 20px 26px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);
+  }
+  .ptag {
+    font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: #9B9B9B; margin-bottom: 6px;
+  }
+  .ptitle { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
+  .pdesc  { font-size: 13.5px; font-weight: 500; color: #6B6B6B; line-height: 1.45; margin: 0 0 18px; min-height: 56px; }
+  .rec { display:inline-block; margin-left:8px; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0E7490; background:#E0F1F8; padding:2px 7px; border-radius:6px; vertical-align:middle; }
+
+  .label { font-size: 15px; font-weight: 600; color: #6B6B6B; margin-bottom: 8px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 8px;
+  }
+  .cell {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 5px; padding: 8px 4px; min-height: 56px;
+    background: transparent; border: 2px solid transparent;
+    border-radius: 12px; cursor: pointer; position: relative;
+    transition: background .2s, border-color .2s, box-shadow .25s, transform .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tile {
+    width: 38px; height: 38px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    position: relative;
+  }
+  .tile svg { width: 19px; height: 19px; color: #fff; }
+  .evm { display: inline-flex; line-height: 0; }
+  .cap { font-size: 13px; font-weight: 500; color: #6B6B6B; line-height: 1.1; text-align:center; }
+  .cell.sel .cap { font-weight: 700; color: #1A1A1A; }
+
+  .hint { font-size: 12px; font-weight: 500; color: #9B9B9B; margin-top: 16px; text-align:center; }
+
+  /* ============== A: TINTED & SPRINGY ============== */
+  .vA .cell.sel { /* bg + ring set inline per-hue */ }
+  .vA .cell { animation: enterPop .42s cubic-bezier(.34,1.2,.6,1) both; }
+  @keyframes enterPop {
+    0% { opacity: 0; transform: translateY(8px) scale(.85); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .vA .tile.pop { animation: tilePop .5s cubic-bezier(.34,1.4,.6,1); }
+  @keyframes tilePop {
+    0% { transform: scale(.82); } 45% { transform: scale(1.12); } 100% { transform: scale(1); }
+  }
+
+  /* ============== B: ALIVE (idle breathing + hover wiggle) ============== */
+  .vB .tile { animation: breathe 3.4s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+  .vB .cell:hover .tile { animation: wiggle .5s ease-in-out; }
+  @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-7deg)} 75%{transform:rotate(7deg)} }
+
+  /* ============== C: STICKER ============== */
+  .vC .tile {
+    box-shadow: 0 2px 5px rgba(0,0,0,.18);
+    border: 2.5px solid rgba(255,255,255,.92);
+  }
+  .vC .tile::after {
+    content:''; position:absolute; inset:0; border-radius: inherit; pointer-events:none;
+    background: linear-gradient(160deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,.05) 42%, rgba(0,0,0,.06) 100%);
+  }
+  .vC .cell.sel .tile {
+    transform: rotate(-6deg) scale(1.04);
+    box-shadow: 4px 7px 12px rgba(0,0,0,.26);
+  }
+  .vC .tile { transition: transform .25s cubic-bezier(.34,1.4,.6,1), box-shadow .25s; }
+
+  /* confetti */
+  .confetti {
+    position: absolute; top: 0; left: 0; width: 6px; height: 6px; border-radius: 2px;
+    pointer-events: none; opacity: 0;
+    animation: confettiFly .72s ease-out forwards;
+  }
+  @keyframes confettiFly {
+    0% { opacity: 1; transform: translate(0,0) scale(1) rotate(0); }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.4) rotate(var(--rot)); }
+  }
+
+  /* ===== shared signature motions (from index.css) ===== */
+  .ev-flight { animation: kf-flight .75s cubic-bezier(.42,0,.3,1); }
+  .ev-car    { animation: kf-car .7s; }
+  .ev-boat   { transform-origin: 50% 90%; animation: kf-boat .9s; }
+  .ev-palm   { transform-origin: 50% 100%; animation: kf-palm .85s; }
+  .ev-waves  { animation: kf-waves .82s; }
+  .ev-hike   { animation: kf-hike .72s cubic-bezier(.34,1.1,.62,1); }
+  .ev-sun    { animation: kf-sun .8s cubic-bezier(.34,1.05,.62,1); }
+  .ev-camera { animation: kf-camera .6s cubic-bezier(.4,0,.25,1); }
+  .ev-dining { animation: kf-dining .72s; }
+  .ev-bag    { transform-origin: 50% 6%; animation: kf-bag .92s; }
+  .ev-hotel  { animation: kf-hotel .72s cubic-bezier(.34,1.15,.62,1); }
+  .ev-party  { animation: kf-party .74s cubic-bezier(.34,1.15,.62,1); }
+  .ev-clock  { animation: kf-clock .9s cubic-bezier(.42,0,.3,1); }
+  .ev-pulse  { animation: kf-pulse .7s cubic-bezier(.37,0,.63,1); }
+  @keyframes kf-flight {0%{transform:translate(0,0) rotate(0)}14%{transform:translate(-2px,2px) rotate(6deg)}56%{transform:translate(11px,-17px) rotate(-24deg)}82%{transform:translate(2px,-2px) rotate(-3deg)}100%{transform:translate(0,0) rotate(0)}}
+  @keyframes kf-car {0%{transform:translateX(0)}28%{transform:translate(-9px,1px)}60%{transform:translate(11px,-1px)}84%{transform:translate(-2px,0)}100%{transform:translateX(0)}}
+  @keyframes kf-boat {0%{transform:rotate(0)}18%{transform:rotate(-17deg)}42%{transform:rotate(13deg)}64%{transform:rotate(-8deg)}82%{transform:rotate(4deg)}93%{transform:rotate(-1.5deg)}100%{transform:rotate(0)}}
+  @keyframes kf-palm {0%{transform:rotate(0)}26%{transform:rotate(16deg)}54%{transform:rotate(-10deg)}76%{transform:rotate(5deg)}92%{transform:rotate(-2deg)}100%{transform:rotate(0)}}
+  @keyframes kf-waves {0%{transform:translateX(0) skewX(0)}20%{transform:translateX(-5px) skewX(9deg)}44%{transform:translateX(5px) skewX(-9deg)}66%{transform:translateX(-3px) skewX(5deg)}84%{transform:translateX(2px) skewX(-2deg)}100%{transform:translateX(0) skewX(0)}}
+  @keyframes kf-hike {0%{transform:translateY(0) scale(1)}24%{transform:translateY(-9px)}44%{transform:translateY(-3px)}64%{transform:translateY(-13px) scale(1.06)}84%{transform:translateY(-2px) scale(1)}100%{transform:translateY(0) scale(1)}}
+  @keyframes kf-sun {0%{transform:translateY(7px) scale(.86)}48%{transform:translateY(-10px) scale(1.15)}78%{transform:translateY(-1px) scale(1.01)}100%{transform:translateY(0) scale(1)}}
+  @keyframes kf-camera {0%{transform:scale(1);opacity:1}20%{transform:scale(.8)}38%{transform:scale(1.1);opacity:.4}60%{transform:scale(.98);opacity:1}100%{transform:scale(1)}}
+  @keyframes kf-dining {0%{transform:rotate(0)}18%{transform:rotate(-11deg)}40%{transform:rotate(10deg)}62%{transform:rotate(-6deg)}82%{transform:rotate(3deg)}100%{transform:rotate(0)}}
+  @keyframes kf-bag {0%{transform:rotate(0)}22%{transform:rotate(-21deg)}48%{transform:rotate(14deg)}70%{transform:rotate(-8deg)}86%{transform:rotate(4deg)}95%{transform:rotate(-1.5deg)}100%{transform:rotate(0)}}
+  @keyframes kf-hotel {0%{transform:translateY(-13px)}46%{transform:translateY(4px)}72%{transform:translateY(-2px)}90%{transform:translateY(1px)}100%{transform:translateY(0)}}
+  @keyframes kf-party {0%{transform:scale(1) rotate(0)}28%{transform:scale(1.34) rotate(-19deg)}58%{transform:scale(.91) rotate(12deg)}82%{transform:scale(1.04) rotate(-3deg)}100%{transform:scale(1) rotate(0)}}
+  @keyframes kf-clock {0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+  @keyframes kf-pulse {0%{transform:scale(1)}30%{transform:scale(1.18)}52%{transform:scale(1)}76%{transform:scale(1.09)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+  <div class="pagehead">
+    <h1>Event-type picker — three ways to make it fun</h1>
+    <p>Same icons, colors and motions as the real app. Tap any icon in each panel to feel its selection behaviour. Pick one — or mix and match.</p>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <div class="ptag">Direction A</div>
+      <h2 class="ptitle">Tinted &amp; Springy <span class="rec">recommended</span></h2>
+      <p class="pdesc">Selected tile fills with its own soft tint + a ring in its hue, springs with a bouncy pop, and lifts on a colored glow. Grid cascades in on open. Calm at rest, satisfying on tap.</p>
+      <div class="label">Type</div>
+      <div class="grid vA" id="gridA"></div>
+      <div class="hint">tap an icon →</div>
+    </div>
+
+    <div class="panel">
+      <div class="ptag">Direction B</div>
+      <h2 class="ptitle">Alive</h2>
+      <p class="pdesc">Every icon gently breathes at rest (staggered so the whole grid shimmers), wiggles on hover, and plays its signature motion on tap. Maximum personality — always moving.</p>
+      <div class="label">Type</div>
+      <div class="grid vB" id="gridB"></div>
+      <div class="hint">hover &amp; tap →</div>
+    </div>
+
+    <div class="panel">
+      <div class="ptag">Direction C</div>
+      <h2 class="ptitle">Sticker</h2>
+      <p class="pdesc">Tiles look like glossy peel-off stickers (highlight + white border + drop shadow). Selecting one tilts it like a pressed sticker and pops a little confetti burst. Toy-like and delightful.</p>
+      <div class="label">Type</div>
+      <div class="grid vC" id="gridC"></div>
+      <div class="hint">tap an icon →</div>
+    </div>
+  </div>
+
+<script>
+  const TYPES = [
+    { id:'flight',           label:'Flight',      icon:'plane',         motion:'flight', color:'#438ADB', tint:'#E7EFF8' },
+    { id:'ground_transport', label:'Transport',   icon:'car',           motion:'car',    color:'#725ED4', tint:'#EEEBF9' },
+    { id:'hotel',            label:'Hotel',       icon:'building-2',     motion:'hotel',  color:'#A35CCC', tint:'#F4ECF9' },
+    { id:'activity',         label:'Activity',    icon:'palmtree',       motion:'palm',   color:'#32AE70', tint:'#E8F7F0' },
+    { id:'dining',           label:'Dining',      icon:'utensils-crossed', motion:'dining', color:'#DB5743', tint:'#FAECEA' },
+    { id:'buffer',           label:'Buffer',      icon:'clock',         motion:'clock',  color:'#A8A094', tint:'#F2F0ED' },
+    { id:'boat',             label:'Boat',        icon:'ship',          motion:'boat',   color:'#2AA5CB', tint:'#E7F4F8' },
+    { id:'sunrise',          label:'Sunrise',     icon:'sunrise',       motion:'sun',    color:'#DB8F43', tint:'#F9F0E6' },
+    { id:'sightseeing',      label:'Sightseeing', icon:'camera',        motion:'camera', color:'#D5B534', tint:'#F8F4E2' },
+    { id:'beach',            label:'Beach',       icon:'waves',         motion:'waves',  color:'#29AEA0', tint:'#E8F8F6' },
+    { id:'hiking',           label:'Hiking',      icon:'mountain',      motion:'hike',   color:'#38B242', tint:'#E8F7EA' },
+    { id:'shopping',         label:'Shopping',    icon:'shopping-bag',  motion:'bag',    color:'#DD4B94', tint:'#FAEAF2' },
+    { id:'entertainment',    label:'Fun',         icon:'party-popper',  motion:'party',  color:'#D256D2', tint:'#F9ECF9' },
+  ];
+
+  function hexA(hex, a){
+    const n = parseInt(hex.slice(1),16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+  }
+
+  function build(gridId, variant){
+    const grid = document.getElementById(gridId);
+    TYPES.forEach((t, i) => {
+      const cell = document.createElement('button');
+      cell.className = 'cell';
+      cell.style.animationDelay = (i*28) + 'ms';
+      cell.innerHTML =
+        `<span class="tile" style="background:${t.color}; animation-delay:${-(i*250)}ms">
+           <span class="evm"><i data-lucide="${t.icon}"></i></span>
+         </span>
+         <span class="cap">${t.label}</span>`;
+      cell.addEventListener('click', () => onSelect(grid, cell, t, variant));
+      grid.appendChild(cell);
+    });
+  }
+
+  function playMotion(cell, t){
+    const evm = cell.querySelector('.evm');
+    const cls = 'ev-' + t.motion;
+    evm.classList.remove(cls);
+    void evm.offsetWidth;            // restart
+    evm.classList.add(cls);
+  }
+
+  function onSelect(grid, cell, t, variant){
+    grid.querySelectorAll('.cell').forEach(c => {
+      c.classList.remove('sel');
+      c.style.background = 'transparent';
+      c.style.borderColor = 'transparent';
+      c.style.boxShadow = 'none';
+    });
+    cell.classList.add('sel');
+
+    if (variant === 'A' || variant === 'B'){
+      cell.style.background = t.tint;
+      cell.style.borderColor = hexA(t.color, .5);
+      cell.style.boxShadow = '0 4px 14px ' + hexA(t.color, .28);
+    }
+    if (variant === 'A'){
+      const tile = cell.querySelector('.tile');
+      tile.classList.remove('pop'); void tile.offsetWidth; tile.classList.add('pop');
+    }
+    if (variant === 'C'){
+      spawnConfetti(cell, t.color);
+    }
+    playMotion(cell, t);
+  }
+
+  function spawnConfetti(cell, color){
+    const tile = cell.querySelector('.tile');
+    const palette = [color, '#FFD23F', '#33C4A8', '#FF6B6B', '#FFFFFF'];
+    for (let k=0;k<10;k++){
+      const c = document.createElement('span');
+      c.className = 'confetti';
+      const ang = (Math.PI*2) * (k/10) + Math.random()*0.5;
+      const dist = 26 + Math.random()*22;
+      c.style.left = '16px'; c.style.top = '16px';
+      c.style.background = palette[k % palette.length];
+      c.style.setProperty('--tx', Math.cos(ang)*dist + 'px');
+      c.style.setProperty('--ty', Math.sin(ang)*dist + 'px');
+      c.style.setProperty('--rot', (Math.random()*540-270) + 'deg');
+      tile.appendChild(c);
+      setTimeout(() => c.remove(), 760);
+    }
+  }
+
+  build('gridA','A');
+  build('gridB','B');
+  build('gridC','C');
+  lucide.createIcons();
+
+  // pre-select "Activity" in each (matches the screenshot) once icons exist
+  ['gridA','gridB','gridC'].forEach((id, idx) => {
+    const variant = ['A','B','C'][idx];
+    const cells = document.getElementById(id).querySelectorAll('.cell');
+    onSelect(document.getElementById(id), cells[3], TYPES[3], variant);
+  });
+</script>
+</body>
+</html>

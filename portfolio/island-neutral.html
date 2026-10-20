@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Destinations — neutral / structural</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, sans-serif; --ocean:#0E7490; --grey:#F2F3F5; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: var(--grey); color: #1A1A1A; padding: 40px 24px 90px; }
+  h1 { font-size: 26px; font-weight: 700; text-align: center; }
+  .sub { text-align: center; font-size: 14px; font-weight: 500; color: #6B6B6B; margin: 6px auto 36px; max-width: 640px; line-height: 1.5; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; max-width: 900px; margin: 0 auto; }
+  .card { background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 20px; padding: 22px; box-shadow: 0 6px 18px rgba(40,50,70,.07); }
+  .card.wide { grid-column: 1 / -1; }
+  .clabel { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #9B9B9B; margin-bottom: 16px; }
+
+  /* Day bg before/after */
+  .daycols { display: flex; gap: 16px; }
+  .daycol { flex: 1; }
+  .daycap { font-size: 12px; font-weight: 600; color: #6B6B6B; margin-bottom: 8px; }
+  .daypanel { border-radius: 14px; padding: 14px; }
+  .evcard { background: #fff; border-radius: 12px; padding: 11px 13px; box-shadow: 0 2px 8px rgba(0,0,0,.08); display:flex; align-items:center; gap:10px; }
+  .evtile { width: 34px; height: 34px; border-radius: 10px; flex-shrink:0; position:relative; border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; }
+  .evtile::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,rgba(255,255,255,.25),rgba(255,255,255,.04) 45%,rgba(0,0,0,.05));}
+  .evtile svg{color:#fff}
+  .ct { font: 600 14px var(--font); }
+  .cs { font: 500 12px var(--font); color:#6B6B6B; }
+
+  /* switcher */
+  .seg { display: inline-flex; background: rgba(60,70,90,.10); border-radius: 9999px; padding: 4px; gap: 4px; }
+  .seg .s { display:flex; align-items:center; gap:7px; padding:9px 16px; border-radius:9999px; font:600 15px var(--font); }
+  .seg .s.active { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.12); color:#1A1A1A; }
+  .seg .s.idle { color:#6B6B6B; }
+
+  /* legend */
+  .legend { display:flex; gap:20px; flex-wrap:wrap; align-items:center; }
+  .leg { display:flex; align-items:center; gap:8px; font:600 14px var(--font); color:#4B4B4B; }
+
+  /* mini calendar */
+  .cal { display:grid; grid-template-columns: repeat(7,1fr); gap:6px; max-width:300px; }
+  .cell { aspect-ratio:1; border-radius:9px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+          font:600 13px var(--font); background:#F6F7F9; color:#C2C6CC; }
+  .cell.trip { background:#fff; color:#1A1A1A; border:1px solid rgba(0,0,0,.06); }
+  .cell.today { border:2px solid var(--ocean); color:var(--ocean); }
+  .cell.sel { background:var(--ocean); color:#fff; }
+  .mk { display:flex; gap:3px; height:7px; align-items:center; }
+  .note { font-size:13px; font-weight:500; color:#6B6B6B; line-height:1.5; }
+  .shapes { display:flex; gap:18px; align-items:center; margin-top:6px; }
+  .shapes .leg { color:#6B6B6B; }
+  svg { display:block; }
+</style>
+</head>
+<body>
+  <h1>Destinations — neutral / structural</h1>
+  <p class="sub">No per-island hue. Islands read by <b>shape + label</b>; the brand ocean is used only for the <b>active/selected</b> state. The Day background goes neutral grey so the event icons are the only color. Scales to any number of islands — just add a shape.</p>
+
+  <div class="grid">
+    <!-- Day background before/after -->
+    <div class="card wide">
+      <div class="clabel">Day-tab background</div>
+      <div class="daycols">
+        <div class="daycol">
+          <div class="daycap">Before — island-tinted (blue / gold)</div>
+          <div class="daypanel" id="day-before"></div>
+        </div>
+        <div class="daycol">
+          <div class="daycap">After — neutral grey #F2F3F5</div>
+          <div class="daypanel" style="background:#F2F3F5" id="day-after"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Switcher -->
+    <div class="card">
+      <div class="clabel">Island switcher</div>
+      <div class="seg" id="switcher"></div>
+      <p class="note" style="margin-top:14px">Shape marker + label. Active segment = white pill, marker in ocean. No per-island color.</p>
+    </div>
+
+    <!-- Legend -->
+    <div class="card">
+      <div class="clabel">Calendar legend</div>
+      <div class="legend" id="legend"></div>
+      <p class="note" style="margin-top:14px">Each island = a neutral shape + name. A 3rd / 4th island just adds a triangle / diamond.</p>
+      <div class="shapes" id="scale"></div>
+    </div>
+
+    <!-- Mini calendar -->
+    <div class="card wide">
+      <div class="clabel">Plan calendar — trip days marked by shape, no island tint</div>
+      <div class="cal" id="cal"></div>
+      <p class="note" style="margin-top:14px">Trip days are white (vs muted non-trip); today gets the ocean ring, the selected day the ocean fill. The island is shown by the small shape marker + the day labels — not a background color.</p>
+    </div>
+  </div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+function shape(kind, color, size){
+  size=size||14; const s=document.createElementNS(NS,'svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('width',size); s.setAttribute('height',size);
+  s.setAttribute('fill',color);
+  if(kind==='circle') s.innerHTML='<circle cx="12" cy="12" r="9"/>';
+  else if(kind==='square') s.innerHTML='<rect x="3" y="3" width="18" height="18" rx="4"/>';
+  else if(kind==='triangle') s.innerHTML='<path d="M12 3 22 20H2Z"/>';
+  else s.innerHTML='<path d="M12 2 22 12 12 22 2 12Z"/>';
+  return s;
+}
+function plane(color){const s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('width',18);s.setAttribute('height',18);s.setAttribute('fill','none');s.setAttribute('stroke',color);s.setAttribute('stroke-width',2);s.setAttribute('stroke-linecap','round');s.setAttribute('stroke-linejoin','round');s.innerHTML='<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>';return s;}
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+function eventCard(){const c=el('div','evcard');const t=el('div','evtile');t.style.background='#438ADB';t.appendChild(plane('#fff'));const x=el('div');x.style.flex='1';x.innerHTML='<div class="ct">Flight to Kauai</div><div class="cs">6:50 AM · Flight</div>';c.append(t,x);return c;}
+
+// day bg before (blue tint) / after (grey)
+const db=document.getElementById('day-before'); db.style.background='#DBE2EC'; db.appendChild(eventCard());
+document.getElementById('day-after').appendChild(eventCard());
+
+// switcher: shape + label, ocean active
+const sw=document.getElementById('switcher');
+const a=el('div','s active'); a.appendChild(shape('circle','#0E7490',13)); a.append('Kauai');
+const b=el('div','s idle'); b.appendChild(shape('square','#9BA3AD',13)); b.append('Maui');
+sw.append(a,b);
+
+// legend
+const lg=document.getElementById('legend');
+[['circle','Kauai'],['square','Maui']].forEach(([k,n])=>{const d=el('div','leg');d.appendChild(shape(k,'#6B6B6B',14));d.append(n);lg.appendChild(d);});
+// scaling shapes
+const sc=document.getElementById('scale');
+[['circle','1st'],['square','2nd'],['triangle','3rd'],['diamond','4th']].forEach(([k,n])=>{const d=el('div','leg');d.appendChild(shape(k,'#9BA3AD',13));d.append(n);sc.appendChild(d);});
+
+// mini calendar (one week): days 4-8 = trip (Kauai), 5=today, 6=selected
+const cal=document.getElementById('cal');
+const days=[2,3,4,5,6,7,8];
+days.forEach(n=>{
+  const trip = n>=4 && n<=8;
+  let cls='cell'+(trip?' trip':'');
+  if(n===5) cls+=' today'; if(n===6) cls+=' sel';
+  const c=el('div',cls);
+  c.append(el('div',null,String(n)));
+  const mk=el('div','mk');
+  if(trip){ const col = (n===6)?'#fff':(n===5?'#0E7490':'#9BA3AD'); mk.appendChild(shape('circle',col,7)); }
+  c.appendChild(mk);
+  cal.appendChild(c);
+});
+</script>
+</body>
+</html>

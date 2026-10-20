@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Detail — Layout Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1A1A; --ink2:#6B6B6B; --ink3:#9B9B9B;
+    --ocean:#0E7490; --oceanSoft:rgba(14,116,144,0.12);
+    --aqua:#0891B2; --aquaLight:#CFFAFE;
+    --bg:#EAF3FC; --card:#FFFFFF; --border:rgba(0,0,0,0.05);
+    --shadow:0 6px 18px rgba(40,50,70,0.08);
+    --shadowFloat:0 14px 36px rgba(40,50,70,0.16);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; font-family:'Inter',-apple-system,sans-serif;
+    background:#cdd9e6; color:var(--ink);
+    padding:24px 12px 80px;
+  }
+  .pageHead{max-width:900px; margin:0 auto 28px; text-align:center;}
+  .pageHead h1{font-size:22px; font-weight:700; margin:0 0 6px;}
+  .pageHead p{font-size:14px; color:#4a5568; margin:0; line-height:1.5;}
+  .row{
+    display:flex; flex-wrap:wrap; gap:40px 28px;
+    justify-content:center; align-items:flex-start; max-width:1300px; margin:0 auto;
+  }
+  .opt{width:390px; max-width:100%;}
+  .optLabel{text-align:center; margin-bottom:14px;}
+  .optLabel .tag{
+    display:inline-block; background:var(--ocean); color:#fff;
+    font-size:12px; font-weight:700; letter-spacing:.04em;
+    padding:4px 12px; border-radius:9999px; margin-bottom:8px;
+  }
+  .optLabel h2{font-size:17px; font-weight:700; margin:0 0 4px;}
+  .optLabel p{font-size:13px; color:#4a5568; margin:0 auto; max-width:340px; line-height:1.45;}
+
+  /* phone frame */
+  .phone{
+    width:390px; max-width:100%; height:780px; background:var(--bg);
+    border-radius:42px; overflow:hidden; position:relative;
+    box-shadow:0 24px 60px rgba(0,0,0,.28); border:10px solid #0d0d0f;
+  }
+  .screen{position:absolute; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .screen::-webkit-scrollbar{display:none;}
+  .statusbar{
+    height:44px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 26px; font-size:14px; font-weight:600; color:var(--ink);
+    position:relative; z-index:5;
+  }
+  .statusbar.onPhoto{color:#fff;}
+  .dots{display:flex; gap:5px; align-items:center;}
+
+  /* shared bits */
+  .iconBtn{
+    width:42px; height:42px; border-radius:12px; border:none;
+    background:rgba(255,255,255,.9); display:flex; align-items:center;
+    justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  .iconBtn.ghost{background:#EDEAE5; box-shadow:none;}
+  .iconBtn.glass{background:rgba(255,255,255,.22); backdrop-filter:blur(12px); box-shadow:none;}
+  .sectionTitle{font-size:18px; font-weight:700; letter-spacing:-.01em; margin:0;}
+  .moreLink{font-size:13px; font-weight:600; color:var(--ocean); cursor:pointer;}
+  .desc{font-size:15px; line-height:22px; color:var(--ink2); margin:10px 0 0;}
+  .eyebrow{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;}
+
+  /* info chips (reference "Tour Package" row) */
+  .chips{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto; min-width:104px; background:var(--ocean); color:#fff;
+    border-radius:16px; padding:12px 14px; box-shadow:0 6px 16px rgba(14,116,144,.28);
+  }
+  .chip .k{font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; opacity:.8;}
+  .chip .v{font-size:15px; font-weight:700; margin-top:4px; line-height:1.2;}
+  .chip.alt{background:#fff; color:var(--ink); box-shadow:var(--shadow);}
+  .chip.alt .k{color:var(--ink3); opacity:1;}
+
+  /* bottom action bar */
+  .actionbar{
+    position:absolute; left:0; right:0; bottom:0; padding:16px 20px 26px;
+    background:linear-gradient(180deg,rgba(234,243,252,0) 0%,var(--bg) 22%);
+    display:flex; gap:12px; align-items:center; z-index:6;
+  }
+  .cta{
+    flex:1; height:54px; border:none; border-radius:16px; background:var(--ocean);
+    color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 8px 22px rgba(14,116,144,.36);
+  }
+  .cta.secondary{flex:0 0 54px; width:54px; background:#fff; color:var(--ocean); box-shadow:var(--shadow);}
+
+  svg{display:block;}
+</style>
+</head>
+<body>
+
+<div class="pageHead">
+  <h1>Event Detail — 3 layout directions</h1>
+  <p>Same beach event, three takes on your reference. Tap nothing — just compare the structure & feel, then tell me A, B, or C (or a mix).</p>
+</div>
+
+<div class="row">
+
+  <!-- ============================ OPTION A ============================ -->
+  <div class="opt">
+    <div class="optLabel">
+      <span class="tag">OPTION A</span>
+      <h2>Tour layout (faithful to reference)</h2>
+      <p>Big title above the photo, a tag line with “See map,” large photo, Description, info chips, bottom action bar.</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="statusbar"><span>9:41</span><div class="dots">
+          <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="6" width="3" height="5" rx="1" fill="#1A1A1A"/><rect x="4.5" y="4" width="3" height="7" rx="1" fill="#1A1A1A"/><rect x="9" y="2" width="3" height="9" rx="1" fill="#1A1A1A"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#1A1A1A"/></svg>
+          <svg width="22" height="11" viewBox="0 0 24 12"><rect x="1" y="1" width="20" height="10" rx="2.5" fill="none" stroke="#1A1A1A" stroke-opacity=".5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1.2" fill="#1A1A1A"/><rect x="22" y="4" width="1.5" height="4" rx="1" fill="#1A1A1A"/></svg>
+        </div></div>
+
+        <!-- top bar -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 18px 14px;">
+          <button class="iconBtn ghost"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+          <span style="font-size:16px; font-weight:600;">Detail</span>
+          <button class="iconBtn ghost"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></button>
+        </div>
+
+        <!-- title + tags -->
+        <div style="padding:4px 20px 0;">
+          <span class="eyebrow" style="color:var(--aqua);">Beach</span>
+          <h1 style="font-size:28px; line-height:32px; font-weight:700; letter-spacing:-.02em; margin:6px 0 0;">Poipu Beach</h1>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+            <span style="font-size:14px; color:var(--ink2);">Snorkel · Monk seals · 3 hr</span>
+            <span style="display:flex; align-items:center; gap:5px; color:var(--ocean); font-size:13px; font-weight:600;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              See map
+            </span>
+          </div>
+        </div>
+
+        <!-- big photo -->
+        <div style="margin:16px 20px 0; height:200px; border-radius:18px; overflow:hidden; position:relative; box-shadow:var(--shadow);">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+
+        <!-- description -->
+        <div style="padding:22px 20px 0;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <h3 class="sectionTitle">Description</h3>
+            <span class="moreLink">More</span>
+          </div>
+          <p class="desc">Monk seals sometimes rest on this beach — keep 50ft distance. Calmest water and best snorkeling is the protected west cove; reef shoes for the rocky east end…</p>
+        </div>
+
+        <!-- info chips -->
+        <div style="padding:22px 20px 0;">
+          <h3 class="sectionTitle" style="margin-bottom:12px;">Details</h3>
+          <div class="chips">
+            <div class="chip"><div class="k">Time</div><div class="v">1:30 PM</div></div>
+            <div class="chip alt"><div class="k">Duration</div><div class="v">3 hr</div></div>
+            <div class="chip alt"><div class="k">Place</div><div class="v">Poipu Park</div></div>
+          </div>
+        </div>
+        <div style="height:120px;"></div>
+      </div>
+      <!-- bottom bar -->
+      <div class="actionbar">
+        <button class="cta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Get directions</button>
+        <button class="cta secondary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ OPTION B ============================ -->
+  <div class="opt">
+    <div class="optLabel">
+      <span class="tag" style="background:var(--aqua);">OPTION B</span>
+      <h2>Immersive hero (photo-first)</h2>
+      <p>Full-bleed photo with the title overlaid, a white sheet slides up with Description + chips. Most “premium travel app” feel.</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <!-- hero photo block -->
+        <div style="position:relative; height:340px;">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover;">
+          <div style="position:absolute; inset:0; background:linear-gradient(180deg,rgba(20,30,40,.35) 0%,rgba(20,30,40,0) 30%,rgba(20,30,40,.15) 55%,rgba(20,30,40,.85) 100%);"></div>
+          <div class="statusbar onPhoto"><span>9:41</span><div class="dots">
+            <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="6" width="3" height="5" rx="1" fill="#fff"/><rect x="4.5" y="4" width="3" height="7" rx="1" fill="#fff"/><rect x="9" y="2" width="3" height="9" rx="1" fill="#fff"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#fff"/></svg>
+            <svg width="22" height="11" viewBox="0 0 24 12"><rect x="1" y="1" width="20" height="10" rx="2.5" fill="none" stroke="#fff" stroke-opacity=".7"/><rect x="2.5" y="2.5" width="15" height="7" rx="1.2" fill="#fff"/><rect x="22" y="4" width="1.5" height="4" rx="1" fill="#fff"/></svg>
+          </div></div>
+          <div style="position:absolute; top:50px; left:18px; right:18px; display:flex; justify-content:space-between;">
+            <button class="iconBtn glass"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+            <button class="iconBtn glass"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></button>
+          </div>
+          <div style="position:absolute; left:22px; right:22px; bottom:40px; color:#fff;">
+            <span class="eyebrow" style="background:rgba(255,255,255,.22); backdrop-filter:blur(8px); padding:4px 10px; border-radius:9999px;">Beach · 3 hr</span>
+            <h1 style="font-size:32px; line-height:36px; font-weight:700; letter-spacing:-.02em; margin:12px 0 0; text-shadow:0 2px 12px rgba(0,0,0,.4);">Poipu Beach</h1>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:8px; font-size:14px; opacity:.95;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Poipu Beach Park, Kauai
+            </div>
+          </div>
+        </div>
+
+        <!-- white sheet -->
+        <div style="background:var(--bg); border-radius:24px 24px 0 0; margin-top:-22px; position:relative; padding:10px 20px 0;">
+          <div style="width:40px; height:5px; border-radius:9999px; background:#cbd5dd; margin:0 auto 6px;"></div>
+
+          <!-- chips -->
+          <div class="chips" style="margin-top:12px;">
+            <div class="chip"><div class="k">Time</div><div class="v">1:30 PM</div></div>
+            <div class="chip alt"><div class="k">Duration</div><div class="v">3 hr</div></div>
+            <div class="chip alt"><div class="k">Sunset</div><div class="v">6:38 PM</div></div>
+          </div>
+
+          <!-- description -->
+          <div style="margin-top:24px;">
+            <h3 class="sectionTitle">Description</h3>
+            <p class="desc">Monk seals sometimes rest on this beach — keep 50ft distance. Calmest water and best snorkeling is the protected west cove; reef shoes recommended for the rocky east end. Stay through golden hour…</p>
+            <span class="moreLink" style="display:inline-block; margin-top:8px;">Read more</span>
+          </div>
+          <div style="height:120px;"></div>
+        </div>
+      </div>
+      <!-- bottom bar -->
+      <div class="actionbar">
+        <button class="cta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Get directions</button>
+        <button class="cta secondary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ OPTION C ============================ -->
+  <div class="opt">
+    <div class="optLabel">
+      <span class="tag" style="background:#2D7D46;">OPTION C</span>
+      <h2>Refined cards (lightest change)</h2>
+      <p>Keeps your current card system but pulls the title up & bigger, enlarges the photo, adds a Description section + compact chip row. Edit stays in the header — no bottom bar.</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="statusbar"><span>9:41</span><div class="dots">
+          <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="6" width="3" height="5" rx="1" fill="#1A1A1A"/><rect x="4.5" y="4" width="3" height="7" rx="1" fill="#1A1A1A"/><rect x="9" y="2" width="3" height="9" rx="1" fill="#1A1A1A"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#1A1A1A"/></svg>
+          <svg width="22" height="11" viewBox="0 0 24 12"><rect x="1" y="1" width="20" height="10" rx="2.5" fill="none" stroke="#1A1A1A" stroke-opacity=".5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1.2" fill="#1A1A1A"/><rect x="22" y="4" width="1.5" height="4" rx="1" fill="#1A1A1A"/></svg>
+        </div></div>
+
+        <!-- header with edit -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 18px 14px;">
+          <button class="iconBtn ghost"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+          <button class="iconBtn" style="background:var(--oceanSoft); box-shadow:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        </div>
+
+        <!-- title -->
+        <div style="padding:2px 20px 0;">
+          <span class="eyebrow" style="color:var(--aqua);">Beach</span>
+          <h1 style="font-size:26px; line-height:30px; font-weight:700; letter-spacing:-.02em; margin:6px 0 4px;">Poipu Beach</h1>
+          <span style="font-size:14px; color:var(--ink2);">Settle in + relax</span>
+        </div>
+
+        <!-- enlarged photo card -->
+        <div style="margin:16px 20px 0; height:170px; border-radius:18px; overflow:hidden; position:relative; box-shadow:var(--shadow);">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+
+        <!-- compact chip row -->
+        <div style="display:flex; gap:10px; padding:16px 20px 0;">
+          <div style="flex:1; background:#fff; border-radius:14px; padding:12px; box-shadow:var(--shadow); text-align:center;">
+            <div style="font-size:10px; font-weight:700; letter-spacing:.05em; color:var(--ink3); text-transform:uppercase;">Time</div>
+            <div style="font-size:14px; font-weight:700; margin-top:4px;">1:30 PM</div>
+          </div>
+          <div style="flex:1; background:#fff; border-radius:14px; padding:12px; box-shadow:var(--shadow); text-align:center;">
+            <div style="font-size:10px; font-weight:700; letter-spacing:.05em; color:var(--ink3); text-transform:uppercase;">Length</div>
+            <div style="font-size:14px; font-weight:700; margin-top:4px;">3 hr</div>
+          </div>
+          <div style="flex:1; background:#fff; border-radius:14px; padding:12px; box-shadow:var(--shadow); text-align:center;">
+            <div style="font-size:10px; font-weight:700; letter-spacing:.05em; color:var(--ink3); text-transform:uppercase;">Place</div>
+            <div style="font-size:14px; font-weight:700; margin-top:4px;">Poipu</div>
+          </div>
+        </div>
+
+        <!-- description card -->
+        <div style="margin:18px 20px 0; background:#fff; border-radius:18px; padding:18px; box-shadow:var(--shadow);">
+          <h3 class="sectionTitle" style="font-size:16px;">Description</h3>
+          <p class="desc" style="font-size:14px;">Monk seals sometimes rest on this beach — keep 50ft distance. Calmest water and best snorkeling is the protected west cove; reef shoes for the rocky east end.</p>
+        </div>
+        <div style="height:40px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

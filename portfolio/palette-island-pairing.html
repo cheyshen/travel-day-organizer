@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Palette + Island Colors</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #CACACA;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 56px 40px;
+}
+
+.pair {
+  display: flex; gap: 14px; width: 920px; align-items: stretch;
+}
+
+/* ── LEFT: palette mosaic ────────────────────────────────────── */
+.palette-wrap {
+  flex-shrink: 0;
+  background: #EBEBEB;
+  border-radius: 20px;
+  padding: 22px;
+  display: flex; align-items: center; justify-content: center;
+}
+.palette {
+  width: 440px; height: 440px; border-radius: 14px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+.pal-mosaic { height: 252px; display: flex; }
+.pal-nav {
+  width: 244px; flex-shrink: 0; background: #1F2937;
+  display: flex; align-items: flex-end; padding: 12px 14px;
+}
+.pal-right { flex: 1; display: flex; flex-direction: column; }
+.pal-ocean { height: 72px; background: #0E7490; display: flex; align-items: flex-end; padding: 8px 14px; }
+.pal-kauai { height: 88px; background: #DB8F43; display: flex; align-items: flex-end; padding: 8px 14px; }
+.pal-maui  { flex: 1; background: #2AA5CB; display: flex; align-items: flex-end; padding: 8px 14px; }
+
+.pal-events { height: 52px; display: flex; }
+.pal-ev { flex: 1; }
+
+.pal-surfaces { height: 58px; display: flex; }
+.pal-surf {
+  flex: 1; display: flex; align-items: flex-end; padding: 6px 10px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.07);
+}
+
+.pal-text { height: 78px; display: flex; }
+.pal-t { flex: 1; display: flex; align-items: flex-end; padding: 8px 10px; }
+.pal-t.border { box-shadow: inset 0 0 0 1px rgba(0,0,0,.07); }
+
+.hex { font-size: 11px; font-weight: 600; font-family: 'DM Sans', sans-serif; }
+
+/* ── RIGHT: calendar view (product-accurate) ─────────────────── */
+.right-card {
+  flex: 1;
+  background: #EBEBEB;
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+
+/* month header */
+.cal-month-header {
+  font-size: 18px; font-weight: 700; color: #1A1A1A;
+  letter-spacing: -.01em; margin-bottom: 16px;
+}
+
+/* DOW: typography.caption — 13px/600/uppercase/letter-spacing .05em */
+.cal-dow {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  margin-bottom: 8px;
+}
+.cal-dow span {
+  font-size: 13px; font-weight: 600; color: #9B9B9B;
+  text-transform: uppercase; letter-spacing: .05em; text-align: center;
+  padding: 4px 0;
+}
+
+/* grid */
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-cell {
+  aspect-ratio: 1/1; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 500; color: #9B9B9B;
+  position: relative;
+}
+/* non-trip days in current month */
+.cal-cell.non-trip { background: rgba(237,234,229,.45); color: #6B6B6B; }
+/* overflow (prev/next month) — 0.3 opacity over non-trip base */
+.cal-cell.overflow { background: rgba(237,234,229,.45); color: #6B6B6B; opacity: 0.3; }
+/* Kauai trip days */
+.cal-cell.kauai {
+  background: #F9F0E6; color: #1A1A1A; font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);
+}
+/* Maui trip days */
+.cal-cell.maui {
+  background: #E7F4F8; color: #1A1A1A; font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);
+}
+/* today marker: 1.5px solid textLight (#9B9B9B) */
+.cal-cell.today { box-shadow: inset 0 0 0 1.5px #9B9B9B; }
+/* selected: 2.5px ocean border */
+.cal-cell.selected { box-shadow: 0 1px 3px rgba(0,0,0,.04), inset 0 0 0 2.5px #0E7490; }
+
+/* destination shape dots (bottom-right, product-accurate) */
+.dot {
+  position: absolute; bottom: 4px; right: 4px; width: 5px; height: 5px;
+}
+.dot-k { border-radius: 50%; background: #DB8F43; opacity: .5; }
+.dot-m { border-radius: 1px; background: #2AA5CB; opacity: .5; }
+
+/* CalendarLegend: single grey pill, two equal segments, MapPin + name + count */
+.cal-legend {
+  display: flex; gap: 4px; padding: 4px;
+  background: rgba(60,70,90,.10); border-radius: 9999px;
+}
+.legend-seg {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 10px 14px; border-radius: 9999px;
+}
+.legend-name {
+  font-size: 16px; font-weight: 500; color: #6B6B6B; line-height: 1;
+}
+.legend-count {
+  font-size: 15px; font-weight: 500; color: #9B9B9B; line-height: 1;
+}
+</style>
+</head>
+<body>
+
+<div class="pair">
+
+  <!-- LEFT: Palette mosaic ---------------------------------------- -->
+  <div class="palette-wrap">
+    <div class="palette">
+
+      <div class="pal-mosaic">
+        <div class="pal-nav"><span class="hex" style="color:rgba(255,255,255,.42)">#1F2937</span></div>
+        <div class="pal-right">
+          <div class="pal-ocean"><span class="hex" style="color:rgba(255,255,255,.42)">#0E7490</span></div>
+          <div class="pal-kauai"><span class="hex" style="color:rgba(255,255,255,.42)">#DB8F43</span></div>
+          <div class="pal-maui"><span class="hex" style="color:rgba(255,255,255,.42)">#2AA5CB</span></div>
+        </div>
+      </div>
+
+      <div class="pal-events">
+        <div class="pal-ev" style="background:#438ADB"></div>
+        <div class="pal-ev" style="background:#2AA5CB"></div>
+        <div class="pal-ev" style="background:#29AEA0"></div>
+        <div class="pal-ev" style="background:#32AE70"></div>
+        <div class="pal-ev" style="background:#38B242"></div>
+        <div class="pal-ev" style="background:#D5B534"></div>
+        <div class="pal-ev" style="background:#DB8F43"></div>
+        <div class="pal-ev" style="background:#DB5743"></div>
+        <div class="pal-ev" style="background:#DD4B94"></div>
+        <div class="pal-ev" style="background:#D256D2"></div>
+        <div class="pal-ev" style="background:#A35CCC"></div>
+        <div class="pal-ev" style="background:#725ED4"></div>
+        <div class="pal-ev" style="background:#A8A094"></div>
+        <div class="pal-ev" style="background:#9E9E9E"></div>
+      </div>
+
+      <div class="pal-surfaces">
+        <div class="pal-surf" style="background:#F2F3F5"><span class="hex" style="color:rgba(0,0,0,.3)">#F2F3F5</span></div>
+        <div class="pal-surf" style="background:#F9F0E6"><span class="hex" style="color:rgba(0,0,0,.3)">#F9F0E6</span></div>
+        <div class="pal-surf" style="background:#E7F4F8"><span class="hex" style="color:rgba(0,0,0,.3)">#E7F4F8</span></div>
+        <div class="pal-surf" style="background:#FFFFFF"><span class="hex" style="color:rgba(0,0,0,.28)">#FFFFFF</span></div>
+      </div>
+
+      <div class="pal-text">
+        <div class="pal-t" style="background:#1A1A1A"><span class="hex" style="color:rgba(255,255,255,.45)">#1A1A1A</span></div>
+        <div class="pal-t" style="background:#6B6B6B"><span class="hex" style="color:rgba(255,255,255,.5)">#6B6B6B</span></div>
+        <div class="pal-t" style="background:#9B9B9B"><span class="hex" style="color:rgba(255,255,255,.6)">#9B9B9B</span></div>
+        <div class="pal-t border" style="background:#E2E0DB"><span class="hex" style="color:rgba(0,0,0,.35)">#E2E0DB</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Calendar view ---------------------------------------- -->
+  <div class="right-card">
+
+    <div>
+      <div class="cal-month-header">July 2026</div>
+
+      <!-- DOW headers: product uses ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] + typography.caption -->
+      <div class="cal-dow">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <!-- CalendarLegend: product-accurate — grey pill, MapPin + name + count, neither active -->
+    <div class="cal-legend">
+      <div class="legend-seg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DB8F43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="legend-name">Kauai</span>
+        <span class="legend-count">4d</span>
+      </div>
+      <div class="legend-seg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2AA5CB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="legend-name">Maui</span>
+        <span class="legend-count">5d</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// July 2026: July 1 = Wednesday (Sun=0, so Wed=3) → 3 leading overflow days (Jun 28, 29, 30)
+// Kauai: Jul 4–7 (4 days), Maui: Jul 8–12 (5 days), today = Jul 6
+const KAUAI = new Set([4, 5, 6, 7]);
+const MAUI  = new Set([8, 9, 10, 11, 12]);
+const TODAY   = 6;
+const SELECTED = 4; // show one selected state for visual completeness
+
+const grid = document.getElementById('calGrid');
+
+function makeCell(label, cls) {
+  const c = document.createElement('div');
+  c.className = 'cal-cell ' + cls;
+  c.textContent = label;
+  return c;
+}
+
+// Leading overflow: Jun 28, 29, 30
+[28, 29, 30].forEach(d => grid.appendChild(makeCell(d, 'overflow')));
+
+// July 1–31
+for (let d = 1; d <= 31; d++) {
+  const isK = KAUAI.has(d), isM = MAUI.has(d);
+  let cls = isK ? 'kauai' : isM ? 'maui' : 'non-trip';
+  if (d === TODAY)    cls += ' today';
+  if (d === SELECTED) cls += ' selected';
+
+  const cell = makeCell(d, cls);
+
+  if (isK || isM) {
+    const dot = document.createElement('div');
+    dot.className = 'dot ' + (isK ? 'dot-k' : 'dot-m');
+    cell.appendChild(dot);
+  }
+  grid.appendChild(cell);
+}
+
+// Trailing overflow: Aug 1 (July 31 = Friday = index 5, need 1 trailing cell for Saturday)
+grid.appendChild(makeCell(1, 'overflow'));
+</script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Travel — Hero</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+  body { font-family: var(--font); -webkit-font-smoothing: antialiased; background: #0B1A2E; }
+
+  #panel {
+    position: relative;
+    width: 1440px; height: 810px;
+    background: linear-gradient(140deg, #0D1F35 0%, #0A2540 50%, #081520 100%);
+    overflow: hidden;
+  }
+
+  /* teal ambient glow — right-center */
+  .glow-teal {
+    position: absolute; pointer-events: none;
+    width: 700px; height: 600px;
+    right: 120px; top: 50%;
+    transform: translateY(-50%);
+    background: radial-gradient(ellipse at center, rgba(14,116,144,.22) 0%, transparent 68%);
+  }
+  /* warm accent glow — lower right */
+  .glow-warm {
+    position: absolute; pointer-events: none;
+    width: 400px; height: 350px;
+    right: 80px; bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(219,143,67,.12) 0%, transparent 70%);
+  }
+  /* subtle dot grid */
+  .grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,.6) 30%, rgba(0,0,0,.3) 70%, transparent 100%);
+  }
+
+  /* ── left: text column ───────────────────────────────────── */
+  .hero-left {
+    position: absolute;
+    left: 80px; top: 50%;
+    transform: translateY(-50%);
+    width: 420px;
+  }
+  .eyebrow {
+    font: 600 13px/16px var(--font);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #22B8D4;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px; height: 2px;
+    background: #22B8D4;
+    border-radius: 1px;
+  }
+  .hero-title {
+    font: 700 72px/78px var(--font);
+    color: #fff;
+    letter-spacing: -.02em;
+  }
+  .hero-title .accent { color: #22B8D4; }
+  .hero-sub {
+    margin-top: 20px;
+    font: 500 18px/26px var(--font);
+    color: rgba(255,255,255,.55);
+    letter-spacing: .01em;
+  }
+  .divider {
+    width: 48px; height: 2px;
+    background: linear-gradient(90deg, #0E7490, transparent);
+    border-radius: 1px;
+    margin: 28px 0;
+  }
+  .meta-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .meta-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    font: 600 13px/16px var(--font);
+    color: rgba(255,255,255,.75);
+    letter-spacing: .02em;
+  }
+  .meta-pill .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── right: floating components ──────────────────────────── */
+  .comp {
+    position: absolute;
+    transform-origin: center center;
+    /* lifted card shadow for dark bg */
+    filter: drop-shadow(0 24px 48px rgba(0,0,0,.55)) drop-shadow(0 4px 12px rgba(0,0,0,.35));
+  }
+  .card { background: #FFFFFF; border: 1px solid rgba(0,0,0,.05); }
+  .cap  { font: 600 13px/16px var(--font); text-transform: uppercase; letter-spacing: .05em; }
+</style>
+</head>
+<body>
+<div id="panel">
+  <!-- background layers -->
+  <div class="grid"></div>
+  <div class="glow-teal"></div>
+  <div class="glow-warm"></div>
+
+  <!-- left: title -->
+  <div class="hero-left">
+    <div class="eyebrow">Hawaii · Summer 2026</div>
+    <h1 class="hero-title">Travel Day<br><span class="accent">Organizer</span></h1>
+    <p class="hero-sub">Plan your trip, hour by hour.</p>
+    <div class="divider"></div>
+    <div class="meta-row">
+      <div class="meta-pill"><span class="dot" style="background:#22B8D4"></span>9 Days</div>
+      <div class="meta-pill"><span class="dot" style="background:#DB8F43"></span>2 Islands</div>
+      <div class="meta-pill"><span class="dot" style="background:#fff;opacity:.5"></span>38 Events</div>
+    </div>
+  </div>
+
+  <!-- right: components injected by JS -->
+  <div id="comps"></div>
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const ICONS = {
+  beach:    '<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  clock:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  pencil:   '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+  chev:     '<path d="m9 18 6-6-6-6"/>',
+  check:    '<path d="M20 6 9 17l-5-5"/>',
+  arrow:    '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  mappin:   '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  sunrise:  '<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>',
+  sun:      '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  plane:    '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+};
+function svg(name, size, color, sw) {
+  const s = document.createElementNS(NS,'svg');
+  s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('width',size); s.setAttribute('height',size);
+  s.setAttribute('fill','none'); s.setAttribute('stroke',color); s.setAttribute('stroke-width',sw||2);
+  s.setAttribute('stroke-linecap','round'); s.setAttribute('stroke-linejoin','round');
+  s.innerHTML = ICONS[name]; return s;
+}
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+
+const W = 358; // product content width
+
+/* ─── component builders ─────────────────────────────────── */
+
+function destCard() {
+  const c = el('div'); Object.assign(c.style,{ width:W+'px', height:'144px', borderRadius:'18px',
+    overflow:'hidden', position:'relative', background:'linear-gradient(135deg,#0A8F8F,#064e4e)' });
+  c.innerHTML =
+    `<div style="position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=760&q=80&auto=format&fit=crop');background-size:cover;background-position:center"></div>
+     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.65) 100%)"></div>
+     <div id="ov-d" style="position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+       <div>
+         <h3 style="margin:0;font:700 30px/36px var(--font);color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.4)">Kauai</h3>
+         <p style="margin:4px 0 0;font:500 15px var(--font);color:rgba(255,255,255,.92)">Jul 4 – Jul 8 · 4 days</p>
+       </div>
+     </div>`;
+  const chev = svg('chev',22,'#fff',2); chev.style.flexShrink='0'; chev.style.opacity='.9';
+  c.querySelector('#ov-d').appendChild(chev);
+  return c;
+}
+
+function mauiCard() {
+  const c = el('div'); Object.assign(c.style,{ width:W+'px', height:'144px', borderRadius:'18px',
+    overflow:'hidden', position:'relative' });
+  c.innerHTML =
+    `<div style="position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1542259009477-d625272157b7?w=760&q=80&auto=format&fit=crop');background-size:cover;background-position:center top"></div>
+     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.65) 100%)"></div>
+     <div id="ov-m" style="position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+       <div>
+         <h3 style="margin:0;font:700 30px/36px var(--font);color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.4)">Maui</h3>
+         <p style="margin:4px 0 0;font:500 15px var(--font);color:rgba(255,255,255,.92)">Jul 8 – Jul 12 · 5 days</p>
+       </div>
+     </div>`;
+  const chev = svg('chev',22,'#fff',2); chev.style.flexShrink='0'; chev.style.opacity='.9';
+  c.querySelector('#ov-m').appendChild(chev);
+  return c;
+}
+
+function eventCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', overflow:'hidden', position:'relative' });
+  c.innerHTML =
+    `<div style="position:relative;height:120px;background:linear-gradient(135deg,#0891B2,#67E8F9)">
+       <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=760&h=300&fit=crop&auto=format" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
+       <div style="position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(to top,rgba(0,0,0,.5),transparent)"></div>
+     </div>
+     <div class="ebody3" style="padding:12px 14px;display:flex;align-items:center;gap:10px">
+       <div style="flex:1;min-width:0">
+         <p style="font:600 18px/24px var(--font);color:#1A1A1A">Poipu Beach Afternoon</p>
+         <p style="margin-top:2px;font:500 15px/20px var(--font);color:#6B6B6B">3:00 PM · Snorkel + sunbathe</p>
+       </div>
+     </div>`;
+  const badge = el('div'); Object.assign(badge.style,{ position:'absolute', top:'84px', left:'8px',
+    display:'flex', alignItems:'center', gap:'5px', background:'rgba(0,0,0,.6)',
+    backdropFilter:'blur(8px)', padding:'4px 10px', borderRadius:'8px' });
+  badge.appendChild(svg('beach',13,'#fff',2.5));
+  badge.appendChild(el('span',null,'<span style="font:600 13px var(--font);color:#fff">Beach</span>'));
+  c.appendChild(badge);
+  const det = el('div'); Object.assign(det.style,{ height:'32px', padding:'0 10px 0 12px', borderRadius:'8px',
+    background:'rgba(14,116,144,.12)', display:'inline-flex', alignItems:'center', gap:'4px',
+    font:'600 13px var(--font)', color:'#0E7490', flexShrink:'0' });
+  det.append('Details'); det.appendChild(svg('chev',14,'#0E7490',2.5));
+  c.querySelector('.ebody3').appendChild(det);
+  return c;
+}
+
+function dayHeader() {
+  const c = el('div'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', background:'#F9F0E6',
+    padding:'16px 20px', textAlign:'center', boxShadow:'0 1px 3px rgba(0,0,0,.04)' });
+  c.appendChild(el('p','cap','<span style="color:#6B6B6B;letter-spacing:.08em">Day 1 of 9</span>'));
+  const h = el('h2',null,'Saturday, July 4');
+  Object.assign(h.style,{ margin:'4px 0 0', font:'700 24px/30px var(--font)', color:'#1A1A1A' });
+  c.appendChild(h);
+  const route = el('p'); Object.assign(route.style,{ margin:'4px 0 0', display:'inline-flex',
+    alignItems:'center', gap:'6px', font:'500 15px/20px var(--font)', color:'#6B6B6B' });
+  route.append('Chicago'); route.appendChild(svg('arrow',14,'#9B9B9B',2.2)); route.append('Kauai');
+  c.appendChild(route);
+  return c;
+}
+
+function highlightCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', overflow:'hidden' });
+  const img = el('div'); Object.assign(img.style,{ height:'130px', position:'relative',
+    backgroundImage:"url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=760&q=80')",
+    backgroundSize:'cover', backgroundPosition:'center' });
+  img.appendChild(el('div',null,'')).style.cssText = 'position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(10,20,40,.8) 100%)';
+  const foot = el('div'); Object.assign(foot.style,{ position:'absolute', bottom:'10px', left:'12px',
+    right:'12px', display:'flex', alignItems:'center', justifyContent:'space-between' });
+  const tag = el('div'); Object.assign(tag.style,{ display:'flex', alignItems:'center', gap:'6px' });
+  tag.appendChild(svg('sunrise',13,'#fff',2));
+  const tagLabel = el('span','cap','<span style="color:#fff;letter-spacing:.06em">Highlight</span>');
+  tag.appendChild(tagLabel);
+  const pill = el('div'); Object.assign(pill.style,{ background:'rgba(255,255,255,.18)',
+    backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,.28)', borderRadius:'9999px',
+    padding:'4px 8px', display:'flex', alignItems:'center', gap:'4px' });
+  const pc = svg('clock',11,'#fff',2); pc.style.display='block'; pc.style.flexShrink='0';
+  pill.appendChild(pc);
+  const pt = el('span'); pt.textContent='Day 8';
+  Object.assign(pt.style,{ font:'500 13px/13px var(--font)', color:'#fff', display:'block' });
+  pill.appendChild(pt);
+  foot.append(tag,pill); img.appendChild(foot); c.appendChild(img);
+  const body = el('div'); body.style.padding='20px';
+  body.appendChild(el('h3',null,'<span style="font:600 18px/24px var(--font);color:#1A1A1A">Haleakala Sunrise</span>'));
+  const meta = el('div'); Object.assign(meta.style,{ display:'flex', alignItems:'center', gap:'6px', margin:'6px 0 0' });
+  meta.appendChild(svg('mappin',13,'#6B6B6B',2));
+  meta.appendChild(el('span',null,'<span style="font:500 15px var(--font);color:#6B6B6B">Maui · 5:30 AM</span>'));
+  body.appendChild(meta);
+  c.appendChild(body);
+  return c;
+}
+
+function flightCard() {
+  const c = el('div','card'); Object.assign(c.style,{ width:W+'px', borderRadius:'16px', padding:'16px 18px' });
+  const top = el('div'); Object.assign(top.style,{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'12px' });
+  const icon = el('div'); Object.assign(icon.style,{ width:'36px', height:'36px', borderRadius:'10px',
+    background:'#E0F1F8', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:'0' });
+  icon.appendChild(svg('plane',18,'#2B7A9E',1.5)); top.appendChild(icon);
+  top.appendChild(el('div',null,'<span style="font:600 18px/24px var(--font);color:#1A1A1A">United 1947</span>'));
+  c.appendChild(top);
+  const row = el('div'); Object.assign(row.style,{ display:'flex', alignItems:'center', gap:'8px' });
+  const left = el('div'); Object.assign(left.style,{ flex:'1' });
+  left.appendChild(el('div',null,'<span style="font:700 22px/26px var(--font);color:#1A1A1A">ORD</span>'));
+  left.appendChild(el('div',null,'<span style="font:500 13px var(--font);color:#6B6B6B">6:50 AM</span>'));
+  const mid = el('div'); Object.assign(mid.style,{ flex:'1', textAlign:'center' });
+  const line = el('div'); Object.assign(line.style,{ height:'1px', background:'linear-gradient(90deg,#DB8F43,#2AA5CB)',
+    margin:'6px 0 3px', borderRadius:'1px' });
+  mid.appendChild(line);
+  mid.appendChild(el('div',null,'<span style="font:500 12px var(--font);color:#9B9B9B;letter-spacing:.03em">5h 20m</span>'));
+  const right = el('div'); Object.assign(right.style,{ flex:'1', textAlign:'right' });
+  right.appendChild(el('div',null,'<span style="font:700 22px/26px var(--font);color:#1A1A1A">LIH</span>'));
+  right.appendChild(el('div',null,'<span style="font:500 13px var(--font);color:#6B6B6B">11:10 AM</span>'));
+  row.append(left,mid,right); c.appendChild(row);
+  return c;
+}
+
+/* ─── place components ───────────────────────────────────── */
+
+// each entry: { make, top, left, rotate, scale, zIndex }
+const PLACEMENTS = [
+  // back layer
+  { make: mauiCard,      top: 520, left: 900, rotate:  5,   scale: 0.90, z: 1 },
+  { make: highlightCard, top: 330, left: 1030, rotate: -4,  scale: 0.88, z: 2 },
+  // mid layer
+  { make: destCard,      top:  55, left: 820, rotate: -5,   scale: 0.95, z: 3 },
+  { make: flightCard,    top: 480, left: 640, rotate:  3,   scale: 0.90, z: 3 },
+  // front layer
+  { make: dayHeader,     top:  45, left: 1090, rotate: 6,   scale: 0.85, z: 4 },
+  { make: eventCard,     top: 230, left: 730, rotate: -3,   scale: 0.95, z: 5 },
+];
+
+const container = document.getElementById('comps');
+for (const p of PLACEMENTS) {
+  const wrap = el('div','comp');
+  Object.assign(wrap.style,{
+    top: p.top + 'px',
+    left: p.left + 'px',
+    transform: `rotate(${p.rotate}deg) scale(${p.scale})`,
+    zIndex: p.z,
+  });
+  wrap.appendChild(p.make());
+  container.appendChild(wrap);
+}
+
+window.__ready = document.fonts.ready.then(() => true);
+</script>
+</body>
+</html>

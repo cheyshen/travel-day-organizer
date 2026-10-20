@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Travel Design System — Portfolio Assets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---------------------------------------------------------------------------
+     Portfolio capture page for the Travel "Tropical" design system.
+     Every value below is mirrored verbatim from the app source:
+       colors  -> src/colors.js
+       type    -> src/styles.js  (typography)
+       icons   -> lucide-react v0.468.0 node data (the same icons the app renders)
+       cards   -> src/components/TimeBlock.jsx, NowIndicator.jsx, HeroView DestCard
+     Each .frame is a fixed-size capture target with a unique id. capture.js
+     screenshots each id to its own PNG and serializes the icon grid to SVG.
+  --------------------------------------------------------------------------- */
+  :root {
+    --font: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --glossy-bg: #F2F3F5;          /* styles.js glossyBg */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Transparent page so omitBackground yields true alpha behind the transparent
+     icon frame; opaque frames paint their own clean background regardless. */
+  html, body { background: transparent; }
+  body {
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 64px;
+    padding: 64px;
+  }
+
+  /* A frame = one captured asset. Fixed width; height fixed per-frame below.
+     Opaque frames keep their clean background under omitBackground.
+     #frame-icons is transparent so its PNG drops onto any portfolio background. */
+  .frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--glossy-bg);
+    border-radius: 0; /* corners must be square so the capture has no transparent notch */
+    overflow: hidden;
+  }
+  .frame--transparent { background: transparent; }
+
+  .frame__title {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #9B9B9B; align-self: flex-start;
+  }
+
+  /* ---- color palette ---- */
+  .swatch-groups { display: flex; flex-direction: column; gap: 40px; width: 100%; }
+  .swatch-group__label {
+    font-size: 16px; font-weight: 700; color: #1A1A1A;
+    letter-spacing: 0.02em; margin-bottom: 18px;
+    padding-bottom: 10px; border-bottom: 1px solid #E2E0DB;
+  }
+  .swatch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .swatch { display: flex; flex-direction: column; gap: 10px; }
+  .swatch__chip {
+    height: 132px; border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
+  }
+  .swatch__name { font-size: 15px; font-weight: 600; color: #1A1A1A; }
+  .swatch__hex  { font-size: 13px; font-weight: 500; color: #9B9B9B; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+  /* ---- icon grid ---- */
+  .icon-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 28px 20px; width: 100%; }
+  .icon-cell { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .icon-tile {
+    width: 116px; height: 116px; border-radius: 30px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; border: 6px solid #FFFFFF;
+    box-shadow: 0 5px 12px rgba(0,0,0,0.18);
+  }
+  .icon-tile::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(160deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.04) 45%, rgba(0,0,0,.05) 100%);
+  }
+  .icon-label { font-size: 15px; font-weight: 600; color: #1A1A1A; text-align: center; }
+
+  /* ---- type scale ---- */
+  .type-rows { display: flex; flex-direction: column; width: 100%; }
+  .type-row {
+    display: grid; grid-template-columns: 250px 1fr; align-items: baseline; gap: 40px;
+    padding: 26px 0; border-bottom: 1px solid #E2E0DB;
+  }
+  .type-row:last-child { border-bottom: none; }
+  .type-meta__name { font-size: 17px; font-weight: 700; color: #1A1A1A; }
+  .type-meta__spec { font-size: 13px; font-weight: 500; color: #9B9B9B; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .type-sample { color: #1A1A1A; }
+
+  /* ---- component stage ---- */
+  .stage { display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; width: 100%; }
+</style>
+</head>
+<body>
+
+  <!-- (a) COLOR PALETTE -->
+  <section class="frame" id="frame-colors" style="width:1200px; height:3060px; padding:72px; align-items:stretch; justify-content:flex-start; gap:40px;">
+    <div class="frame__title">Color palette · colors.js</div>
+    <div class="swatch-groups" id="swatch-groups"></div>
+  </section>
+
+  <!-- (a2) COLOR POSTER — proportional brand stack -->
+  <section class="frame" id="frame-color-poster" style="width:1000px; height:1300px; padding:0;">
+    <div id="poster-card" style="width:1000px; height:1300px; background:#ECEAE6; padding:64px; display:flex;">
+      <div id="poster-stack" style="width:100%; height:100%; border-radius:8px; overflow:hidden; display:flex; flex-direction:column;"></div>
+    </div>
+  </section>
+
+  <!-- (b) EVENT-TYPE ICONS (transparent) -->
+  <section class="frame frame--transparent" id="frame-icons" style="width:1400px; height:680px; padding:80px;">
+    <div class="icon-grid" id="icon-grid"></div>
+  </section>
+
+  <!-- (c) TYPE SCALE -->
+  <section class="frame" id="frame-type-scale" style="width:1200px; height:1680px; padding:72px; align-items:stretch; justify-content:center; gap:32px;">
+    <div class="frame__title">Type scale · DM Sans · styles.js</div>
+    <div class="type-rows" id="type-rows"></div>
+  </section>
+
+  <!-- (d1) TIMELINE CARD -->
+  <section class="frame" id="frame-timeline-card" style="width:900px; height:1100px; padding:80px;">
+    <div class="stage" style="flex-direction:column; gap:28px; width:420px;" id="timeline-stage"></div>
+  </section>
+
+  <!-- (d2) DESTINATION CARDS -->
+  <section class="frame" id="frame-destination-cards" style="width:1200px; height:760px; padding:80px;">
+    <div class="stage" id="dest-stage" style="align-items:stretch; gap:28px; max-width:760px;"></div>
+  </section>
+
+  <!-- (d3) NOW MARKER (above a timeline card, as it appears in the day view) -->
+  <section class="frame" id="frame-now-marker" style="width:760px; height:600px; padding:64px;">
+    <div id="now-stage" style="width:440px; display:flex; flex-direction:column; gap:16px;"></div>
+  </section>
+
+<script>
+/* ============================================================================
+   1. DESIGN TOKENS — copied verbatim from the app source.
+   ========================================================================== */
+const fontStack = "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"; // styles.js
+const colors = {
+  surface: '#FFFFFF',
+  ocean: '#0E7490', oceanLight: '#E0F7FA',
+  sand: '#9E7C2E', sandLight: '#F5EDD8',
+  coral: '#C74534', coralLight: '#FDE8E3',
+  palm: '#2D7D46', palmLight: '#E0F2E5',
+  sunset: '#C05D10', sunsetLight: '#FDE8D3',
+  amber: '#B45309', amberLight: '#FFFBEB',
+  aqua: '#0891B2', aquaLight: '#CFFAFE',
+  emerald: '#059669', emeraldLight: '#D1FAE5',
+  rose: '#DB2777', roseLight: '#FCE7F3',
+  purple: '#9333EA', purpleLight: '#F3E8FF',
+  violet: '#6D28D9', violetLight: '#EDE9FE',
+  tan: '#7B5B3A', tanLight: '#F7EDE2',
+  navy: '#1E40AF', navyLight: '#DBEAFE',
+  textPrimary: '#1A1A1A', textSecondary: '#6B6B6B', textMuted: '#9B9B9B',
+  textOnAccent: '#FFFFFF', textOnDark: '#FFFFFF',
+  success: '#27815B', successLight: '#E8F5E9',
+  warning: '#D97B2B', warningLight: '#FFF3E0',
+  danger: '#C0392B', dangerLight: '#FDECEA',
+  info: '#2B7A9E', infoLight: '#E0F1F8',
+  border: '#E2E0DB', borderLight: '#F0EFEA', dragHandle: '#D6D3CE',
+};
+
+// typography — src/styles.js (DM Sans; weights 500/600/700 only, no 400)
+const typography = {
+  hero:          { fontSize: 42, fontWeight: 700, lineHeight: '44px', letterSpacing: '-0.02em' },
+  title:         { fontSize: 24, fontWeight: 700, lineHeight: '30px', letterSpacing: '-0.01em' },
+  heading:       { fontSize: 18, fontWeight: 700, lineHeight: '24px', letterSpacing: '-0.01em' },
+  sectionHeader: { fontSize: 18, fontWeight: 600, lineHeight: '24px' },
+  body:          { fontSize: 16, fontWeight: 500, lineHeight: '22px' },
+  bodyMedium:    { fontSize: 16, fontWeight: 500, lineHeight: '22px' },
+  helper:        { fontSize: 15, fontWeight: 500, lineHeight: '20px' },
+  caption:       { fontSize: 13, fontWeight: 600, lineHeight: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' },
+};
+
+// EVENT_TYPES — label + sticker tile color/tint from src/data/eventVisuals.js
+// (viz = saturated sticker tile, white icon; vizTint = soft card tint)
+const EVENT_TYPES = [
+  { id: 'flight',           label: 'Flight',      viz: '#438ADB', vizTint: '#E7EFF8' },
+  { id: 'ground_transport', label: 'Transport',   viz: '#725ED4', vizTint: '#EEEBF9' },
+  { id: 'hotel',            label: 'Hotel',       viz: '#A35CCC', vizTint: '#F4ECF9' },
+  { id: 'activity',         label: 'Activity',    viz: '#32AE70', vizTint: '#E8F7F0' },
+  { id: 'dining',           label: 'Dining',      viz: '#DB5743', vizTint: '#FAECEA' },
+  { id: 'buffer',           label: 'Buffer',      viz: '#A8A094', vizTint: '#F2F0ED' },
+  { id: 'boat',             label: 'Boat',        viz: '#2AA5CB', vizTint: '#E7F4F8' },
+  { id: 'sunrise',          label: 'Sunrise',     viz: '#DB8F43', vizTint: '#F9F0E6' },
+  { id: 'sightseeing',      label: 'Sightseeing', viz: '#D5B534', vizTint: '#F8F4E2' },
+  { id: 'beach',            label: 'Beach',       viz: '#29AEA0', vizTint: '#E8F8F6' },
+  { id: 'hiking',           label: 'Hiking',      viz: '#38B242', vizTint: '#E8F7EA' },
+  { id: 'shopping',         label: 'Shopping',    viz: '#DD4B94', vizTint: '#FAEAF2' },
+  { id: 'entertainment',    label: 'Fun',         viz: '#D256D2', vizTint: '#F9ECF9' },
+  { id: 'custom',           label: 'Custom',      viz: '#9E9E9E', vizTint: '#F2F2F2' },
+];
+
+// Lucide v0.468.0 icon node data — extracted directly from node_modules/lucide-react.
+const ICON_NODES = {"flight":[["path",{"d":"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"}]],"ground_transport":[["path",{"d":"M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"}],["circle",{"cx":"7","cy":"17","r":"2"}],["path",{"d":"M9 17h6"}],["circle",{"cx":"17","cy":"17","r":"2"}]],"hotel":[["path",{"d":"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"}],["path",{"d":"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"}],["path",{"d":"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"}],["path",{"d":"M10 6h4"}],["path",{"d":"M10 10h4"}],["path",{"d":"M10 14h4"}],["path",{"d":"M10 18h4"}]],"activity":[["path",{"d":"M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"}],["path",{"d":"M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"}],["path",{"d":"M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"}],["path",{"d":"M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"}]],"dining":[["path",{"d":"m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"}],["path",{"d":"M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"}],["path",{"d":"m2.1 21.8 6.4-6.3"}],["path",{"d":"m19 5-7 7"}]],"buffer":[["circle",{"cx":"12","cy":"12","r":"10"}],["polyline",{"points":"12 6 12 12 16 14"}]],"boat":[["path",{"d":"M12 10.189V14"}],["path",{"d":"M12 2v3"}],["path",{"d":"M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"}],["path",{"d":"M19.38 20A11.6 11.6 0 0 0 21 14l-8.188-3.639a2 2 0 0 0-1.624 0L3 14a11.6 11.6 0 0 0 2.81 7.76"}],["path",{"d":"M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1s1.2 1 2.5 1c2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"sunrise":[["path",{"d":"M12 2v8"}],["path",{"d":"m4.93 10.93 1.41 1.41"}],["path",{"d":"M2 18h2"}],["path",{"d":"M20 18h2"}],["path",{"d":"m19.07 10.93-1.41 1.41"}],["path",{"d":"M22 22H2"}],["path",{"d":"m8 6 4-4 4 4"}],["path",{"d":"M16 18a4 4 0 0 0-8 0"}]],"sightseeing":[["path",{"d":"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"}],["circle",{"cx":"12","cy":"13","r":"3"}]],"beach":[["path",{"d":"M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}],["path",{"d":"M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"}]],"hiking":[["path",{"d":"m8 3 4 8 5-5 5 15H2L8 3z"}]],"shopping":[["path",{"d":"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"}],["path",{"d":"M3 6h18"}],["path",{"d":"M16 10a4 4 0 0 1-8 0"}]],"entertainment":[["path",{"d":"M5.8 11.3 2 22l10.7-3.79"}],["path",{"d":"M4 3h.01"}],["path",{"d":"M22 8h.01"}],["path",{"d":"M15 2h.01"}],["path",{"d":"M22 20h.01"}],["path",{"d":"m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"}],["path",{"d":"m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"}],["path",{"d":"m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"}],["path",{"d":"M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"}]],"custom":[["circle",{"cx":"12","cy":"12","r":"10"}]]};
+
+// Type-based cover gradients — src/data/coverImages.js (offline-safe fallbacks)
+const TYPE_GRADIENTS = {
+  flight: 'linear-gradient(135deg, #2B7A9E 0%, #87CEEB 100%)',
+  beach: 'linear-gradient(135deg, #0891B2 0%, #67E8F9 100%)',
+  dining: 'linear-gradient(135deg, #E8725A 0%, #F0A090 100%)',
+  buffer: 'linear-gradient(135deg, #A8A29E 0%, #D6D3CE 100%)',
+  boat: 'linear-gradient(135deg, #1B9AAA 0%, #67E8F9 100%)',
+};
+
+/* ============================================================================
+   2. Lucide SVG renderer — builds the exact 24x24 stroked icon markup.
+   ========================================================================== */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function lucideSVG(typeId, size, color, strokeWidth) {
+  const nodes = ICON_NODES[typeId] || ICON_NODES.custom;
+  const svg = document.createElementNS(SVGNS, 'svg');
+  svg.setAttribute('width', size);
+  svg.setAttribute('height', size);
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', color);
+  svg.setAttribute('stroke-width', strokeWidth);
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  for (const [tag, attrs] of nodes) {
+    const el = document.createElementNS(SVGNS, tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    svg.appendChild(el);
+  }
+  return svg;
+}
+
+/* ============================================================================
+   3. FRAME (a) — color palette swatches
+   ========================================================================== */
+const COLOR_GROUPS = [
+  { label: 'Brand & Surface', keys: ['surface','ocean','oceanLight','sand','sandLight','coral','coralLight','palm','palmLight','sunset','sunsetLight'] },
+  { label: 'Accent palette', keys: ['amber','amberLight','aqua','aquaLight','emerald','emeraldLight','rose','roseLight','purple','purpleLight','violet','violetLight','tan','tanLight','navy','navyLight'] },
+  { label: 'Text', keys: ['textPrimary','textSecondary','textMuted','textOnAccent','textOnDark'] },
+  { label: 'Status', keys: ['success','successLight','warning','warningLight','danger','dangerLight','info','infoLight'] },
+  { label: 'Borders & UI', keys: ['border','borderLight','dragHandle'] },
+];
+function isLight(hex) {
+  const c = hex.replace('#',''); const r=parseInt(c.substr(0,2),16), g=parseInt(c.substr(2,2),16), b=parseInt(c.substr(4,2),16);
+  return (0.299*r + 0.587*g + 0.114*b) > 225; // near-white needs a hairline border
+}
+(function buildColors() {
+  const root = document.getElementById('swatch-groups');
+  for (const group of COLOR_GROUPS) {
+    const wrap = document.createElement('div');
+    const h = document.createElement('div'); h.className = 'swatch-group__label'; h.textContent = group.label;
+    wrap.appendChild(h);
+    const grid = document.createElement('div'); grid.className = 'swatch-grid';
+    for (const key of group.keys) {
+      const hex = colors[key];
+      const sw = document.createElement('div'); sw.className = 'swatch';
+      const chip = document.createElement('div'); chip.className = 'swatch__chip';
+      chip.style.background = hex;
+      if (isLight(hex)) chip.style.border = '1px solid ' + colors.border;
+      const name = document.createElement('div'); name.className = 'swatch__name'; name.textContent = key;
+      const val = document.createElement('div'); val.className = 'swatch__hex'; val.textContent = hex;
+      sw.append(chip, name, val); grid.appendChild(sw);
+    }
+    wrap.appendChild(grid); root.appendChild(wrap);
+  }
+})();
+
+/* ============================================================================
+   4. FRAME (b) — event-type icon grid (+ window.buildIconGridSVG for export)
+   ========================================================================== */
+const ICON_TILE = 116, ICON_SIZE = 56, ICON_STROKE = 2;
+(function buildIconGrid() {
+  const grid = document.getElementById('icon-grid');
+  for (const t of EVENT_TYPES) {
+    const cell = document.createElement('div'); cell.className = 'icon-cell';
+    const tile = document.createElement('div'); tile.className = 'icon-tile'; tile.style.background = t.viz;
+    tile.appendChild(lucideSVG(t.id, ICON_SIZE, '#FFFFFF', ICON_STROKE));
+    const label = document.createElement('div'); label.className = 'icon-label'; label.textContent = t.label;
+    cell.append(tile, label); grid.appendChild(cell);
+  }
+})();
+
+// Standalone vector version of the icon grid — same data, hand-built SVG.
+window.buildIconGridSVG = function () {
+  const COLS = 7, TILE = 116, RADIUS = 30, GAP_X = 20, GAP_Y = 28;
+  const PAD = 60, LABEL_H = 28, ICON = 56, STROKE = 2, FONT = 15;
+  const cellH = TILE + 14 + LABEL_H;
+  const rows = Math.ceil(EVENT_TYPES.length / COLS);
+  const W = PAD * 2 + COLS * TILE + (COLS - 1) * GAP_X;
+  const H = PAD * 2 + rows * cellH + (rows - 1) * (GAP_Y - 14);
+  let out = `<svg xmlns="${SVGNS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" fill="none">\n`;
+  out += `  <defs>\n`;
+  out += `    <filter id="stk" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000000" flood-opacity="0.18"/></filter>\n`;
+  out += `    <linearGradient id="gloss" x1="0" y1="0" x2="0.55" y2="1">`
+       + `<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.25"/>`
+       + `<stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.04"/>`
+       + `<stop offset="1" stop-color="#000000" stop-opacity="0.05"/></linearGradient>\n`;
+  out += `  </defs>\n`;
+  out += `  <style>text{font-family:'DM Sans',-apple-system,'Segoe UI',sans-serif;font-weight:600;}</style>\n`;
+  EVENT_TYPES.forEach((t, i) => {
+    const col = i % COLS, row = Math.floor(i / COLS);
+    const x = PAD + col * (TILE + GAP_X);
+    const y = PAD + row * (cellH + (GAP_Y - 14));
+    const ix = x + (TILE - ICON) / 2, iy = y + (TILE - ICON) / 2;
+    const scale = ICON / 24;
+    out += `  <rect x="${x}" y="${y}" width="${TILE}" height="${TILE}" rx="${RADIUS}" fill="${t.viz}" stroke="#FFFFFF" stroke-width="6" filter="url(#stk)"/>\n`;
+    out += `  <g transform="translate(${ix} ${iy}) scale(${scale})" fill="none" stroke="#FFFFFF" stroke-width="${STROKE}" stroke-linecap="round" stroke-linejoin="round">\n`;
+    for (const [tag, attrs] of (ICON_NODES[t.id] || ICON_NODES.custom)) {
+      const a = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ');
+      out += `    <${tag} ${a}/>\n`;
+    }
+    out += `  </g>\n`;
+    out += `  <rect x="${x}" y="${y}" width="${TILE}" height="${TILE}" rx="${RADIUS}" fill="url(#gloss)"/>\n`;
+    const tx = x + TILE / 2, ty = y + TILE + 14 + FONT;
+    out += `  <text x="${tx}" y="${ty}" font-size="${FONT}" fill="${colors.textPrimary}" text-anchor="middle">${t.label}</text>\n`;
+  });
+  out += `</svg>\n`;
+  return out;
+};
+
+/* ============================================================================
+   5. FRAME (c) — type scale
+   ========================================================================== */
+const TYPE_ORDER = ['hero','title','heading','sectionHeader','body','bodyMedium','helper','caption'];
+const TYPE_SAMPLE = {
+  hero: 'Hawaii Vacation', title: 'Your Itinerary', heading: 'Up next', sectionHeader: 'Flight to Kauai',
+  body: 'Settle in and relax at Poipu Beach.', bodyMedium: 'Sunset Dinner · The Beach House',
+  helper: '5 days · 9 events · 2 islands', caption: 'Upcoming',
+};
+(function buildTypeScale() {
+  const root = document.getElementById('type-rows');
+  for (const name of TYPE_ORDER) {
+    const t = typography[name];
+    const row = document.createElement('div'); row.className = 'type-row';
+    const meta = document.createElement('div');
+    const lh = String(t.lineHeight).replace('px','');
+    const spec = `${t.fontSize}px · ${t.fontWeight} · ${lh}/lh` + (t.letterSpacing ? ` · ${t.letterSpacing}` : '');
+    meta.innerHTML = `<div class="type-meta__name">${name}</div><div class="type-meta__spec">${spec}</div>`;
+    const sample = document.createElement('div'); sample.className = 'type-sample';
+    Object.assign(sample.style, {
+      fontSize: t.fontSize + 'px', fontWeight: t.fontWeight, lineHeight: t.lineHeight,
+      letterSpacing: t.letterSpacing || 'normal',
+      textTransform: t.textTransform || 'none',
+      color: name === 'caption' ? colors.ocean : colors.textPrimary,
+    });
+    sample.textContent = TYPE_SAMPLE[name];
+    row.append(meta, sample); root.appendChild(row);
+  }
+})();
+
+/* ============================================================================
+   6. FRAME (d1) — timeline card (TimeBlock: image card + buffer variant)
+   ========================================================================== */
+function imageWithFallback(url, gradient) {
+  const img = document.createElement('img');
+  img.src = url; img.alt = ''; img.loading = 'eager';
+  Object.assign(img.style, { position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' });
+  img.onerror = () => { img.style.display = 'none'; }; // graceful fallback to the gradient (mirrors TimeBlock)
+  return img;
+}
+function timelineImageCard({ type, title, subtitle, time, photo }) {
+  const t = EVENT_TYPES.find(e => e.id === type);
+  const card = document.createElement('div');
+  Object.assign(card.style, {
+    width:'100%', borderRadius:'16px', overflow:'hidden', position:'relative',
+    background:'rgba(255,255,255,0.82)',
+    boxShadow:'0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+    border:'1px solid rgba(0,0,0,0.06)',
+  });
+  // image area
+  const imgArea = document.createElement('div');
+  Object.assign(imgArea.style, { position:'relative', height:'125px', background: TYPE_GRADIENTS[type] || TYPE_GRADIENTS.flight, overflow:'hidden' });
+  if (photo) imgArea.appendChild(imageWithFallback(photo, TYPE_GRADIENTS[type]));
+  const grad = document.createElement('div');
+  Object.assign(grad.style, { position:'absolute', left:0, right:0, bottom:0, height:'60px', background:'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%)' });
+  imgArea.appendChild(grad);
+  // time + type badge
+  const badge = document.createElement('div');
+  Object.assign(badge.style, { position:'absolute', bottom:'8px', left:'8px', display:'flex', alignItems:'center', gap:'6px',
+    background:'rgba(0,0,0,0.6)', padding:'4px 10px', borderRadius:'8px' });
+  badge.appendChild(lucideSVG(type, 14, colors.textOnDark, 2.5));
+  const bt = document.createElement('span'); bt.textContent = time;
+  Object.assign(bt.style, { color:colors.textOnDark, fontSize:'11px', fontWeight:600, letterSpacing:'0.01em' });
+  const bl = document.createElement('span'); bl.textContent = '· ' + t.label;
+  Object.assign(bl.style, { color:'rgba(255,255,255,0.7)', fontSize:'11px', fontWeight:500 });
+  badge.append(bt, bl); imgArea.appendChild(badge);
+  // edit pencil
+  const edit = document.createElement('div');
+  Object.assign(edit.style, { position:'absolute', top:'8px', right:'8px', width:'28px', height:'28px', borderRadius:'14px',
+    background:'rgba(0,0,0,0.35)', display:'flex', alignItems:'center', justifyContent:'center' });
+  const pencil = document.createElementNS(SVGNS,'svg');
+  pencil.setAttribute('width',13); pencil.setAttribute('height',13); pencil.setAttribute('viewBox','0 0 24 24');
+  pencil.setAttribute('fill','none'); pencil.setAttribute('stroke',colors.textOnDark); pencil.setAttribute('stroke-width',2);
+  pencil.setAttribute('stroke-linecap','round'); pencil.setAttribute('stroke-linejoin','round');
+  pencil.innerHTML = '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>';
+  edit.appendChild(pencil); imgArea.appendChild(edit);
+  card.appendChild(imgArea);
+  // content area
+  const content = document.createElement('div');
+  Object.assign(content.style, { padding:'12px 16px', display:'flex', alignItems:'center', gap:'8px' });
+  const textWrap = document.createElement('div'); textWrap.style.flex='1'; textWrap.style.minWidth='0';
+  const ttl = document.createElement('p'); ttl.textContent = title;
+  Object.assign(ttl.style, { margin:0, fontSize:'18px', fontWeight:600, lineHeight:'24px', color:colors.textPrimary });
+  textWrap.appendChild(ttl);
+  if (subtitle) {
+    const sub = document.createElement('p'); sub.textContent = subtitle;
+    Object.assign(sub.style, { margin:'2px 0 0', fontSize:'15px', fontWeight:500, lineHeight:'22px', color:colors.textSecondary,
+      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' });
+    textWrap.appendChild(sub);
+  }
+  const btn = document.createElement('div');
+  Object.assign(btn.style, { height:'34px', padding:'0 10px 0 12px', borderRadius:'8px', background:'#EDEAE5',
+    display:'flex', alignItems:'center', gap:'4px', flexShrink:0, fontSize:'13px', fontWeight:600, color:colors.textSecondary });
+  btn.appendChild(document.createTextNode('Details'));
+  const chev = document.createElementNS(SVGNS,'svg');
+  chev.setAttribute('width',16); chev.setAttribute('height',16); chev.setAttribute('viewBox','0 0 24 24');
+  chev.setAttribute('fill','none'); chev.setAttribute('stroke',colors.textSecondary); chev.setAttribute('stroke-width',2.5);
+  chev.setAttribute('stroke-linecap','round'); chev.setAttribute('stroke-linejoin','round');
+  chev.innerHTML = '<path d="m9 18 6-6-6-6"/>';
+  btn.appendChild(chev);
+  content.append(textWrap, btn); card.appendChild(content);
+  return card;
+}
+function bufferCard({ time, minutes, label }) {
+  const card = document.createElement('div');
+  Object.assign(card.style, { width:'100%', borderRadius:'12px', background:colors.surface,
+    border:'1px solid rgba(0,0,0,0.04)', padding:'16px', display:'flex', flexDirection:'column', gap:'6px' });
+  const tr = document.createElement('span'); tr.textContent = time;
+  Object.assign(tr.style, { fontSize:'13px', fontWeight:600, color:colors.textSecondary });
+  const row = document.createElement('div');
+  Object.assign(row.style, { display:'flex', alignItems:'center', gap:'8px' });
+  row.appendChild(lucideSVG('buffer', 18, colors.tan, 2.5));
+  const p = document.createElement('p'); p.textContent = `~${minutes} min buffer`;
+  Object.assign(p.style, { margin:0, flex:1, fontSize:'15px', fontWeight:600, color:colors.textPrimary });
+  row.appendChild(p);
+  const sub = document.createElement('p'); sub.textContent = label;
+  Object.assign(sub.style, { margin:0, fontSize:'15px', fontWeight:500, lineHeight:'22px', color:colors.textSecondary });
+  card.append(tr, row, sub); return card;
+}
+(function buildTimeline() {
+  const stage = document.getElementById('timeline-stage');
+  stage.appendChild(timelineImageCard({
+    type:'beach', title:'Poipu Beach Afternoon', subtitle:'Snorkel + sunbathe',
+    time:'2:00 PM', photo:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=300&fit=crop&auto=format',
+  }));
+  stage.appendChild(bufferCard({ time:'11:15 AM – 12:00 PM', minutes:45, label:'Deplane + baggage + rental car pickup' }));
+})();
+
+/* ============================================================================
+   7. FRAME (d2) — destination cards (HeroView DestCard)
+   ========================================================================== */
+function destCard({ name, dates, days, accent, photo, fallback }) {
+  const card = document.createElement('div');
+  Object.assign(card.style, { flex:1, borderRadius:'20px', overflow:'hidden', position:'relative',
+    background:'rgba(255,255,255,0.82)', border:'1px solid rgba(0,0,0,0.06)',
+    boxShadow:'0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' });
+  const photoZone = document.createElement('div');
+  Object.assign(photoZone.style, { height:'120px', position:'relative', overflow:'hidden', background: fallback });
+  if (photo) {
+    const bg = document.createElement('div');
+    Object.assign(bg.style, { position:'absolute', inset:0, backgroundImage:`url(${photo})`, backgroundSize:'cover', backgroundPosition:'center' });
+    const probe = new Image(); probe.onerror = () => bg.remove(); probe.src = photo; // keep gradient if photo fails
+    photoZone.appendChild(bg);
+  }
+  card.appendChild(photoZone);
+  const info = document.createElement('div'); info.style.padding = '14px 18px 16px';
+  const h = document.createElement('h3'); h.textContent = name;
+  Object.assign(h.style, { margin:0, fontSize:'18px', fontWeight:700, color:colors.textPrimary });
+  const d = document.createElement('p'); d.textContent = dates;
+  Object.assign(d.style, { margin:'2px 0 0', fontSize:'15px', fontWeight:500, lineHeight:'22px', color:colors.textSecondary });
+  const bottom = document.createElement('div');
+  Object.assign(bottom.style, { display:'flex', alignItems:'center', justifyContent:'space-between',
+    marginTop:'8px', paddingTop:'8px', borderTop:'1px solid rgba(0,0,0,0.06)' });
+  const left = document.createElement('div');
+  Object.assign(left.style, { display:'flex', alignItems:'center', gap:'4px' });
+  const cal = document.createElementNS(SVGNS,'svg');
+  cal.setAttribute('width',14); cal.setAttribute('height',14); cal.setAttribute('viewBox','0 0 24 24');
+  cal.setAttribute('fill','none'); cal.setAttribute('stroke',colors.textMuted); cal.setAttribute('stroke-width',1.5);
+  cal.setAttribute('stroke-linecap','round'); cal.setAttribute('stroke-linejoin','round');
+  cal.innerHTML = '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>';
+  const dc = document.createElement('span'); dc.textContent = `${days} days`;
+  Object.assign(dc.style, { fontSize:'13px', fontWeight:500, color:colors.textSecondary });
+  left.append(cal, dc);
+  const arrow = document.createElement('div');
+  Object.assign(arrow.style, { width:'28px', height:'28px', borderRadius:'10px', background:accent,
+    display:'flex', alignItems:'center', justifyContent:'center' });
+  const ar = document.createElementNS(SVGNS,'svg');
+  ar.setAttribute('width',14); ar.setAttribute('height',14); ar.setAttribute('viewBox','0 0 24 24');
+  ar.setAttribute('fill','none'); ar.setAttribute('stroke',colors.textOnDark); ar.setAttribute('stroke-width',2.5);
+  ar.setAttribute('stroke-linecap','round'); ar.setAttribute('stroke-linejoin','round');
+  ar.innerHTML = '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>';
+  arrow.appendChild(ar);
+  bottom.append(left, arrow);
+  info.append(h, d, bottom); card.appendChild(info);
+  return card;
+}
+(function buildDest() {
+  const stage = document.getElementById('dest-stage');
+  stage.appendChild(destCard({
+    name:'Kauai', dates:'Mar 14 — Mar 18', days:5, accent:colors.ocean,
+    photo:'https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?w=600&q=80&auto=format&fit=crop',
+    fallback:'linear-gradient(135deg, #0A8F8F22, #0A8F8F44)',
+  }));
+  stage.appendChild(destCard({
+    name:'Maui', dates:'Mar 18 — Mar 22', days:5, accent:colors.sand,
+    photo:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80&auto=format&fit=crop',
+    fallback:`linear-gradient(135deg, ${colors.sand}22, ${colors.sand}44)`,
+  }));
+})();
+
+/* ============================================================================
+   8. FRAME (d3) — "Now" marker (NowIndicator)
+   ========================================================================== */
+(function buildNow() {
+  const stage = document.getElementById('now-stage');
+  // the "Now" indicator
+  const row = document.createElement('div');
+  Object.assign(row.style, { display:'flex', alignItems:'center', gap:'8px', padding:'12px 0', position:'relative' });
+  const dot = document.createElement('div');
+  Object.assign(dot.style, { width:'10px', height:'10px', borderRadius:'5px', background:colors.ocean,
+    flexShrink:0, boxShadow:`0 0 8px ${colors.ocean}60` });
+  const line = document.createElement('div');
+  Object.assign(line.style, { flex:1, height:'2px', background:colors.ocean, borderRadius:'1px' });
+  const label = document.createElement('span'); label.textContent = 'Now';
+  Object.assign(label.style, { fontSize:'13px', fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase', color:colors.textPrimary, flexShrink:0 });
+  row.append(dot, line, label);
+  stage.appendChild(row);
+  // the next event card directly beneath it (TimeBlock), giving the marker context
+  stage.appendChild(timelineImageCard({
+    type:'boat', title:'Na Pali Coast Boat Tour', subtitle:"Captain Andy's · Snorkel + sail",
+    time:'8:00 AM', photo:'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=300&fit=crop&auto=format',
+  }));
+})();
+
+/* ============================================================================
+   9. FRAME (a2) — color poster: proportional brand stack (big primary + accent
+      bands + neutral ramp columns), modeled on a brand-poster composition.
+   ========================================================================== */
+(function buildColorPoster() {
+  const stack = document.getElementById('poster-stack');
+  const onColor = (hex) => isLight(hex) ? colors.textPrimary : colors.textOnAccent;
+
+  // 1) brand hero bands — full-width primaries
+  function band(hex, label) {
+    const d = document.createElement('div');
+    Object.assign(d.style, { position:'relative', width:'100%', height:'12%', background:hex });
+    const cap = document.createElement('div');
+    Object.assign(cap.style, { position:'absolute', left:'22px', bottom:'16px', font:'700 16px ' + fontStack, color:onColor(hex) });
+    cap.textContent = label; d.appendChild(cap);
+    return d;
+  }
+  stack.appendChild(band(colors.coral, 'Coral · ' + colors.coral));
+  stack.appendChild(band(colors.ocean, 'Ocean · ' + colors.ocean));
+  stack.appendChild(band(colors.sand,  'Sand · '  + colors.sand));
+
+  // 2) EVENT COLORS — extensible grid (each cell = type color + its light tint).
+  //    Built from EVENT_TYPES, so adding a new event type adds a cell automatically.
+  const grid = document.createElement('div');
+  Object.assign(grid.style, { display:'grid', gridTemplateColumns:'repeat(4, 1fr)', width:'100%', height:'46%' });
+  for (const t of EVENT_TYPES) {
+    const cell = document.createElement('div');
+    Object.assign(cell.style, { display:'flex', flexDirection:'column' });
+    const main = document.createElement('div');
+    Object.assign(main.style, { position:'relative', flex:'1', background:t.viz });
+    const lab = document.createElement('div');
+    Object.assign(lab.style, { position:'absolute', left:'12px', bottom:'9px', font:'600 12px ' + fontStack, color:onColor(t.viz) });
+    lab.textContent = t.label; main.appendChild(lab);
+    const tint = document.createElement('div');
+    Object.assign(tint.style, { height:'22px', background:t.vizTint });
+    cell.append(main, tint); grid.appendChild(cell);
+  }
+  // extensibility slots — "add a new event color here"
+  for (let i = 0; i < 2; i++) {
+    const add = document.createElement('div');
+    Object.assign(add.style, { display:'flex', alignItems:'center', justifyContent:'center',
+      background:'#ECEAE6', border:'2px dashed ' + colors.dragHandle, color:colors.textMuted, font:'600 13px ' + fontStack });
+    add.textContent = '+ event color';
+    grid.appendChild(add);
+  }
+  stack.appendChild(grid);
+
+  // 3) neutral ramp — columns
+  const ramp = document.createElement('div');
+  Object.assign(ramp.style, { display:'flex', width:'100%', height:'18%' });
+  const neutrals = [
+    ['textPrimary', colors.textPrimary], ['textSecondary', colors.textSecondary], ['textMuted', colors.textMuted],
+    ['border', colors.border], ['borderLight', colors.borderLight], ['surface', colors.surface],
+  ];
+  for (const [name, hex] of neutrals) {
+    const col = document.createElement('div');
+    Object.assign(col.style, { flex:'1', background:hex, position:'relative' });
+    const cap = document.createElement('div');
+    Object.assign(cap.style, { position:'absolute', left:'12px', bottom:'14px', font:'600 11px ' + fontStack, color:onColor(hex) });
+    cap.textContent = name; col.appendChild(cap);
+    ramp.appendChild(col);
+  }
+  stack.appendChild(ramp);
+})();
+
+// Signal to capture.js that all frames are built and fonts are ready.
+window.__assetsReady = (async () => {
+  if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+  return true;
+})();
+</script>
+</body>
+</html>

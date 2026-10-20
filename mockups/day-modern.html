@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day tab — modern (timeline + muted palette)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;}
+  body{font-family:'DM Sans',sans-serif;font-weight:500;background:#cfd6df;padding:24px 12px 60px;color:#16202b;}
+  h1{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px;}
+  .sub{font-size:14px;color:#475569;text-align:center;margin-bottom:26px;}
+  .row{display:flex;flex-wrap:wrap;gap:40px;justify-content:center;}
+  .opt{width:280px;}
+  .label{text-align:center;margin-bottom:12px;}
+  .label .name{font-size:15px;font-weight:700;}
+  .label .d{font-size:12px;color:#64748b;}
+  .phone{width:280px;height:560px;border-radius:34px;overflow:hidden;border:9px solid #0d0d0f;box-shadow:0 20px 50px rgba(0,0,0,.28);}
+  .screen{height:100%;overflow:hidden;display:flex;flex-direction:column;}
+
+  /* header */
+  .hdr{padding:14px 16px 14px;}
+  .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .arrow{width:34px;height:34px;border-radius:11px;background:rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;color:#5b6470;font-size:16px;font-weight:700;}
+  .nav .ctr{text-align:center;}
+  .nav .meta{font-size:10px;font-weight:700;letter-spacing:.06em;color:#6b7280;text-transform:uppercase;}
+  .nav .date{font-size:17px;font-weight:700;margin-top:1px;}
+  .seg{display:flex;gap:4px;padding:4px;background:rgba(40,50,65,.08);border-radius:9999px;}
+  .seg .s{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:9999px;font-size:14px;font-weight:600;color:#5a6473;}
+  .seg .s.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);color:#16202b;font-weight:700;}
+  .kdot{width:10px;height:10px;border-radius:50%;background:#3f6f86;}
+  .mdot{width:10px;height:10px;border-radius:2px;background:#b08b4e;}
+
+  /* timeline */
+  .tl{padding:14px 16px 0;overflow:hidden;}
+  .ev{display:flex;}
+  .tcol{width:46px;flex-shrink:0;text-align:right;padding-right:10px;padding-top:1px;}
+  .tcol .t{font-size:12px;font-weight:700;color:#4b5563;line-height:1.15;}
+  .scol{width:20px;flex-shrink:0;display:flex;justify-content:center;position:relative;}
+  .scol::before{content:"";position:absolute;top:0;bottom:0;width:2px;background:rgba(80,92,108,.22);}
+  .scol .dot{width:12px;height:12px;border-radius:50%;margin-top:3px;position:relative;z-index:1;}
+  .ccol{flex:1;min-width:0;padding-bottom:16px;padding-left:6px;}
+
+  .card{background:#fff;border-radius:16px;box-shadow:0 8px 20px rgba(20,32,45,.10);overflow:hidden;}
+  .card .body{padding:13px 14px;}
+  .card .t{font-size:16px;font-weight:700;}
+  .card .s{font-size:14px;color:#6B7280;margin-top:2px;}
+  .photo{height:96px;position:relative;}
+  .photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photo .ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55),transparent 60%);}
+  .photo .cap{position:absolute;left:12px;bottom:9px;color:#fff;font-size:15px;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.4);}
+  .buf{background:transparent;border:1.5px dashed rgba(80,92,108,.32);border-radius:13px;padding:11px 13px;}
+  .buf .t{font-size:13px;font-weight:600;color:#3f4753;}
+  .buf .s{font-size:13.5px;color:#3f4753;margin-top:2px;}
+</style>
+</head>
+<body>
+<h1>Day tab — modern direction</h1>
+<div class="sub">Muted palette + a timeline spine + cleaner cards. Kauai &amp; Maui shown.</div>
+<div class="row">
+
+  <!-- KAUAI -->
+  <div class="opt">
+    <div class="label"><div class="name">Kauai day</div><div class="d">muted slate-blue</div></div>
+    <div class="phone"><div class="screen" style="background:#DBE2EC">
+      <div class="hdr">
+        <div class="nav">
+          <div class="arrow">‹</div>
+          <div class="ctr"><div class="meta">Day 1 of 9</div><div class="date">Sat, July 4</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="seg"><div class="s on"><span class="kdot"></span>Kauai</div><div class="s"><span class="mdot"></span>Maui</div></div>
+      </div>
+      <div class="tl">
+        <div class="ev"><div class="tcol"><div class="t">4:00<br>AM</div></div><div class="scol"><span class="dot" style="background:#8a93a3;border:2px solid #DBE2EC"></span></div><div class="ccol"><div class="buf"><div class="t">~30 min buffer</div><div class="s">Morning prep</div></div></div></div>
+        <div class="ev"><div class="tcol"><div class="t">4:30<br>AM</div></div><div class="scol"><span class="dot" style="background:#6D5BB0;border:2px solid #DBE2EC"></span></div><div class="ccol"><div class="card"><div class="body"><div class="t">Uber to O'Hare</div><div class="s">UberX · ~35 min</div></div></div></div></div>
+        <div class="ev"><div class="tcol"><div class="t">6:50<br>AM</div></div><div class="scol"><span class="dot" style="background:#3f6f86;border:2px solid #DBE2EC"></span></div><div class="ccol"><div class="card"><div class="photo"><img src="https://images.unsplash.com/photo-1505852679233-d9fd70aff56d?auto=format&fit=crop&w=600&q=80"><div class="ov"></div><div class="cap">Flight to Kauai</div></div><div class="body"><div class="t" style="font-size:14px;color:#6B7280;font-weight:600">United 1147 · Seat 22F</div></div></div></div></div>
+        <div class="ev"><div class="tcol"><div class="t">1:30<br>PM</div></div><div class="scol"><span class="dot" style="background:#2F9E8F;border:2px solid #DBE2EC"></span></div><div class="ccol"><div class="card"><div class="body"><div class="t">Poipu Beach</div><div class="s">Settle in + relax</div></div></div></div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- MAUI -->
+  <div class="opt">
+    <div class="label"><div class="name">Maui day</div><div class="d">muted warm sand</div></div>
+    <div class="phone"><div class="screen" style="background:#ECE5D6">
+      <div class="hdr">
+        <div class="nav">
+          <div class="arrow">‹</div>
+          <div class="ctr"><div class="meta">Day 6 of 9</div><div class="date">Thu, July 9</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="seg"><div class="s"><span class="kdot"></span>Kauai</div><div class="s on"><span class="mdot"></span>Maui</div></div>
+      </div>
+      <div class="tl">
+        <div class="ev"><div class="tcol"><div class="t">6:30<br>AM</div></div><div class="scol"><span class="dot" style="background:#6D5BB0;border:2px solid #ECE5D6"></span></div><div class="ccol"><div class="card"><div class="body"><div class="t">Road to Hana</div><div class="s">Ho'okipa → Twin Falls</div></div></div></div></div>
+        <div class="ev"><div class="tcol"><div class="t">10:15<br>AM</div></div><div class="scol"><span class="dot" style="background:#2F9E8F;border:2px solid #ECE5D6"></span></div><div class="ccol"><div class="card"><div class="photo"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80"><div class="ov"></div><div class="cap">Black Sand Beach</div></div><div class="body"><div class="t" style="font-size:14px;color:#6B7280;font-weight:600">Wai'anapanapa State Park</div></div></div></div></div>
+        <div class="ev"><div class="tcol"><div class="t">12:00<br>PM</div></div><div class="scol"><span class="dot" style="background:#C2553F;border:2px solid #ECE5D6"></span></div><div class="ccol"><div class="card"><div class="body"><div class="t">Lunch in Hana</div><div class="s">Hana Ranch Restaurant</div></div></div></div></div>
+        <div class="ev"><div class="tcol"><div class="t">1:30<br>PM</div></div><div class="scol"><span class="dot" style="background:#B08B4E;border:2px solid #ECE5D6"></span></div><div class="ccol"><div class="buf"><div class="t">~45 min</div><div class="s">Drive to Pipiwai Trail</div></div></div></div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+</body>
+</html>
