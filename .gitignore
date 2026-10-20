@@ -2,3 +2,9 @@ node_modules/
 dist/
 .env.prod
 .superpowers/
+
+# Generated portfolio output (regenerate via portfolio/EXPORTS.md)
+portfolio/exports/
+portfolio/*.zip
+portfolio/_up_*.png
+portfolio/_debug_save.js
