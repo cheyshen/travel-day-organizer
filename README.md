@@ -16,9 +16,10 @@ https://github.com/user-attachments/assets/baff91a1-b53b-4f1d-b4c8-b8fcacba22d6
 
 ## Features
 
-- **Trip Overview** — Destination cards, flight status with milestone tracking, trip countdown, weather forecast
-- **Calendar View** — Month grid color-coded by destination with event density dots
-- **Day Timeline** — Hour-by-hour itinerary with "Now" indicator and chronological event ordering
+- **Trip Overview** — Destination cards per island, "Up next" event and flight cards, weather forecast, trip highlights
+- **Plan** — Month calendar color-coded by island with event dots, a day summary popup, and trip-at-a-glance stats
+- **Day Timeline** — Hour-by-hour itinerary on a time spine with a "Now" indicator and a Kauai/Maui switcher
+- **Event Details** — Photo-forward detail page with description, place, and directions; sticker-style event-type picker in the editor
 - **Status View** — Categorized packing checklists and document management (upload boarding passes, confirmations, etc.)
 - **PWA** — Installable on mobile via "Add to Home Screen" with offline caching
 - **Live Weather** — Real weather data via Open-Meteo API by zip code
@@ -30,6 +31,7 @@ https://github.com/user-attachments/assets/baff91a1-b53b-4f1d-b4c8-b8fcacba22d6
 - **Framer Motion** — Page transitions and micro-interactions
 - **Lucide React** — Icons
 - **date-fns** — Date formatting and calendar grid
+- **DM Sans** — Single typeface, three weights (500 / 600 / 700)
 
 ## Getting Started
 
@@ -52,8 +54,9 @@ src/
 ├── context/TripContext.jsx # Central state (useReducer + localStorage)
 ├── views/
 │   ├── HeroView.jsx       # Trip overview
-│   ├── CalendarView.jsx   # Month calendar
+│   ├── CalendarView.jsx   # Plan tab (month calendar)
 │   ├── DayTimelineView.jsx # Day itinerary
+│   ├── EventDetailView.jsx # Event detail page
 │   └── StatusView.jsx     # Checklists + documents
 ├── components/            # Reusable UI components
 ├── data/                  # Sample trip data, event types
@@ -62,22 +65,22 @@ src/
 └── styles.js              # Typography, spacing, shadow tokens
 ```
 
-State-based view switching with bottom tab navigation (Trip, Calendar, Add, Day, Status). All state managed via `useReducer` with debounced `localStorage` persistence.
+State-based view switching with bottom tab navigation (Trip, Plan, Add, Day, Status). All state managed via `useReducer` with debounced `localStorage` persistence.
 
 ## Screenshots
 
-The app is designed mobile-first (max 480px) with a tropical glassmorphism aesthetic.
+The app is designed mobile-first (max 480px) with light surfaces, color-coded islands, and photo-forward event cards.
 
 <table>
   <tr>
     <td valign="top"><img src="docs/hero-view.png" alt="Trip Overview" width="230" /></td>
-    <td valign="top"><img src="docs/calendar-view.png" alt="Calendar View" width="230" /></td>
+    <td valign="top"><img src="docs/calendar-view.png" alt="Plan" width="230" /></td>
     <td valign="top"><img src="docs/day-view.png" alt="Day Timeline" width="230" /></td>
     <td valign="top"><img src="docs/status-view.png" alt="Status & Checklists" width="230" /></td>
   </tr>
   <tr>
     <td align="center"><b>Trip Overview</b></td>
-    <td align="center"><b>Calendar</b></td>
+    <td align="center"><b>Plan</b></td>
     <td align="center"><b>Day Timeline</b></td>
     <td align="center"><b>Checklists</b></td>
   </tr>
